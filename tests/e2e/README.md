@@ -33,3 +33,4 @@ Mantener una suite E2E pequeña, estable y útil.
 - `pnpm test:e2e:ui`
 - `pnpm test:e2e:smoke`
 - `pnpm test:e2e:auth`
+- `pnpm test:e2e:auth:sandbox`

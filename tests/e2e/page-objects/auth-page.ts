@@ -50,4 +50,12 @@ export class AuthPage {
   async submitLogin() {
     await this.page.getByRole('button', { name: 'Entrar en WellStudio' }).click()
   }
+
+  async expectInvalidLoginFeedback() {
+    await expect(
+      this.page.getByText(
+        'No hemos podido iniciar tu sesión. Revisa tus credenciales e inténtalo de nuevo.',
+      ),
+    ).toBeVisible()
+  }
 }
