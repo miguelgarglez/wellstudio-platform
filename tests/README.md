@@ -10,3 +10,9 @@
 - prefer unit tests for pure business rules
 - keep tests close to module boundaries conceptually, even if they live under `tests/`
 - avoid testing simple presentation-only code unless it carries real behavior
+
+## E2E baseline
+
+- Playwright owns smoke coverage for route availability and critical user flows
+- the initial smoke suite should stay intentionally small and fast
+- browser artifacts should live under `output/playwright/`
