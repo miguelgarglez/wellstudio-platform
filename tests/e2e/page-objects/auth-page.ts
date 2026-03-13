@@ -13,6 +13,9 @@ export class AuthPage {
 
   async expectLoginVisible() {
     await expect(
+      this.page.getByRole('heading', { name: 'Entrena con acceso privado' }),
+    ).toBeVisible()
+    await expect(
       this.page.getByRole('heading', { name: 'Inicia sesión' }),
     ).toBeVisible()
     await expect(this.page.getByLabel('Email')).toBeVisible()
@@ -23,6 +26,9 @@ export class AuthPage {
   }
 
   async expectRegisterVisible() {
+    await expect(
+      this.page.getByRole('heading', { name: 'Empieza tu experiencia boutique' }),
+    ).toBeVisible()
     await expect(
       this.page.getByRole('heading', { name: 'Crea tu cuenta' }),
     ).toBeVisible()
