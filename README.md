@@ -4,10 +4,10 @@ Monolito modular en `Next.js` para WellStudio.
 
 Estado actual:
 
-- repo base de preparacion
+- repo base creado y operativo
 - documentacion fundacional importada
 - stack objetivo definido
-- pendiente bootstrap de app e instalacion de dependencias
+- `schema.prisma`, test unitario base y smoke E2E inicial ya preparados
 
 ## Direccion tecnica
 
@@ -36,11 +36,28 @@ Usar esta regla:
 
 ## Prioridad inmediata
 
-1. bootstrap de `Next.js`
-2. estructura modular real
-3. `schema.prisma`
-4. boundary de `Supabase Auth`
-5. test harness base
+1. boundary de `Supabase Auth`
+2. workflow Docker local y VPS
+3. fixtures y gates iniciales de testing
+4. primeros casos de uso de auth y members
+
+## Comandos base
+
+```bash
+pnpm dev
+pnpm lint
+pnpm typecheck
+pnpm test:unit
+pnpm test:e2e
+```
+
+## Docker
+
+Referencias:
+
+- [`Dockerfile`](./Dockerfile)
+- [`docker-compose.yml`](./docker-compose.yml)
+- [`docs/runbooks/docker-local-and-vps.md`](./docs/runbooks/docker-local-and-vps.md)
 
 ## Notas
 
