@@ -17,6 +17,8 @@
 - Playwright owns smoke coverage for route availability and critical user flows
 - the initial smoke suite should stay intentionally small and fast
 - browser artifacts should live under `output/playwright/`
+- auth E2E should start with local smoke coverage before moving to sandbox flows
+- page objects should stay small and focused by domain, not become a custom framework
 
 ## Fixture strategy
 

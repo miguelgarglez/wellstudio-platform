@@ -1,6 +1,6 @@
 import { expect, test } from '@playwright/test'
 
-test('public shell routes are reachable', async ({ page }) => {
+test('public shell routes are reachable @smoke', async ({ page }) => {
   await page.goto('/')
 
   await expect(page.getByRole('heading', { name: 'Modular monolith bootstrap' })).toBeVisible()
