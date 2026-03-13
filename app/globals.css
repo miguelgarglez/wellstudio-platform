@@ -6,39 +6,47 @@
 
 :root {
   color-scheme: light;
-  --muted: oklch(0.97 0 0);
-  --surface: #fffdf9;
-  --border: oklch(0.922 0 0);
-  --background: oklch(1 0 0);
-  --foreground: oklch(0.145 0 0);
-  --card: oklch(1 0 0);
-  --card-foreground: oklch(0.145 0 0);
-  --popover: oklch(1 0 0);
-  --popover-foreground: oklch(0.145 0 0);
-  --primary: oklch(0.205 0 0);
-  --primary-foreground: oklch(0.985 0 0);
-  --secondary: oklch(0.97 0 0);
-  --secondary-foreground: oklch(0.205 0 0);
-  --muted-foreground: oklch(0.556 0 0);
-  --accent: oklch(0.97 0 0);
-  --accent-foreground: oklch(0.205 0 0);
-  --destructive: oklch(0.577 0.245 27.325);
-  --input: oklch(0.922 0 0);
-  --ring: oklch(0.708 0 0);
-  --chart-1: oklch(0.809 0.105 251.813);
-  --chart-2: oklch(0.623 0.214 259.815);
-  --chart-3: oklch(0.546 0.245 262.881);
-  --chart-4: oklch(0.488 0.243 264.376);
-  --chart-5: oklch(0.424 0.199 265.638);
-  --radius: 0.625rem;
-  --sidebar: oklch(0.985 0 0);
-  --sidebar-foreground: oklch(0.145 0 0);
-  --sidebar-primary: oklch(0.205 0 0);
-  --sidebar-primary-foreground: oklch(0.985 0 0);
-  --sidebar-accent: oklch(0.97 0 0);
-  --sidebar-accent-foreground: oklch(0.205 0 0);
-  --sidebar-border: oklch(0.922 0 0);
-  --sidebar-ring: oklch(0.708 0 0);
+  --font-body: var(--font-manrope);
+  --font-display: var(--font-barlow-condensed);
+  --background: #f7f5f1;
+  --foreground: #181716;
+  --card: #fffdf8;
+  --card-foreground: #181716;
+  --popover: #fffdf8;
+  --popover-foreground: #181716;
+  --primary: #4f89c5;
+  --primary-foreground: #f7f5f1;
+  --secondary: #e8eef5;
+  --secondary-foreground: #2f4b67;
+  --muted: #f0ece6;
+  --muted-foreground: #6d6760;
+  --accent: #dce7f3;
+  --accent-foreground: #2f4b67;
+  --destructive: #ca5c54;
+  --border: #ddd7cf;
+  --input: #ebe5dd;
+  --ring: #7ba5d1;
+  --chart-1: #4f89c5;
+  --chart-2: #2f4b67;
+  --chart-3: #b7cee7;
+  --chart-4: #7fd6a3;
+  --chart-5: #e8b663;
+  --radius: 1rem;
+  --sidebar: #fffdf8;
+  --sidebar-foreground: #181716;
+  --sidebar-primary: #4f89c5;
+  --sidebar-primary-foreground: #f7f5f1;
+  --sidebar-accent: #eef4fb;
+  --sidebar-accent-foreground: #2f4b67;
+  --sidebar-border: #ddd7cf;
+  --sidebar-ring: #7ba5d1;
+  --wellstudio-ink: #0f1012;
+  --wellstudio-panel: #111316;
+  --wellstudio-blue-deep: #2f4b67;
+  --wellstudio-blue: #4f89c5;
+  --wellstudio-blue-soft: #b7cee7;
+  --wellstudio-sand: #f7f5f1;
+  --wellstudio-sand-deep: #ece6de;
 }
 
 * {
@@ -52,7 +60,7 @@ body {
   min-height: 100%;
   background: var(--background);
   color: var(--foreground);
-  font-family: ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+  font-family: var(--font-body), system-ui, sans-serif;
 }
 
 a {
@@ -60,42 +68,9 @@ a {
   text-decoration: none;
 }
 
-.dark {
-  --background: oklch(0.145 0 0);
-  --foreground: oklch(0.985 0 0);
-  --card: oklch(0.205 0 0);
-  --card-foreground: oklch(0.985 0 0);
-  --popover: oklch(0.205 0 0);
-  --popover-foreground: oklch(0.985 0 0);
-  --primary: oklch(0.922 0 0);
-  --primary-foreground: oklch(0.205 0 0);
-  --secondary: oklch(0.269 0 0);
-  --secondary-foreground: oklch(0.985 0 0);
-  --muted: oklch(0.269 0 0);
-  --muted-foreground: oklch(0.708 0 0);
-  --accent: oklch(0.269 0 0);
-  --accent-foreground: oklch(0.985 0 0);
-  --destructive: oklch(0.704 0.191 22.216);
-  --border: oklch(1 0 0 / 10%);
-  --input: oklch(1 0 0 / 15%);
-  --ring: oklch(0.556 0 0);
-  --chart-1: oklch(0.809 0.105 251.813);
-  --chart-2: oklch(0.623 0.214 259.815);
-  --chart-3: oklch(0.546 0.245 262.881);
-  --chart-4: oklch(0.488 0.243 264.376);
-  --chart-5: oklch(0.424 0.199 265.638);
-  --sidebar: oklch(0.205 0 0);
-  --sidebar-foreground: oklch(0.985 0 0);
-  --sidebar-primary: oklch(0.488 0.243 264.376);
-  --sidebar-primary-foreground: oklch(0.985 0 0);
-  --sidebar-accent: oklch(0.269 0 0);
-  --sidebar-accent-foreground: oklch(0.985 0 0);
-  --sidebar-border: oklch(1 0 0 / 10%);
-  --sidebar-ring: oklch(0.556 0 0);
-}
-
 @theme inline {
-  --font-sans: var(--font-sans);
+  --font-sans: var(--font-body);
+  --font-display: var(--font-display);
   --color-sidebar-ring: var(--sidebar-ring);
   --color-sidebar-border: var(--sidebar-border);
   --color-sidebar-accent-foreground: var(--sidebar-accent-foreground);
@@ -127,8 +102,8 @@ a {
   --color-card: var(--card);
   --color-foreground: var(--foreground);
   --color-background: var(--background);
-  --radius-sm: calc(var(--radius) * 0.6);
-  --radius-md: calc(var(--radius) * 0.8);
+  --radius-sm: calc(var(--radius) * 0.65);
+  --radius-md: calc(var(--radius) * 0.85);
   --radius-lg: var(--radius);
   --radius-xl: calc(var(--radius) * 1.4);
   --radius-2xl: calc(var(--radius) * 1.8);
@@ -146,4 +121,44 @@ a {
   html {
     @apply font-sans;
   }
+
+  ::selection {
+    background: color-mix(in srgb, var(--primary) 32%, transparent);
+  }
+}
+
+.font-display {
+  font-family: var(--font-display), sans-serif;
+}
+
+.wellstudio-auth-shell {
+  background:
+    radial-gradient(circle at top left, color-mix(in srgb, var(--wellstudio-blue) 20%, transparent), transparent 28%),
+    linear-gradient(135deg, var(--wellstudio-sand) 0%, #f8f6f2 38%, #efe8df 100%);
+}
+
+.wellstudio-brand-panel {
+  background:
+    linear-gradient(160deg, color-mix(in srgb, var(--wellstudio-ink) 88%, #1b1d21 12%) 0%, var(--wellstudio-panel) 100%);
+  position: relative;
+}
+
+.wellstudio-brand-panel::before {
+  background:
+    radial-gradient(circle at 15% 20%, color-mix(in srgb, var(--wellstudio-blue) 28%, transparent), transparent 24%),
+    radial-gradient(circle at 80% 10%, color-mix(in srgb, var(--wellstudio-blue-soft) 24%, transparent), transparent 20%);
+  content: "";
+  inset: 0;
+  opacity: 0.95;
+  pointer-events: none;
+  position: absolute;
+}
+
+.wellstudio-logo-badge {
+  background: linear-gradient(180deg, #5b95d0 0%, #4f89c5 100%);
+  box-shadow: 0 22px 50px color-mix(in srgb, var(--wellstudio-blue) 28%, transparent);
+}
+
+.wellstudio-grid-line {
+  background: linear-gradient(90deg, transparent, color-mix(in srgb, white 18%, transparent), transparent);
 }
