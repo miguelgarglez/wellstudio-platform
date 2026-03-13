@@ -58,6 +58,7 @@ Elegir `Supabase Auth` como proveedor de autenticacion para WellStudio V1.
 - el dominio seguira manteniendo sus propios `users`, `members` y roles
 - la plataforma quedara razonablemente desacoplada si la integracion se encapsula bien
 - se acepta una integracion SSR algo mas manual a cambio de menor coste y buena capacidad funcional
+- la estrategia inicial de entornos sera `sandbox + production`, sin tercer proyecto Supabase por ahora
 
 ## Impacto en implementacion
 
@@ -71,6 +72,7 @@ Elegir `Supabase Auth` como proveedor de autenticacion para WellStudio V1.
 - [wellstudio-auth-provider-decision.md](/Users/miguelgarglez/Developer/wellstudio-analysis/wellstudio-auth-provider-decision.md)
 - [wellstudio-supabase-auth-prisma-integration.md](/Users/miguelgarglez/Developer/wellstudio-analysis/wellstudio-supabase-auth-prisma-integration.md)
 - [wellstudio-auth-free-tier-comparison.md](/Users/miguelgarglez/Developer/wellstudio-analysis/wellstudio-auth-free-tier-comparison.md)
+- [wellstudio-supabase-environments-strategy.md](/Users/miguelgarglez/Developer/wellstudio-platform/docs/product/wellstudio-supabase-environments-strategy.md)
 - `MIG-22`
 - `MIG-31`
 - `MIG-33`
