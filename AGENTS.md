@@ -55,6 +55,14 @@ Especialmente:
 - mantener testing cerca de auth, reservations, eligibility y payments
 - si una decision cambia la arquitectura, actualizar ADR o documentacion relacionada
 
+## Gates de testing
+
+- no marcar issues de `auth`, `reservations` o `payments` como terminadas sin pasar sus gates
+- para cambios base de repo o arquitectura, ejecutar `pnpm check:foundation`
+- para cambios de auth, ejecutar `pnpm check:auth`
+- si aparece un bug real en login, sesion, reservas, cancelaciones, pagos o permisos, añadir test de regresion antes de cerrar
+- dejar constancia resumida en Linear de lo que se valido cuando el ticket sea sensible
+
 ## Politica de Git y commits
 
 - usar ramas de trabajo, pero no hace falta una rama por ticket pequeno

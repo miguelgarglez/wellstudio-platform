@@ -47,6 +47,8 @@ Usar esta regla:
 pnpm dev
 pnpm lint
 pnpm typecheck
+pnpm check:foundation
+pnpm check:auth
 pnpm test:unit
 pnpm test:e2e
 ```

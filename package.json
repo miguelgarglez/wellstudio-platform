@@ -11,6 +11,8 @@
     "lint": "eslint .",
     "lint:fix": "eslint . --fix",
     "typecheck": "tsc --noEmit",
+    "check:foundation": "pnpm lint && pnpm typecheck && pnpm test:unit && pnpm build",
+    "check:auth": "pnpm lint && pnpm typecheck && vitest run tests/unit/auth && pnpm build",
     "test": "vitest run",
     "test:unit": "vitest run",
     "test:unit:watch": "vitest",
