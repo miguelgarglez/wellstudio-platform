@@ -78,6 +78,10 @@ E2E_ADMIN_PASSWORD=replace-with-sandbox-password
 pnpm test:e2e:auth:sandbox
 ```
 
+Runbook operativo relacionado:
+
+- `docs/runbooks/auth-sandbox-operations.md`
+
 ## Reglas operativas
 
 - si `E2E_AUTH_SANDBOX` no está activado, la suite sandbox debe saltarse sola
@@ -91,6 +95,15 @@ pnpm test:e2e:auth:sandbox
 - error por credenciales inválidas
 - acceso a `/app` tras login
 - logout y pérdida de acceso protegido
+
+## Limitación actual
+
+La suite sandbox todavía no verifica explícitamente el provisionado local `Supabase -> Prisma User/Member/UserRole`.
+
+Eso queda bloqueado hasta tener:
+
+- `DATABASE_URL` en local
+- Postgres local operativo
 
 ## No hacer
 

@@ -22,9 +22,7 @@ test.describe('Auth sandbox @auth @sandbox @critical', () => {
     await authPage.submitLogin()
 
     await expect(page).toHaveURL(/\/app$/)
-    await expect(
-      page.getByRole('heading', { name: 'Member App' }),
-    ).toBeVisible()
+    await authPage.expectProtectedMemberShell()
   })
 
   test('member sees feedback on invalid credentials', async ({ page }) => {
@@ -39,5 +37,26 @@ test.describe('Auth sandbox @auth @sandbox @critical', () => {
 
     await authPage.expectInvalidLoginFeedback()
     await expect(page).toHaveURL(/\/login$/)
+  })
+
+  test('member can log out and loses protected access', async ({ page }) => {
+    const authPage = new AuthPage(page)
+    const { email, password } = getSandboxCredentials()
+
+    await authPage.gotoLogin()
+    await authPage.fillLoginForm(email, password)
+    await authPage.submitLogin()
+
+    await expect(page).toHaveURL(/\/app$/)
+    await authPage.expectProtectedMemberShell()
+
+    await authPage.logout()
+    await expect(page).toHaveURL(/\/login$/)
+    await authPage.expectLoginVisible()
+
+    await page.goto('/app')
+
+    await expect(page).toHaveURL(/\/login\?redirectTo=%2Fapp$/)
+    await authPage.expectLoginVisible()
   })
 })

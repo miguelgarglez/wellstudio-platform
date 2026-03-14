@@ -45,6 +45,7 @@ Protegen la cooperación entre boundary y persistencia:
 - rechazo de rutas protegidas sin sesión
 
 Esta capa debe crecer cuando entremos en flujos de identidad más completos.
+En este workspace sigue pendiente de infraestructura local de Postgres para verificarse end-to-end.
 
 ### 3. E2E
 
@@ -126,6 +127,14 @@ Debe validar:
 - error por credenciales incorrectas
 - logout
 - acceso posterior a ruta protegida
+
+Estado actual:
+
+- login correcto cubierto
+- error por credenciales incorrectas cubierto
+- logout cubierto
+- acceso posterior a ruta protegida cubierto
+- provisión local explícita todavía pendiente
 
 ## Fase 3: Registro real
 

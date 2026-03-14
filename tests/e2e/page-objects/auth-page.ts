@@ -51,11 +51,24 @@ export class AuthPage {
     await this.page.getByRole('button', { name: 'Entrar en WellStudio' }).click()
   }
 
+  async logout() {
+    await this.page.getByRole('button', { name: 'Cerrar sesión' }).click()
+  }
+
   async expectInvalidLoginFeedback() {
     await expect(
       this.page.getByText(
         'No hemos podido iniciar tu sesión. Revisa tus credenciales e inténtalo de nuevo.',
       ),
+    ).toBeVisible()
+  }
+
+  async expectProtectedMemberShell() {
+    await expect(
+      this.page.getByRole('heading', { name: 'Member App' }),
+    ).toBeVisible()
+    await expect(
+      this.page.getByText('Sesión protegida activa'),
     ).toBeVisible()
   }
 }
