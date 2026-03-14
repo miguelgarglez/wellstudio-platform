@@ -35,6 +35,8 @@ Las reglas de negocio deben vivir en casos de uso y servicios dentro de `modules
 
 Leer primero:
 
+- `README.md`
+- `docs/README.md`
 - `docs/adr`
 - `docs/architecture`
 - `docs/product`
@@ -42,11 +44,109 @@ Leer primero:
 Especialmente:
 
 - `docs/adr/ADR-001-monolito-modular-nextjs.md`
+- `docs/adr/ADR-003-v1-product-scope.md`
 - `docs/adr/ADR-005-prisma-as-v1-orm.md`
 - `docs/adr/ADR-006-auth-provider-supabase.md`
+- `docs/adr/ADR-007-supabase-postgres-hosting.md`
+- `docs/architecture/technical-architecture-wellstudio-v1.md`
+- `docs/architecture/wellstudio-data-model-v1.md`
+- `docs/architecture/wellstudio-prisma-schema-proposal-v1.md`
+- `docs/product/prd-wellstudio-platform-v1.md`
+- `docs/product/wellstudio-flow-inventory.md`
+
+## Reading map por tipo de tarea
+
+### Si la tarea es de UI o UX
+
+Leer antes:
+
+- `docs/product/wellstudio-design-system-v1.md`
+- `docs/product/prd-wellstudio-platform-v1.md`
+- `docs/discovery/reverse-engineering-wellstudio.md`
+- `docs/adr/ADR-003-v1-product-scope.md`
+
+Mirar tambien el estado real de:
+
+- `app/(public)/*`
+- `app/(member)/*`
+- `components/ui/*`
+- `modules/auth/ui/*`
+
+### Si la tarea es de auth
+
+Leer antes:
+
+- `docs/adr/ADR-006-auth-provider-supabase.md`
+- `docs/product/wellstudio-auth-e2e-strategy.md`
+- `docs/product/wellstudio-supabase-auth-sandbox-setup.md`
+- `docs/product/wellstudio-auth-gap-email-confirmation.md`
+- `docs/runbooks/auth-sandbox-operations.md`
+- `docs/runbooks/supabase-postgres-prisma-workflow.md`
+
+Mirar tambien:
+
+- `modules/auth/*`
+- `proxy.ts`
+- `app/auth/*`
+- `tests/unit/auth/*`
+- `tests/e2e/auth/*`
+
+### Si la tarea es de dominio, datos o Prisma
+
+Leer antes:
+
+- `docs/adr/ADR-005-prisma-as-v1-orm.md`
+- `docs/adr/ADR-007-supabase-postgres-hosting.md`
 - `docs/architecture/wellstudio-data-model-v1.md`
 - `docs/architecture/wellstudio-prisma-schema-proposal-v1.md`
 - `docs/product/wellstudio-flow-inventory.md`
+
+Mirar tambien:
+
+- `prisma/schema.prisma`
+- `prisma.config.ts`
+- `lib/db/*`
+- `modules/*/server/*`
+
+### Si la tarea es de testing o QA
+
+Leer antes:
+
+- `docs/product/wellstudio-testing-strategy.md`
+- `docs/product/wellstudio-testing-coverage-plan-v1.md`
+- `docs/product/wellstudio-testing-gates-v1.md`
+- `docs/product/wellstudio-test-data-strategy-v1.md`
+- `docs/product/wellstudio-auth-e2e-strategy.md`
+
+Mirar tambien:
+
+- `tests/unit/*`
+- `tests/e2e/*`
+- `playwright.config.ts`
+- `package.json`
+
+### Si la tarea es de infra, entorno o despliegue
+
+Leer antes:
+
+- `docs/adr/ADR-002-vps-docker-deployment.md`
+- `docs/adr/ADR-007-supabase-postgres-hosting.md`
+- `docs/product/wellstudio-supabase-environments-strategy.md`
+- `docs/runbooks/docker-local-and-vps.md`
+- `docs/runbooks/supabase-postgres-prisma-workflow.md`
+
+Mirar tambien:
+
+- `.env.example`
+- `Dockerfile`
+- `docker-compose.yml`
+- `next.config.ts`
+
+## Gaps conocidos que no se deben \"resolver\" por inercia
+
+- el email confirmation end-to-end completo esta diferido y documentado en `docs/product/wellstudio-auth-gap-email-confirmation.md`
+- no introducir infraestructura adicional de correo para QA sin decision explicita
+- no reabrir debate de arquitectura base sin una razon fuerte y documentada
 
 ## Estilo de trabajo
 
