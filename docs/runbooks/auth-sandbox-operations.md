@@ -42,6 +42,7 @@ No cubre todavía:
 
 En `.env.local`:
 
+- `DATABASE_URL`
 - `NEXT_PUBLIC_SUPABASE_URL`
 - `NEXT_PUBLIC_SUPABASE_ANON_KEY`
 
@@ -94,6 +95,10 @@ Motivo:
 
 - la app local todavía no tiene `DATABASE_URL` configurado
 - y no hay Postgres local operativo en este workspace a fecha de este runbook
+
+Runbook relacionado:
+
+- `docs/runbooks/local-postgres-auth-provisioning.md`
 
 Esto significa que la suite actual prueba `auth real + protección de ruta`, pero todavía no prueba la capa local de identidad persistida.
 

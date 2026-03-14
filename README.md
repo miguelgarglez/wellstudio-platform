@@ -45,6 +45,9 @@ Usar esta regla:
 
 ```bash
 pnpm dev
+pnpm db:up
+pnpm db:down
+pnpm db:push
 pnpm lint
 pnpm typecheck
 pnpm check:foundation
@@ -60,6 +63,13 @@ Referencias:
 - [`Dockerfile`](./Dockerfile)
 - [`docker-compose.yml`](./docker-compose.yml)
 - [`docs/runbooks/docker-local-and-vps.md`](./docs/runbooks/docker-local-and-vps.md)
+- [`docs/runbooks/local-postgres-auth-provisioning.md`](./docs/runbooks/local-postgres-auth-provisioning.md)
+
+## Modelo mental de datos
+
+- `Supabase Auth` gestiona identidad, sesión y credenciales
+- `PostgreSQL` propio gestiona el dominio WellStudio (`User`, `Member`, reservas, planes, pagos)
+- en local, el login puede ir contra `Supabase sandbox` mientras la identidad de dominio se materializa en `Postgres local`
 
 ## Notas
 
