@@ -18,7 +18,6 @@ Este runbook cubre:
 
 No cubre todavía:
 
-- verificación automática de `User`/`Member` local en Prisma
 - promoción de rol `ADMIN` en la base propia
 - password reset E2E
 - email verification E2E
@@ -51,6 +50,7 @@ En `.env.local`:
 En `.env.e2e.local`:
 
 - `E2E_AUTH_SANDBOX=true`
+- `E2E_AUTH_SANDBOX_REGISTER=false`
 - `E2E_MEMBER_EMAIL`
 - `E2E_MEMBER_PASSWORD`
 - `E2E_ADMIN_EMAIL`
@@ -86,21 +86,23 @@ pnpm check:auth
 - error por credenciales inválidas
 - logout real
 - pérdida de acceso a `/app` tras logout
+- lectura real de identidad local provisionada en `/app`
 
-## Limitación conocida
+## Limitación conocida sobre registro
 
-La verificación explícita del provisionado local `Supabase -> Prisma User/Member/UserRole` sigue pendiente.
+El registro real de sandbox queda desactivado por defecto.
 
 Motivo:
 
-- la app local todavía no tiene `DATABASE_URL` de `Supabase sandbox` configurado
-- y la ruta protegida aún no afirma de forma visible la identidad local provisionada
+- el SMTP hosted de Supabase introduce rate limiting
+- la confirmación de email está activada por defecto en proyectos hosted
+- sin inbox de test o setup admin, no es una suite fiable para ejecutar siempre
 
 Runbook relacionado:
 
 - `docs/runbooks/supabase-postgres-prisma-workflow.md`
 
-Esto significa que la suite actual prueba `auth real + protección de ruta`, pero todavía no prueba la capa local de identidad persistida.
+Esto significa que la suite actual prueba `auth real + identidad local provisionada`, pero no automatiza todavía el paso completo de verificación de email.
 
 ## Incidencias típicas
 
@@ -129,8 +131,8 @@ Revisar:
 
 ## Próxima evolución recomendada
 
-1. configurar `DATABASE_URL` contra `Supabase sandbox`
-2. hacer que `/app` lea `requireAuthenticatedContext()`
-3. afirmar en E2E que existe identidad local provisionada
+1. preparar inbox de test o custom SMTP para sandbox
+2. automatizar verificación de email
+3. promover `ADMIN` local mediante seed o script controlado
 4. añadir `password reset`
 5. añadir `email verification`

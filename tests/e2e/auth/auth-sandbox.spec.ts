@@ -5,7 +5,20 @@ import {
   getSandboxCredentials,
   hasSandboxCredentials,
   isSandboxAuthEnabled,
+  isSandboxRegistrationEnabled,
 } from '../support/env'
+
+function buildRegisterCandidate(parallelIndex: number) {
+  const nonce = `${Date.now()}-${parallelIndex}`
+
+  return {
+    firstName: 'E2E',
+    lastName: `Sandbox ${parallelIndex}`,
+    phone: '+34600000000',
+    email: `e2e.register.${nonce}@example.com`,
+    password: `WellStudio!${nonce}`,
+  }
+}
 
 test.describe('Auth sandbox @auth @sandbox @critical', () => {
   test.skip(
@@ -38,6 +51,30 @@ test.describe('Auth sandbox @auth @sandbox @critical', () => {
 
     await authPage.expectInvalidLoginFeedback()
     await expect(page).toHaveURL(/\/login$/)
+  })
+
+  test('visitor can submit a real sandbox registration', async ({ page }, testInfo) => {
+    test.skip(
+      !isSandboxRegistrationEnabled(),
+      'Sandbox registration coverage is disabled unless the email/confirmation harness is explicitly prepared.',
+    )
+
+    const authPage = new AuthPage(page)
+    const candidate = buildRegisterCandidate(testInfo.parallelIndex)
+
+    await authPage.gotoRegister()
+    await authPage.fillRegisterForm(candidate)
+    await authPage.submitRegister()
+
+    await expect.poll(() => page.url()).toMatch(/\/(register|app)$/)
+
+    if (page.url().endsWith('/app')) {
+      await authPage.expectProtectedMemberShell()
+      await expect(page.getByText(candidate.email)).toBeVisible()
+      return
+    }
+
+    await authPage.expectRegisterConfirmationFeedback()
   })
 
   test('member can log out and loses protected access', async ({ page }) => {

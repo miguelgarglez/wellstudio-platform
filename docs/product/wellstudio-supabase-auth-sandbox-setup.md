@@ -61,6 +61,7 @@ Variables mínimas:
 
 ```bash
 E2E_AUTH_SANDBOX=true
+E2E_AUTH_SANDBOX_REGISTER=false
 E2E_MEMBER_EMAIL=e2e.member.sandbox@wellstudio.test
 E2E_MEMBER_PASSWORD=replace-with-sandbox-password
 E2E_ADMIN_EMAIL=e2e.admin.sandbox@wellstudio.test
@@ -98,12 +99,13 @@ Runbook operativo relacionado:
 
 ## Limitación actual
 
-La suite sandbox todavía no verifica explícitamente el provisionado local `Supabase -> Prisma User/Member/UserRole`.
+La suite sandbox ya verifica el provisionado local en login, pero el `registro real` queda como suite opt-in.
 
-Eso queda bloqueado hasta tener:
+Motivo:
 
-- `DATABASE_URL` del proyecto `sandbox` configurado en local
-- una ruta protegida que afirme la identidad local provisionada
+- el proveedor SMTP hosted de Supabase tiene rate limiting
+- sin inbox de test o SMTP propio, el registro real no es una buena prueba siempre encendida
+- en hosted, la confirmación de email está activada por defecto
 
 ## No hacer
 
@@ -116,7 +118,7 @@ Eso queda bloqueado hasta tener:
 
 Cuando el flujo de auth esté más maduro, ampliar con:
 
-- registro real en sandbox
+- registro real en sandbox con harness de inbox o custom SMTP
 - verificación de email
 - recuperación de contraseña
 - scenario accounts más ricas por rol y elegibilidad

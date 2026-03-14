@@ -2,6 +2,10 @@ export function isSandboxAuthEnabled() {
   return process.env.E2E_AUTH_SANDBOX === 'true'
 }
 
+export function isSandboxRegistrationEnabled() {
+  return process.env.E2E_AUTH_SANDBOX_REGISTER === 'true'
+}
+
 export function hasSandboxCredentials() {
   const { email, password } = getSandboxCredentials()
 

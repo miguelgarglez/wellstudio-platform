@@ -2,6 +2,7 @@
 
 import { useMemo, useRef, useState, useTransition } from 'react'
 import Link from 'next/link'
+import { useRouter } from 'next/navigation'
 
 import { Button } from '@/components/ui/button'
 import {
@@ -25,6 +26,7 @@ import { Spinner } from '@/components/ui/spinner'
 import { createSupabaseBrowserClient } from '@/modules/auth/lib/supabase-browser-client'
 
 export function RegisterForm() {
+  const router = useRouter()
   const supabase = useMemo(() => createSupabaseBrowserClient(), [])
   const acceptedTermsRef = useRef<HTMLButtonElement | null>(null)
   const emailInputRef = useRef<HTMLInputElement | null>(null)
@@ -50,10 +52,15 @@ export function RegisterForm() {
     }
 
     startTransition(async () => {
-      const { error } = await supabase.auth.signUp({
+      const emailRedirectTo = process.env.NEXT_PUBLIC_APP_URL
+        ? new URL('/auth/confirm?next=/app', process.env.NEXT_PUBLIC_APP_URL).toString()
+        : undefined
+
+      const { data, error } = await supabase.auth.signUp({
         email,
         password,
         options: {
+          emailRedirectTo,
           data: {
             first_name: firstName,
             last_name: lastName,
@@ -65,6 +72,12 @@ export function RegisterForm() {
       if (error) {
         setErrorMessage('No hemos podido crear tu cuenta. Revisa los datos e inténtalo de nuevo.')
         emailInputRef.current?.focus()
+        return
+      }
+
+      if (data.session) {
+        router.push('/app')
+        router.refresh()
         return
       }
 

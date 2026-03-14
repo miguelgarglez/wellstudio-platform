@@ -5,12 +5,17 @@ import { LoginForm } from '@/modules/auth/ui/login-form'
 
 type LoginPageProps = {
   searchParams?: Promise<{
+    authError?: string
     redirectTo?: string
   }>
 }
 
 export default async function LoginPage({ searchParams }: LoginPageProps) {
   const resolvedSearchParams = searchParams ? await searchParams : undefined
+  const infoMessage =
+    resolvedSearchParams?.authError === 'verification_failed'
+      ? 'No hemos podido verificar tu enlace de acceso. Solicita un nuevo registro o vuelve a iniciar sesión.'
+      : undefined
   const redirectTo = resolvedSearchParams?.redirectTo || '/app'
 
   return (
@@ -30,7 +35,10 @@ export default async function LoginPage({ searchParams }: LoginPageProps) {
         </p>
       }
     >
-      <LoginForm redirectTo={redirectTo} />
+      <LoginForm
+        redirectTo={redirectTo}
+        infoMessage={infoMessage}
+      />
     </AuthShell>
   )
 }

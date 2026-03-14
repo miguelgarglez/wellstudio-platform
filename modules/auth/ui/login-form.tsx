@@ -25,10 +25,11 @@ import { Spinner } from '@/components/ui/spinner'
 import { createSupabaseBrowserClient } from '@/modules/auth/lib/supabase-browser-client'
 
 type LoginFormProps = {
+  infoMessage?: string
   redirectTo: string
 }
 
-export function LoginForm({ redirectTo }: LoginFormProps) {
+export function LoginForm({ redirectTo, infoMessage }: LoginFormProps) {
   const router = useRouter()
   const supabase = useMemo(() => createSupabaseBrowserClient(), [])
   const emailInputRef = useRef<HTMLInputElement | null>(null)
@@ -82,6 +83,15 @@ export function LoginForm({ redirectTo }: LoginFormProps) {
             handleSubmit(new FormData(event.currentTarget))
           }}
         >
+          {infoMessage ? (
+            <div
+              aria-live="polite"
+              className="rounded-2xl border border-[color:color-mix(in_srgb,var(--wellstudio-blue)_20%,var(--border))] bg-[color:color-mix(in_srgb,var(--wellstudio-blue)_8%,white)] px-4 py-3 text-sm leading-7 text-[var(--wellstudio-blue-deep)]"
+            >
+              {infoMessage}
+            </div>
+          ) : null}
+
           <FieldGroup>
             <Field data-invalid={errorMessage ? true : undefined}>
               <FieldLabel htmlFor="login-email">Email</FieldLabel>

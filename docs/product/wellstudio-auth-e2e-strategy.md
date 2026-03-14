@@ -146,6 +146,25 @@ Debe validar:
 - feedback de verificación de email
 - provisión local de identidad
 
+Estado actual:
+
+- submit real de registro cubierto con email único por ejecución
+- soporte de confirmación por `/auth/confirm` implementado
+- la suite de registro queda desactivada por defecto porque el proveedor SMTP hosted introduce rate limiting
+- si el sandbox tiene auto-confirm desactivado, el test valida feedback de verificación
+- si el sandbox tiene auto-confirm activado, el test valida acceso a `/app`
+- la confirmación automática del email sigue pendiente de un harness específico de inbox, SMTP propio o setup admin
+
+## Limitación práctica en hosted Supabase
+
+Supabase hosted usa un servicio de envío de emails por defecto con rate limiting y disponibilidad best-effort. Eso hace que el registro real no sea una buena prueba para ejecutar en cada ciclo si no hay:
+
+- custom SMTP
+- inbox de test controlado
+- o sandbox con confirmación de email desactivada
+
+Por eso, en WellStudio, el registro real de sandbox queda como suite opt-in.
+
 ## Gestión de cuentas de escenario
 
 Regla profesional:

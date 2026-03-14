@@ -47,8 +47,27 @@ export class AuthPage {
     await this.page.getByLabel('Contraseña').fill(password)
   }
 
+  async fillRegisterForm(input: {
+    firstName: string
+    lastName: string
+    phone: string
+    email: string
+    password: string
+  }) {
+    await this.page.getByLabel('Nombre').fill(input.firstName)
+    await this.page.getByLabel('Apellidos').fill(input.lastName)
+    await this.page.getByLabel('Teléfono').fill(input.phone)
+    await this.page.getByLabel('Email').fill(input.email)
+    await this.page.getByLabel('Contraseña').fill(input.password)
+    await this.page.getByRole('checkbox').click()
+  }
+
   async submitLogin() {
     await this.page.getByRole('button', { name: 'Entrar en WellStudio' }).click()
+  }
+
+  async submitRegister() {
+    await this.page.getByRole('button', { name: 'Crear acceso en WellStudio' }).click()
   }
 
   async logout() {
@@ -75,6 +94,14 @@ export class AuthPage {
     ).toBeVisible()
     await expect(
       this.page.getByText('MEMBER', { exact: true }),
+    ).toBeVisible()
+  }
+
+  async expectRegisterConfirmationFeedback() {
+    await expect(
+      this.page.getByText(
+        'Cuenta creada. Te hemos enviado un correo para verificar tu acceso antes de iniciar sesión.',
+      ),
     ).toBeVisible()
   }
 }
