@@ -1,3 +1,4 @@
+import { Prisma } from '@prisma/client'
 import type { Member, User, UserRole } from '@prisma/client'
 import type { User as SupabaseUser } from '@supabase/supabase-js'
 
@@ -73,74 +74,147 @@ export async function ensureLocalUser(authUser: SupabaseUser): Promise<LocalIden
   const status = mapSupabaseUserStatus(authUser)
   const { firstName, lastName } = getProfileNames(authUser)
 
-  const localUser = await prisma.user.upsert({
-    where: {
-      normalizedEmail,
-    },
-    create: {
+  try {
+    return await provisionLocalIdentity(authUser.id, {
       email,
       normalizedEmail,
       status,
-      externalAuthProvider: 'supabase',
-      externalAuthId: authUser.id,
+      firstName,
+      lastName,
+      phone: authUser.phone || null,
       emailVerifiedAt: authUser.email_confirmed_at ? new Date(authUser.email_confirmed_at) : null,
-      lastLoginAt: new Date(),
-    },
-    update: {
+    })
+  } catch (error) {
+    if (!isUniqueConstraintError(error)) {
+      throw error
+    }
+
+    return await provisionLocalIdentity(authUser.id, {
       email,
+      normalizedEmail,
       status,
-      externalAuthProvider: 'supabase',
-      externalAuthId: authUser.id,
+      firstName,
+      lastName,
+      phone: authUser.phone || null,
       emailVerifiedAt: authUser.email_confirmed_at ? new Date(authUser.email_confirmed_at) : null,
-      lastLoginAt: new Date(),
-    },
-  })
-
-  const member = await prisma.member.upsert({
-    where: {
-      userId: localUser.id,
-    },
-    create: {
-      userId: localUser.id,
-      firstName,
-      lastName,
-      phone: authUser.phone || null,
-      status: 'ACTIVE',
-      joinedAt: new Date(),
-    },
-    update: {
-      firstName,
-      lastName,
-      phone: authUser.phone || null,
-    },
-  })
-
-  await prisma.userRole.upsert({
-    where: {
-      userId_role: {
-        userId: localUser.id,
-        role: 'MEMBER',
-      },
-    },
-    create: {
-      userId: localUser.id,
-      role: 'MEMBER',
-    },
-    update: {},
-  })
-
-  const roles = await prisma.userRole.findMany({
-    where: {
-      userId: localUser.id,
-    },
-    orderBy: {
-      createdAt: 'asc',
-    },
-  })
-
-  return {
-    localUser,
-    member,
-    roles,
+    })
   }
+}
+
+type IdentityProvisionInput = {
+  email: string
+  normalizedEmail: string
+  status: User['status']
+  firstName: string
+  lastName: string
+  phone: string | null
+  emailVerifiedAt: Date | null
+}
+
+async function provisionLocalIdentity(
+  externalAuthId: string,
+  input: IdentityProvisionInput,
+): Promise<LocalIdentity> {
+  return prisma.$transaction(async (tx) => {
+    const existingUser = await tx.user.findFirst({
+      where: {
+        OR: [
+          {
+            externalAuthProvider: 'supabase',
+            externalAuthId,
+          },
+          {
+            normalizedEmail: input.normalizedEmail,
+          },
+        ],
+      },
+    })
+
+    const localUser = existingUser
+      ? await tx.user.update({
+          where: {
+            id: existingUser.id,
+          },
+          data: {
+            email: input.email,
+            normalizedEmail: input.normalizedEmail,
+            status: input.status,
+            externalAuthProvider: 'supabase',
+            externalAuthId,
+            emailVerifiedAt: input.emailVerifiedAt,
+            lastLoginAt: new Date(),
+          },
+        })
+      : await tx.user.create({
+          data: {
+            email: input.email,
+            normalizedEmail: input.normalizedEmail,
+            status: input.status,
+            externalAuthProvider: 'supabase',
+            externalAuthId,
+            emailVerifiedAt: input.emailVerifiedAt,
+            lastLoginAt: new Date(),
+          },
+        })
+
+    const existingMember = await tx.member.findUnique({
+      where: {
+        userId: localUser.id,
+      },
+    })
+
+    const member = existingMember
+      ? await tx.member.update({
+          where: {
+            userId: localUser.id,
+          },
+          data: {
+            firstName: input.firstName,
+            lastName: input.lastName,
+            phone: input.phone,
+          },
+        })
+      : await tx.member.create({
+          data: {
+            userId: localUser.id,
+            firstName: input.firstName,
+            lastName: input.lastName,
+            phone: input.phone,
+            status: 'ACTIVE',
+            joinedAt: new Date(),
+          },
+        })
+
+    await tx.userRole.createMany({
+      data: [
+        {
+          userId: localUser.id,
+          role: 'MEMBER',
+        },
+      ],
+      skipDuplicates: true,
+    })
+
+    const roles = await tx.userRole.findMany({
+      where: {
+        userId: localUser.id,
+      },
+      orderBy: {
+        createdAt: 'asc',
+      },
+    })
+
+    return {
+      localUser,
+      member,
+      roles,
+    }
+  })
+}
+
+function isUniqueConstraintError(error: unknown) {
+  return (
+    error instanceof Prisma.PrismaClientKnownRequestError &&
+    error.code === 'P2002'
+  )
 }

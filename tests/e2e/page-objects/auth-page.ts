@@ -70,5 +70,11 @@ export class AuthPage {
     await expect(
       this.page.getByText('Sesión protegida activa'),
     ).toBeVisible()
+    await expect(
+      this.page.getByText('Roles'),
+    ).toBeVisible()
+    await expect(
+      this.page.getByText('MEMBER', { exact: true }),
+    ).toBeVisible()
   }
 }

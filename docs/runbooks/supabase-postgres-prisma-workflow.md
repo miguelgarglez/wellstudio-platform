@@ -77,10 +77,11 @@ La app local seguirá usando también:
 Asegúrate de que `.env.local` contiene:
 
 ```bash
-DATABASE_URL=postgresql://postgres:[YOUR-PASSWORD]@db.[YOUR-PROJECT-REF].supabase.co:5432/postgres
+DATABASE_URL="postgresql://postgres.[YOUR-PROJECT-REF]:[YOUR-PASSWORD]@aws-1-[YOUR-REGION].pooler.supabase.com:5432/postgres"
 ```
 
-La cadena real debe salir del panel de conexión de `Supabase sandbox`.
+La cadena real debe salir del panel `Connect -> ORMs -> Prisma` de `Supabase sandbox`.
+En este proyecto estamos usando la variante estable con `Session pooler 5432` como `DATABASE_URL`.
 
 ### 2. Aplicar el schema actual
 
@@ -112,7 +113,7 @@ pnpm test:e2e:auth:sandbox
 
 ## Qué podremos validar después
 
-Cuando la DB local esté viva, ya podremos cerrar la siguiente capa:
+Cuando la app local esté conectada correctamente a `Supabase sandbox`, ya podremos cerrar la siguiente capa:
 
 - verificar que el primer login crea `User`
 - verificar que crea `Member`

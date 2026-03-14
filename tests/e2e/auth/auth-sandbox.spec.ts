@@ -23,6 +23,7 @@ test.describe('Auth sandbox @auth @sandbox @critical', () => {
 
     await expect(page).toHaveURL(/\/app$/)
     await authPage.expectProtectedMemberShell()
+    await expect(page.getByText(email)).toBeVisible()
   })
 
   test('member sees feedback on invalid credentials', async ({ page }) => {
@@ -49,6 +50,7 @@ test.describe('Auth sandbox @auth @sandbox @critical', () => {
 
     await expect(page).toHaveURL(/\/app$/)
     await authPage.expectProtectedMemberShell()
+    await expect(page.getByText(email)).toBeVisible()
 
     await authPage.logout()
     await expect(page).toHaveURL(/\/login$/)
