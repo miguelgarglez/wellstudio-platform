@@ -131,7 +131,7 @@ Revisar:
 
 ## Próxima evolución recomendada
 
-1. preparar inbox de test o custom SMTP para sandbox
+1. decidir si compensa preparar inbox de test o custom SMTP para sandbox
 2. automatizar verificación de email
 3. promover `ADMIN` local mediante seed o script controlado
 4. añadir `password reset`

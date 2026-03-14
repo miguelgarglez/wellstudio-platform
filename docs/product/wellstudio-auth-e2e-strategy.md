@@ -153,7 +153,7 @@ Estado actual:
 - la suite de registro queda desactivada por defecto porque el proveedor SMTP hosted introduce rate limiting
 - si el sandbox tiene auto-confirm desactivado, el test valida feedback de verificación
 - si el sandbox tiene auto-confirm activado, el test valida acceso a `/app`
-- la confirmación automática del email sigue pendiente de un harness específico de inbox, SMTP propio o setup admin
+- la confirmación automática del email queda diferida por ahora
 
 ## Limitación práctica en hosted Supabase
 
@@ -164,6 +164,16 @@ Supabase hosted usa un servicio de envío de emails por defecto con rate limitin
 - o sandbox con confirmación de email desactivada
 
 Por eso, en WellStudio, el registro real de sandbox queda como suite opt-in.
+
+## Gap aceptado por ahora
+
+Por ahora aceptamos explícitamente que falta este último tramo:
+
+- leer el correo real del registro
+- abrir el enlace de confirmación de email
+- completar el alta end-to-end de punta a punta
+
+Este gap queda diferido hasta que tengamos una necesidad más cercana de beta cerrada o entrega real, o hasta que decidamos asumir el coste y la operación de un inbox harness o SMTP propio de sandbox.
 
 ## Gestión de cuentas de escenario
 

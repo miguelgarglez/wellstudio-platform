@@ -106,6 +106,7 @@ Motivo:
 - el proveedor SMTP hosted de Supabase tiene rate limiting
 - sin inbox de test o SMTP propio, el registro real no es una buena prueba siempre encendida
 - en hosted, la confirmación de email está activada por defecto
+- y no compensa meter ahora una infraestructura adicional de correo solo para QA
 
 ## No hacer
 
@@ -118,7 +119,7 @@ Motivo:
 
 Cuando el flujo de auth esté más maduro, ampliar con:
 
-- registro real en sandbox con harness de inbox o custom SMTP
+- registro real en sandbox con inbox harness o custom SMTP
 - verificación de email
 - recuperación de contraseña
 - scenario accounts más ricas por rol y elegibilidad
