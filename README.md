@@ -14,7 +14,7 @@ Estado actual:
 - `Next.js` monolitico modular
 - `Prisma`
 - `Supabase Auth`
-- `PostgreSQL`
+- `Supabase Postgres`
 - `VPS + Docker`
 
 ## Estructura de documentacion
@@ -45,9 +45,8 @@ Usar esta regla:
 
 ```bash
 pnpm dev
-pnpm db:up
-pnpm db:down
 pnpm db:push
+pnpm db:studio
 pnpm lint
 pnpm typecheck
 pnpm check:foundation
@@ -63,13 +62,14 @@ Referencias:
 - [`Dockerfile`](./Dockerfile)
 - [`docker-compose.yml`](./docker-compose.yml)
 - [`docs/runbooks/docker-local-and-vps.md`](./docs/runbooks/docker-local-and-vps.md)
-- [`docs/runbooks/local-postgres-auth-provisioning.md`](./docs/runbooks/local-postgres-auth-provisioning.md)
+- [`docs/runbooks/supabase-postgres-prisma-workflow.md`](./docs/runbooks/supabase-postgres-prisma-workflow.md)
 
 ## Modelo mental de datos
 
 - `Supabase Auth` gestiona identidad, sesión y credenciales
-- `PostgreSQL` propio gestiona el dominio WellStudio (`User`, `Member`, reservas, planes, pagos)
-- en local, el login puede ir contra `Supabase sandbox` mientras la identidad de dominio se materializa en `Postgres local`
+- `Supabase Postgres` aloja el dominio WellStudio (`User`, `Member`, reservas, planes, pagos)
+- `Prisma` es la capa con la que el monolito habla con esa base
+- en local, la app puede apuntar al proyecto `sandbox` sin exigir Postgres en Docker por defecto
 
 ## Notas
 

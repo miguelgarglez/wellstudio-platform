@@ -1,4 +1,4 @@
-# ADR-002: Despliegue inicial en VPS con Docker
+# ADR-002: Despliegue inicial de la app en VPS con Docker
 
 Fecha: 2026-03-13
 Estado: accepted
@@ -28,6 +28,7 @@ La opcion objetivo inicial sera desplegar el monolito `Next.js` sobre `VPS + Doc
 - sigue siendo una forma seria de operar V1
 - encaja bien con monolito modular
 - mantiene flexibilidad para evolucionar a otra plataforma si el producto crece
+- deja la base de datos fuera del VPS cuando se usa `Supabase Postgres`
 
 ## Alternativas consideradas
 
@@ -54,13 +55,14 @@ La opcion objetivo inicial sera desplegar el monolito `Next.js` sobre `VPS + Doc
 - hay que definir runbooks de despliegue y backup
 - la operacion minima pasa a ser responsabilidad del equipo
 - conviene mantener la infraestructura sobria y documentada
+- el VPS queda centrado en servir la app, no en alojar la base de datos
 
 ## Impacto en implementacion
 
 - preparar `Dockerfile`
-- preparar flujo local con `docker-compose`
+- preparar despliegue del contenedor de la app
 - documentar variables de entorno
-- preparar estrategia de backups y restauracion
+- coordinar la app con `Supabase Auth` y `Supabase Postgres`
 
 ## Referencias
 

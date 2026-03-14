@@ -5,27 +5,26 @@
 Tener una base de despliegue simple y repetible para WellStudio V1 usando:
 
 - `Dockerfile` multi-stage para la app `Next.js`
-- `docker-compose.yml` para app + PostgreSQL
+- `docker-compose.yml` como base de empaquetado y despliegue de la app
 - un camino claro tanto para local como para un VPS sobrio
 
 ## Local
 
-### Solo base de datos en Docker
+### Desarrollo normal
 
-Cuando el desarrollo de la app se haga desde el host y solo se quiera levantar PostgreSQL:
+El camino principal de desarrollo ya no necesita Docker para la base de datos.
 
-```bash
-docker compose up -d db
-pnpm dev
-```
+La app puede trabajar contra:
 
-Variable necesaria en tu entorno local:
+- `Supabase Auth sandbox`
+- `Supabase Postgres sandbox`
+- `Prisma`
 
-```bash
-DATABASE_URL=postgresql://wellstudio:wellstudio@localhost:5432/wellstudio
-```
+Runbook relacionado:
 
-### App y base de datos en Docker
+- `docs/runbooks/supabase-postgres-prisma-workflow.md`
+
+### App en Docker
 
 Cuando quieras probar una imagen cercana a produccion:
 
@@ -35,7 +34,6 @@ docker compose up --build
 
 Esto levanta:
 
-- `db` en `localhost:5432`
 - `app` en `http://localhost:3000`
 
 ## VPS
@@ -70,4 +68,4 @@ Mas adelante se añadiran:
 
 - esta base es suficiente para V1, pero no sustituye runbooks de backup, restore y actualizacion
 - `docker-compose.yml` esta orientado a simplicidad, no a alta disponibilidad
-- la base de datos en el mismo stack es valida para local y primeras pruebas, pero en produccion puede moverse a un servicio o volumen mas endurecido sin tocar la app
+- la base de datos se asume alojada en `Supabase Postgres`, no en el mismo stack Docker

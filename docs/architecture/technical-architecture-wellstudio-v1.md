@@ -178,7 +178,7 @@ Esa alternativa sigue siendo valida, pero no es la prioridad actual.
 
 Recomendacion:
 
-- PostgreSQL
+- Supabase Postgres
 
 Por que:
 
@@ -246,17 +246,17 @@ Recomendacion final:
 
 ## Base de datos y jobs
 
-- PostgreSQL
+- Supabase Postgres
 - Redis
 - BullMQ
 
 ## Auth
 
-Decision pendiente:
+Decision aceptada:
 
-- estudiar `Clerk`, `Supabase Auth` y `Firebase Auth` como candidatas reales para V1
-- evitar auth construida desde cero salvo necesidad muy justificada
-- priorizar una solucion managed para reducir riesgo operativo y de seguridad
+- usar `Supabase Auth`
+- evitar auth construida desde cero
+- alojar auth y base de datos en proyectos `Supabase` separados por entorno
 
 Recomendacion de integracion:
 
@@ -297,13 +297,14 @@ Recomendacion final:
 
 ## Infraestructura
 
-- Vercel o VPS/PaaS sobrio para el monolito `Next.js`
-- Railway / Render / Fly / VPS para Postgres y Redis
+- VPS/PaaS sobrio para el monolito `Next.js`
+- Supabase para auth y base de datos
+- Redis gestionado o sobrio si los jobs llegan a ser necesarios
 
 Recomendacion inicial equilibrada:
 
-- Vercel para el monolito web
-- Railway o Render para Postgres y Redis
+- VPS con Docker para servir la app
+- Supabase `sandbox` y `production` para auth y base de datos
 
 ## 7. Estructura Modular del Monolito
 
@@ -1038,12 +1039,13 @@ Mitigacion:
 La arquitectura recomendada para WellStudio V1 es:
 
 - frontend web con Next.js
-- backend monolito modular con NestJS
-- PostgreSQL como base principal
+- backend monolito modular en Next.js
+- Supabase Postgres como base principal
+- Supabase Auth como proveedor de identidad
 - Redis + BullMQ para jobs
 - Stripe para pagos y tarjetas
 - email transaccional externo
-- deploy simple pero serio en frontend + backend separados
+- deploy simple con app en VPS y datos en Supabase
 
 Lo mas importante no es elegir la tecnologia perfecta, sino mantener tres principios:
 

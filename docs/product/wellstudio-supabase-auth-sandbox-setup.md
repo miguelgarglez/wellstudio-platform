@@ -102,8 +102,8 @@ La suite sandbox todavía no verifica explícitamente el provisionado local `Sup
 
 Eso queda bloqueado hasta tener:
 
-- `DATABASE_URL` en local
-- Postgres local operativo
+- `DATABASE_URL` del proyecto `sandbox` configurado en local
+- una ruta protegida que afirme la identidad local provisionada
 
 ## No hacer
 

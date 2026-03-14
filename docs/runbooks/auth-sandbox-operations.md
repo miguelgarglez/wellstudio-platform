@@ -93,12 +93,12 @@ La verificación explícita del provisionado local `Supabase -> Prisma User/Memb
 
 Motivo:
 
-- la app local todavía no tiene `DATABASE_URL` configurado
-- y no hay Postgres local operativo en este workspace a fecha de este runbook
+- la app local todavía no tiene `DATABASE_URL` de `Supabase sandbox` configurado
+- y la ruta protegida aún no afirma de forma visible la identidad local provisionada
 
 Runbook relacionado:
 
-- `docs/runbooks/local-postgres-auth-provisioning.md`
+- `docs/runbooks/supabase-postgres-prisma-workflow.md`
 
 Esto significa que la suite actual prueba `auth real + protección de ruta`, pero todavía no prueba la capa local de identidad persistida.
 
@@ -129,7 +129,7 @@ Revisar:
 
 ## Próxima evolución recomendada
 
-1. levantar Postgres local y configurar `DATABASE_URL`
+1. configurar `DATABASE_URL` contra `Supabase sandbox`
 2. hacer que `/app` lea `requireAuthenticatedContext()`
 3. afirmar en E2E que existe identidad local provisionada
 4. añadir `password reset`

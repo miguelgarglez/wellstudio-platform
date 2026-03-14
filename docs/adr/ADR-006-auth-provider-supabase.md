@@ -56,6 +56,7 @@ Elegir `Supabase Auth` como proveedor de autenticacion para WellStudio V1.
 
 - el modulo `auth` de la aplicacion se apoyara en Supabase Auth
 - el dominio seguira manteniendo sus propios `users`, `members` y roles
+- la base de datos V1 tambien podra vivir en `Supabase Postgres` sin abandonar `Prisma`
 - la plataforma quedara razonablemente desacoplada si la integracion se encapsula bien
 - se acepta una integracion SSR algo mas manual a cambio de menor coste y buena capacidad funcional
 - la estrategia inicial de entornos sera `sandbox + production`, sin tercer proyecto Supabase por ahora

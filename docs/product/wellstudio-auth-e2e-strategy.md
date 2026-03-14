@@ -45,7 +45,7 @@ Protegen la cooperación entre boundary y persistencia:
 - rechazo de rutas protegidas sin sesión
 
 Esta capa debe crecer cuando entremos en flujos de identidad más completos.
-En este workspace sigue pendiente de infraestructura local de Postgres para verificarse end-to-end.
+En este workspace sigue pendiente configurar `DATABASE_URL` contra `Supabase sandbox` y afirmar la identidad local de forma visible.
 
 ### 3. E2E
 
