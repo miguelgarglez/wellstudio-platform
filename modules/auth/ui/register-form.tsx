@@ -247,11 +247,24 @@ export function RegisterForm() {
                 />
                 <span className="flex flex-col gap-1">
                   <span className="block text-sm font-medium text-[var(--wellstudio-ink)]">
-                    Acepto las condiciones legales y la política de privacidad.
+                    He leído la política de privacidad y las condiciones de uso vigentes.
                   </span>
                   <span className="block text-sm font-normal text-muted-foreground">
-                    Necesitamos este consentimiento para crear tu acceso privado. Publicaremos las páginas legales en
-                    la web y, si las necesitas antes, te las facilitaremos por contacto directo.
+                    Necesitamos este consentimiento para crear tu acceso privado. Puedes revisar la{' '}
+                    <Link
+                      href="/privacy-policy"
+                      className="font-medium text-[var(--wellstudio-blue-deep)] underline-offset-4 hover:underline"
+                    >
+                      política de privacidad
+                    </Link>{' '}
+                    y las{' '}
+                    <Link
+                      href="/terms"
+                      className="font-medium text-[var(--wellstudio-blue-deep)] underline-offset-4 hover:underline"
+                    >
+                      condiciones de uso
+                    </Link>{' '}
+                    antes de continuar.
                   </span>
                 </span>
               </FieldLabel>

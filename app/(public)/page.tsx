@@ -1,3 +1,5 @@
+import { PublicSiteFooter } from '@/modules/public/ui/public-site-footer'
+
 const links = [
   { href: '/app', label: 'Member App' },
   { href: '/admin', label: 'Admin' },
@@ -46,6 +48,9 @@ export default function MarketingHomePage() {
               {link.label}
             </a>
           ))}
+        </div>
+        <div style={{ marginTop: 32, paddingTop: 20, borderTop: '1px solid var(--border)' }}>
+          <PublicSiteFooter />
         </div>
       </section>
     </main>

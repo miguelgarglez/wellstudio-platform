@@ -28,6 +28,15 @@ test.describe('Auth smoke @smoke @auth', () => {
     await authPage.expectForgotPasswordVisible()
   })
 
+  test('privacy policy page renders with minimum public legal content', async ({
+    page,
+  }) => {
+    const authPage = new AuthPage(page)
+
+    await authPage.gotoPrivacyPolicy()
+    await authPage.expectPrivacyPolicyVisible()
+  })
+
   test('reset-password page shows invalid state without recovery session', async ({
     page,
   }) => {
@@ -35,6 +44,15 @@ test.describe('Auth smoke @smoke @auth', () => {
 
     await authPage.gotoResetPassword()
     await authPage.expectResetPasswordInvalidState()
+  })
+
+  test('terms page renders with minimum public legal content', async ({
+    page,
+  }) => {
+    const authPage = new AuthPage(page)
+
+    await authPage.gotoTerms()
+    await authPage.expectTermsVisible()
   })
 
   test('signup callback falls back to login with confirmed email prefilled when no session is opened', async ({

@@ -1,5 +1,6 @@
 import { AuthShell } from '@/modules/auth/ui/auth-shell'
 import { LoginForm } from '@/modules/auth/ui/login-form'
+import { PublicSiteFooter } from '@/modules/public/ui/public-site-footer'
 
 type LoginPageProps = {
   searchParams?: Promise<{
@@ -25,6 +26,7 @@ export default async function LoginPage({ searchParams }: LoginPageProps) {
       eyebrow="Socios WellStudio"
       title="Entrena con acceso privado"
       description="Gestiona tus reservas, revisa tus planes y mantén tu rutina al día desde una experiencia más clara, directa y alineada con la marca WellStudio."
+      footer={<PublicSiteFooter />}
     >
       <LoginForm
         initialEmail={resolvedSearchParams?.email}

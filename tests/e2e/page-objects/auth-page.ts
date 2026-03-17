@@ -15,8 +15,16 @@ export class AuthPage {
     await this.page.goto('/forgot-password')
   }
 
+  async gotoPrivacyPolicy() {
+    await this.page.goto('/privacy-policy')
+  }
+
   async gotoResetPassword() {
     await this.page.goto('/reset-password')
+  }
+
+  async gotoTerms() {
+    await this.page.goto('/terms')
   }
 
   async gotoAuthCallback(email = 'maria@wellstudio.test') {
@@ -72,6 +80,12 @@ export class AuthPage {
         'Lo usamos para poder darte un trato más cercano y ayudarte también por WhatsApp si hace falta.',
       ),
     ).toBeVisible()
+    await expect(
+      this.page.getByRole('link', { name: 'política de privacidad' }),
+    ).toBeVisible()
+    await expect(
+      this.page.getByRole('link', { name: 'condiciones de uso' }),
+    ).toBeVisible()
   }
 
   async fillLoginForm(email: string, password: string) {
@@ -98,6 +112,30 @@ export class AuthPage {
     ).toBeVisible()
     await expect(
       this.page.getByRole('link', { name: 'Pedir un nuevo enlace' }),
+    ).toBeVisible()
+  }
+
+  async expectPrivacyPolicyVisible() {
+    await expect(
+      this.page.getByRole('heading', { name: 'Política de privacidad' }),
+    ).toBeVisible()
+    await expect(
+      this.page.getByText('WellStudio actúa como responsable del tratamiento básico'),
+    ).toBeVisible()
+    await expect(
+      this.page.getByLabel('Legal navigation').getByRole('link', { name: 'Condiciones' }),
+    ).toBeVisible()
+  }
+
+  async expectTermsVisible() {
+    await expect(
+      this.page.getByRole('heading', { name: 'Condiciones de uso' }),
+    ).toBeVisible()
+    await expect(
+      this.page.getByText('Estas condiciones explican de forma breve cómo se usa el acceso privado de WellStudio'),
+    ).toBeVisible()
+    await expect(
+      this.page.getByLabel('Legal navigation').getByRole('link', { name: 'Privacidad' }),
     ).toBeVisible()
   }
 
@@ -153,19 +191,21 @@ export class AuthPage {
 
   async expectRegisterConfirmationFeedback() {
     await expect(
-      this.page.getByRole('heading', { name: 'Confirma tu acceso' }),
+      this.page.getByRole('heading', { name: 'Activa tu cuenta' }),
     ).toBeVisible()
     await expect(
       this.page.getByText(
-        'Ya hemos creado tu cuenta. Solo te falta verificar el correo para activar el acceso.',
+        'Ya hemos preparado tu acceso. Solo te falta confirmar el correo para entrar en tu espacio privado.',
       ),
     ).toBeVisible()
     await expect(
-      this.page.getByRole('link', { name: 'Ir a iniciar sesión' }),
+      this.page.getByText(
+        'Abre el correo y confirma tu acceso. Si todo va bien, entrarás directamente en tu espacio privado. Si no lo ves enseguida, revisa spam o promociones.',
+      ),
     ).toBeVisible()
     await expect(
       this.page.getByRole('button', {
-        name: 'Editar los datos y volver al formulario',
+        name: 'Cambiar el email o volver al formulario',
       }),
     ).toBeVisible()
   }
