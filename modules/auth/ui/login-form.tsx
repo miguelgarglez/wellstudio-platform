@@ -25,11 +25,20 @@ import { Spinner } from '@/components/ui/spinner'
 import { createSupabaseBrowserClient } from '@/modules/auth/lib/supabase-browser-client'
 
 type LoginFormProps = {
+  initialEmail?: string
   infoMessage?: string
   redirectTo: string
 }
 
-export function LoginForm({ redirectTo, infoMessage }: LoginFormProps) {
+const SUPPORT_EMAIL = 'wellstudiofit@gmail.com'
+const SUPPORT_WHATSAPP_URL =
+  'https://wa.me/34614882404?text=Hola%20WellStudio,%20necesito%20ayuda%20para%20recuperar%20mi%20acceso.'
+
+export function LoginForm({
+  initialEmail,
+  redirectTo,
+  infoMessage,
+}: LoginFormProps) {
   const router = useRouter()
   const supabase = useMemo(() => createSupabaseBrowserClient(), [])
   const emailInputRef = useRef<HTMLInputElement | null>(null)
@@ -49,7 +58,9 @@ export function LoginForm({ redirectTo, infoMessage }: LoginFormProps) {
       })
 
       if (error) {
-        setErrorMessage('No hemos podido iniciar tu sesión. Revisa tus credenciales e inténtalo de nuevo.')
+        setErrorMessage(
+          'No hemos podido iniciar tu sesión. Revisa tus credenciales o recupera el acceso con nuestro equipo.',
+        )
         emailInputRef.current?.focus()
         return
       }
@@ -64,13 +75,13 @@ export function LoginForm({ redirectTo, infoMessage }: LoginFormProps) {
       size="sm"
       className="border-white/70 bg-white/82 py-5 shadow-[0_18px_60px_rgba(47,75,103,0.12)] ring-1 ring-[color:color-mix(in_srgb,var(--wellstudio-blue)_12%,transparent)] backdrop-blur"
     >
-        <CardHeader className="gap-2 px-5 sm:px-6">
-          <p className="text-xs uppercase tracking-[0.18em] text-[var(--wellstudio-blue-deep)]">
-            Acceso socios
-          </p>
-          <CardTitle className="font-display text-balance text-4xl uppercase tracking-[0.04em] text-[var(--wellstudio-ink)]">
-            Inicia sesión
-          </CardTitle>
+      <CardHeader className="gap-2 px-5 sm:px-6">
+        <p className="text-xs uppercase tracking-[0.18em] text-[var(--wellstudio-blue-deep)]">
+          Acceso socios
+        </p>
+        <CardTitle className="font-display text-balance text-4xl uppercase tracking-[0.04em] text-[var(--wellstudio-ink)]">
+          Inicia sesión
+        </CardTitle>
         <CardDescription className="text-[0.95rem] leading-7 text-muted-foreground">
           Accede a tus reservas, planes, pagos e historial de entrenamiento.
         </CardDescription>
@@ -101,6 +112,7 @@ export function LoginForm({ redirectTo, infoMessage }: LoginFormProps) {
                   id="login-email"
                   name="email"
                   type="email"
+                  defaultValue={initialEmail}
                   autoComplete="email"
                   autoCapitalize="none"
                   inputMode="email"
@@ -129,6 +141,37 @@ export function LoginForm({ redirectTo, infoMessage }: LoginFormProps) {
               <FieldError>{errorMessage}</FieldError>
             </Field>
           </FieldGroup>
+
+          <div className="rounded-2xl border border-[color:color-mix(in_srgb,var(--wellstudio-blue)_16%,var(--border))] bg-[color:color-mix(in_srgb,var(--wellstudio-blue)_4%,white)] px-4 py-3 text-sm leading-7 text-muted-foreground">
+            <p className="font-medium text-[var(--wellstudio-ink)]">
+              ¿Has olvidado tu contraseña?
+            </p>
+            <p>
+              Recíbela por email y, si algo falla, te ayudamos también por una vía más personal.
+            </p>
+            <div className="mt-2 flex flex-wrap gap-x-4 gap-y-1">
+              <Link
+                href="/forgot-password"
+                className="rounded-full font-medium text-[var(--wellstudio-blue-deep)] underline-offset-4 transition-colors hover:text-[var(--wellstudio-blue)] hover:underline focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--wellstudio-blue-soft)]"
+              >
+                Recuperar acceso por email
+              </Link>
+              <a
+                href={SUPPORT_WHATSAPP_URL}
+                target="_blank"
+                rel="noreferrer"
+                className="rounded-full font-medium text-[var(--wellstudio-blue-deep)] underline-offset-4 transition-colors hover:text-[var(--wellstudio-blue)] hover:underline focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--wellstudio-blue-soft)]"
+              >
+                Hablar por WhatsApp
+              </a>
+              <a
+                href={`mailto:${SUPPORT_EMAIL}?subject=Recuperar%20acceso%20WellStudio`}
+                className="rounded-full font-medium text-[var(--wellstudio-blue-deep)] underline-offset-4 transition-colors hover:text-[var(--wellstudio-blue)] hover:underline focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--wellstudio-blue-soft)]"
+              >
+                Escribir por email
+              </a>
+            </div>
+          </div>
 
           <div className="flex flex-col gap-3">
             <Button

@@ -19,6 +19,34 @@ test.describe('Auth smoke @smoke @auth', () => {
     await authPage.expectRegisterVisible()
   })
 
+  test('forgot-password page renders with accessible recovery controls', async ({
+    page,
+  }) => {
+    const authPage = new AuthPage(page)
+
+    await authPage.gotoForgotPassword()
+    await authPage.expectForgotPasswordVisible()
+  })
+
+  test('reset-password page shows invalid state without recovery session', async ({
+    page,
+  }) => {
+    const authPage = new AuthPage(page)
+
+    await authPage.gotoResetPassword()
+    await authPage.expectResetPasswordInvalidState()
+  })
+
+  test('signup callback falls back to login with confirmed email prefilled when no session is opened', async ({
+    page,
+  }) => {
+    const authPage = new AuthPage(page)
+    const email = 'maria@wellstudio.test'
+
+    await authPage.gotoAuthCallback(email)
+    await authPage.expectConfirmedLoginFallback(email)
+  })
+
   test('member route redirects unauthenticated visitors to login', async ({
     page,
   }) => {

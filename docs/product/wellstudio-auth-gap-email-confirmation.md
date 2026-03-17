@@ -46,9 +46,29 @@ El riesgo que queda es este:
 ## Mitigación actual
 
 - la app ya soporta `/auth/confirm`
+- la app ya soporta `/auth/callback` para cerrar mejor la confirmación de registro en el navegador
+- la plantilla de `Confirm signup` ya apunta explícitamente a `/auth/confirm` con `token_hash`
+- la allowlist de `Redirect URLs` en Supabase ya está alineada con las rutas reales de auth
 - la UI ya refleja correctamente el estado de confirmación pendiente
 - el gap está documentado
 - el resto del bloque de auth sí tiene cobertura fuerte
+
+## Evolución actual aceptada
+
+Para salir del cuello de botella del hosted email de Supabase en pruebas manuales, la dirección actual aceptada es:
+
+- mantener el gap E2E completo como diferido
+- configurar `Resend` como `custom SMTP` para `sandbox`
+
+Esto mejora claramente la operación manual, pero no sustituye a una estrategia de captura automática del inbox.
+
+## Estado actual del gap
+
+Con `Resend` y el setup final de Supabase:
+
+- el flujo manual de registro queda validado
+- el flujo manual de reset password queda validado
+- el gap que sigue abierto ya no es de operación manual, sino de automatización E2E del inbox
 
 ## Cuándo retomar esto
 

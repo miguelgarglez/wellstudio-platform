@@ -108,6 +108,16 @@ Motivo:
 - en hosted, la confirmación de email está activada por defecto
 - y no compensa meter ahora una infraestructura adicional de correo solo para QA
 
+## Dirección operativa actual
+
+Para mejorar pruebas manuales de signup y recovery sin reabrir la arquitectura base, la dirección actual es:
+
+- usar `Resend` como `custom SMTP` del proyecto `sandbox`
+
+Runbook relacionado:
+
+- `docs/runbooks/resend-supabase-auth-smtp-setup.md`
+
 ## No hacer
 
 - usar producción para auth E2E

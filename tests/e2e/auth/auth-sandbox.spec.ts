@@ -75,6 +75,7 @@ test.describe('Auth sandbox @auth @sandbox @critical', () => {
     }
 
     await authPage.expectRegisterConfirmationFeedback()
+    await authPage.expectRegisterConfirmationEmail(candidate.email)
   })
 
   test('member can log out and loses protected access', async ({ page }) => {

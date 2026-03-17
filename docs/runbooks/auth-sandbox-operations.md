@@ -21,6 +21,7 @@ No cubre todavía:
 - promoción de rol `ADMIN` en la base propia
 - password reset E2E
 - email verification E2E
+- configuración SMTP custom
 
 ## Cuentas de escenario actuales
 
@@ -101,8 +102,32 @@ Motivo:
 Runbook relacionado:
 
 - `docs/runbooks/supabase-postgres-prisma-workflow.md`
+- `docs/runbooks/resend-supabase-auth-smtp-setup.md`
 
 Esto significa que la suite actual prueba `auth real + identidad local provisionada`, pero no automatiza todavía el paso completo de verificación de email.
+
+## Dirección actual para emails de auth
+
+Para mejorar las pruebas manuales y el sandbox sin tocar la arquitectura de auth, la dirección actual es usar:
+
+- `Resend` como `custom SMTP` de `Supabase Auth`
+
+Esto:
+
+- elimina el cuello de botella principal del hosted email de Supabase
+- mejora la repetibilidad de signup y password reset manuales
+- no elimina todavía el gap de inbox automation para E2E
+
+Estado actual validado:
+
+- signup manual funcionando con email real
+- confirmación de signup entrando correctamente en `/app`
+- forgot password funcionando con email real
+- reset password funcionando
+
+Runbook operativo detallado:
+
+- `docs/runbooks/resend-supabase-auth-smtp-setup.md`
 
 ## Incidencias típicas
 

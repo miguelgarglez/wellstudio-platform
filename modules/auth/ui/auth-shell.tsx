@@ -6,7 +6,7 @@ type AuthShellProps = {
   title: string
   description: string
   children: ReactNode
-  footer: ReactNode
+  footer?: ReactNode
 }
 
 export function AuthShell({
@@ -22,7 +22,7 @@ export function AuthShell({
       className="wellstudio-auth-shell min-h-screen px-4 py-6 text-foreground sm:px-6 lg:px-8"
     >
       <div className="mx-auto grid min-h-[calc(100vh-3rem)] max-w-7xl overflow-hidden rounded-[2rem] border border-white/65 bg-white/75 shadow-[0_24px_80px_rgba(17,19,22,0.12)] backdrop-blur md:grid-cols-[1.15fr_0.85fr]">
-        <section className="wellstudio-brand-panel relative flex min-h-[18rem] flex-col justify-between overflow-hidden px-6 py-6 text-white sm:px-8 sm:py-8 lg:px-10 lg:py-10">
+        <section className="wellstudio-brand-panel order-2 relative flex min-h-[18rem] flex-col justify-between overflow-hidden px-6 py-6 text-white sm:px-8 sm:py-8 md:order-1 lg:px-10 lg:py-10">
           <div className="wellstudio-grid-line absolute inset-x-0 top-[7.25rem] h-px opacity-70" />
           <div className="relative z-10 flex items-start justify-between gap-6">
             <Link
@@ -66,7 +66,7 @@ export function AuthShell({
             </nav>
           </div>
 
-          <div className="relative z-10 mt-12 flex max-w-xl flex-col gap-6">
+          <div className="relative z-10 mt-8 flex max-w-xl flex-col gap-6 md:mt-12">
             <div className="flex flex-col gap-2">
               <p className="text-sm uppercase tracking-[0.22em] text-[var(--wellstudio-blue-soft)]">
                 {eyebrow}
@@ -79,7 +79,7 @@ export function AuthShell({
               {description}
             </p>
 
-            <div className="grid gap-3 pt-4 text-sm text-white/72 sm:grid-cols-3">
+            <div className="grid gap-3 pt-2 text-sm text-white/72 sm:grid-cols-3 md:pt-4">
               <div className="rounded-2xl border border-white/12 bg-white/5 px-4 py-4 backdrop-blur">
                 <p className="font-display text-2xl uppercase text-white">1:1</p>
                 <p>Entrenamiento personal de seguimiento cercano.</p>
@@ -96,10 +96,23 @@ export function AuthShell({
           </div>
         </section>
 
-        <section className="flex items-center justify-center bg-[linear-gradient(180deg,rgba(255,255,255,0.74),rgba(247,245,241,0.96))] px-5 py-8 sm:px-8 lg:px-10">
-          <div className="flex w-full max-w-md flex-col gap-6">
+        <section className="order-1 flex items-start justify-center bg-[linear-gradient(180deg,rgba(255,255,255,0.74),rgba(247,245,241,0.96))] px-5 py-6 sm:px-8 sm:py-8 md:order-2 md:items-center lg:px-10">
+          <div className="flex w-full max-w-md flex-col gap-5 sm:gap-6">
+            <Link
+              href="/"
+              className="inline-flex items-center gap-3 self-start rounded-full border border-[color:color-mix(in_srgb,var(--wellstudio-blue)_18%,var(--border))] bg-white/90 px-3 py-2 text-[var(--wellstudio-ink)] shadow-sm md:hidden"
+            >
+              <span className="wellstudio-logo-badge flex size-10 items-center justify-center rounded-2xl text-2xl font-semibold text-[var(--wellstudio-ink)] shadow-none">
+                W
+              </span>
+              <span className="font-display text-xl uppercase tracking-[0.08em]">
+                WellStudio
+              </span>
+            </Link>
             {children}
-            <div className="text-sm text-muted-foreground">{footer}</div>
+            {footer ? (
+              <div className="text-sm text-muted-foreground">{footer}</div>
+            ) : null}
           </div>
         </section>
       </div>

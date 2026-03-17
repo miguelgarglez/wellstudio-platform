@@ -4,7 +4,7 @@ import { useMemo, useRef, useState, useTransition } from 'react'
 import Link from 'next/link'
 import { useRouter } from 'next/navigation'
 
-import { Button } from '@/components/ui/button'
+import { Button, buttonVariants } from '@/components/ui/button'
 import {
   Card,
   CardContent,
@@ -23,6 +23,7 @@ import {
 } from '@/components/ui/field'
 import { Input } from '@/components/ui/input'
 import { Spinner } from '@/components/ui/spinner'
+import { resolveEmailRateLimitErrorMessage } from '@/modules/auth/lib/supabase-auth-error-message'
 import { createSupabaseBrowserClient } from '@/modules/auth/lib/supabase-browser-client'
 
 export function RegisterForm() {
@@ -32,11 +33,11 @@ export function RegisterForm() {
   const emailInputRef = useRef<HTMLInputElement | null>(null)
   const [isPending, startTransition] = useTransition()
   const [errorMessage, setErrorMessage] = useState<string | null>(null)
-  const [successMessage, setSuccessMessage] = useState<string | null>(null)
+  const [pendingConfirmationEmail, setPendingConfirmationEmail] = useState<string | null>(null)
 
   function handleSubmit(formData: FormData) {
     setErrorMessage(null)
-    setSuccessMessage(null)
+    setPendingConfirmationEmail(null)
 
     const firstName = String(formData.get('firstName') || '')
     const lastName = String(formData.get('lastName') || '')
@@ -52,9 +53,7 @@ export function RegisterForm() {
     }
 
     startTransition(async () => {
-      const emailRedirectTo = process.env.NEXT_PUBLIC_APP_URL
-        ? new URL('/auth/confirm?next=/app', process.env.NEXT_PUBLIC_APP_URL).toString()
-        : undefined
+      const emailRedirectTo = process.env.NEXT_PUBLIC_APP_URL || undefined
 
       const { data, error } = await supabase.auth.signUp({
         email,
@@ -70,7 +69,10 @@ export function RegisterForm() {
       })
 
       if (error) {
-        setErrorMessage('No hemos podido crear tu cuenta. Revisa los datos e inténtalo de nuevo.')
+        setErrorMessage(
+          resolveEmailRateLimitErrorMessage(error) ||
+            'No hemos podido crear tu cuenta. Revisa los datos e inténtalo de nuevo.',
+        )
         emailInputRef.current?.focus()
         return
       }
@@ -81,23 +83,67 @@ export function RegisterForm() {
         return
       }
 
-      setSuccessMessage(
-        'Cuenta creada. Te hemos enviado un correo para verificar tu acceso antes de iniciar sesión.',
-      )
+      setPendingConfirmationEmail(email)
     })
+  }
+
+  if (pendingConfirmationEmail) {
+    return (
+      <Card className="border-white/70 bg-white/82 py-5 shadow-[0_18px_60px_rgba(47,75,103,0.12)] ring-1 ring-[color:color-mix(in_srgb,var(--wellstudio-blue)_12%,transparent)] backdrop-blur">
+        <CardHeader className="gap-2 px-5 sm:px-6">
+          <p className="text-xs uppercase tracking-[0.18em] text-[var(--wellstudio-blue-deep)]">
+            Revisa tu correo
+          </p>
+          <CardTitle className="font-display text-balance text-4xl uppercase tracking-[0.04em] text-[var(--wellstudio-ink)]">
+            Activa tu cuenta
+          </CardTitle>
+          <CardDescription className="text-[0.95rem] leading-7 text-muted-foreground">
+            Ya hemos preparado tu acceso. Solo te falta confirmar el correo para entrar en tu espacio privado.
+          </CardDescription>
+        </CardHeader>
+        <CardContent className="flex flex-col gap-6 px-5 sm:px-6">
+          <div className="rounded-2xl border border-[color:color-mix(in_srgb,#7fd6a3_48%,var(--border))] bg-[color:color-mix(in_srgb,#7fd6a3_18%,white)] px-4 py-4 text-sm leading-7 text-[var(--wellstudio-blue-deep)]">
+            Hemos enviado el enlace para activar tu cuenta a{' '}
+            <span className="font-semibold text-[var(--wellstudio-ink)]">
+              {pendingConfirmationEmail}
+            </span>
+            .
+          </div>
+          <div className="rounded-2xl border border-[color:color-mix(in_srgb,var(--wellstudio-blue)_16%,var(--border))] bg-[color:color-mix(in_srgb,var(--wellstudio-blue)_4%,white)] px-4 py-4 text-sm leading-7 text-muted-foreground">
+            <p className="font-medium text-[var(--wellstudio-ink)]">Siguiente paso</p>
+            <p>
+              Abre el correo y confirma tu acceso. Si todo va bien, entrarás directamente en tu espacio privado.
+              Si no lo ves enseguida, revisa spam o promociones.
+            </p>
+          </div>
+          <div className="flex flex-col gap-3">
+            <div className={buttonVariants({ size: 'lg', variant: 'outline' })}>
+              Esperando confirmación por correo
+            </div>
+            <button
+              type="button"
+              className="w-fit rounded-full text-sm font-medium text-[var(--wellstudio-blue-deep)] underline-offset-4 transition-colors hover:text-[var(--wellstudio-blue)] hover:underline focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--wellstudio-blue-soft)]"
+              onClick={() => setPendingConfirmationEmail(null)}
+            >
+              Cambiar el email o volver al formulario
+            </button>
+          </div>
+        </CardContent>
+      </Card>
+    )
   }
 
   return (
     <Card
       className="border-white/70 bg-white/82 py-5 shadow-[0_18px_60px_rgba(47,75,103,0.12)] ring-1 ring-[color:color-mix(in_srgb,var(--wellstudio-blue)_12%,transparent)] backdrop-blur"
     >
-        <CardHeader className="gap-2 px-5 sm:px-6">
-          <p className="text-xs uppercase tracking-[0.18em] text-[var(--wellstudio-blue-deep)]">
-            Nuevo socio
-          </p>
-          <CardTitle className="font-display text-balance text-4xl uppercase tracking-[0.04em] text-[var(--wellstudio-ink)]">
-            Crea tu cuenta
-          </CardTitle>
+      <CardHeader className="gap-2 px-5 sm:px-6">
+        <p className="text-xs uppercase tracking-[0.18em] text-[var(--wellstudio-blue-deep)]">
+          Nuevo socio
+        </p>
+        <CardTitle className="font-display text-balance text-4xl uppercase tracking-[0.04em] text-[var(--wellstudio-ink)]">
+          Crea tu cuenta
+        </CardTitle>
         <CardDescription className="text-[0.95rem] leading-7 text-muted-foreground">
           Prepara tu acceso privado para reservar clases, gestionar tus planes y seguir tu progreso.
         </CardDescription>
@@ -150,6 +196,9 @@ export function RegisterForm() {
                   placeholder="+34 600 000 000…"
                   required
                 />
+                <FieldDescription>
+                  Lo usamos para poder darte un trato más cercano y ayudarte también por WhatsApp si hace falta.
+                </FieldDescription>
               </FieldContent>
             </Field>
 
@@ -201,22 +250,14 @@ export function RegisterForm() {
                     Acepto las condiciones legales y la política de privacidad.
                   </span>
                   <span className="block text-sm font-normal text-muted-foreground">
-                    Necesitamos este consentimiento para crear tu acceso privado.
+                    Necesitamos este consentimiento para crear tu acceso privado. Publicaremos las páginas legales en
+                    la web y, si las necesitas antes, te las facilitaremos por contacto directo.
                   </span>
                 </span>
               </FieldLabel>
               <FieldError>{errorMessage}</FieldError>
             </Field>
           </FieldGroup>
-
-          {successMessage ? (
-            <div
-              aria-live="polite"
-              className="rounded-2xl border border-[color:color-mix(in_srgb,#7fd6a3_48%,var(--border))] bg-[color:color-mix(in_srgb,#7fd6a3_18%,white)] px-4 py-3 text-sm leading-7 text-[var(--wellstudio-blue-deep)]"
-            >
-              {successMessage}
-            </div>
-          ) : null}
 
           <div className="flex flex-col gap-3">
             <Button
