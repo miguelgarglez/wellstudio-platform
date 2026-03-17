@@ -120,10 +120,13 @@ export class AuthPage {
       this.page.getByRole('heading', { name: 'Política de privacidad' }),
     ).toBeVisible()
     await expect(
-      this.page.getByText('WellStudio actúa como responsable del tratamiento básico'),
+      this.page.getByText('WellStudio es responsable del tratamiento de los datos personales'),
     ).toBeVisible()
     await expect(
       this.page.getByLabel('Legal navigation').getByRole('link', { name: 'Condiciones' }),
+    ).toBeVisible()
+    await expect(
+      this.page.getByRole('complementary').getByRole('link', { name: 'miguel.garglez@gmail.com' }),
     ).toBeVisible()
   }
 
@@ -132,10 +135,13 @@ export class AuthPage {
       this.page.getByRole('heading', { name: 'Condiciones de uso' }),
     ).toBeVisible()
     await expect(
-      this.page.getByText('Estas condiciones explican de forma breve cómo se usa el acceso privado de WellStudio'),
+      this.page.getByText('Estas condiciones regulan el acceso y el uso básico del área privada de WellStudio'),
     ).toBeVisible()
     await expect(
       this.page.getByLabel('Legal navigation').getByRole('link', { name: 'Privacidad' }),
+    ).toBeVisible()
+    await expect(
+      this.page.getByRole('complementary').getByRole('link', { name: 'miguel.garglez@gmail.com' }),
     ).toBeVisible()
   }
 

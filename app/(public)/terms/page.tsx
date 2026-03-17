@@ -5,61 +5,66 @@ export default function TermsPage() {
     <LegalPageShell
       eyebrow="Condiciones"
       title="Condiciones de uso"
-      description="Resumen básico de cómo debe usarse el acceso privado de WellStudio en esta primera versión pública."
+      description="Condiciones esenciales que regulan el acceso y el uso inicial del área privada de WellStudio."
+      currentPath="/terms"
+      lastUpdated="17 de marzo de 2026"
+      contactEmail="miguel.garglez@gmail.com"
     >
       <section>
-        <h2>Objeto</h2>
+        <h2>Objeto y alcance</h2>
         <p>
-          Estas condiciones explican de forma breve cómo se usa el acceso privado de WellStudio y qué puede esperar el
-          usuario en esta primera versión.
+          Estas condiciones regulan el acceso y el uso básico del área privada de WellStudio en la fase actual del
+          servicio.
         </p>
       </section>
 
       <section>
         <h2>Uso del acceso privado</h2>
         <p>
-          El acceso privado está pensado para que cada usuario gestione su cuenta y las acciones vinculadas al servicio
-          que WellStudio vaya habilitando.
+          El área privada está destinada a que cada usuario gestione su cuenta y las funcionalidades que WellStudio
+          habilite en cada momento dentro de la plataforma.
         </p>
         <p>
-          Cada usuario debe mantener su contraseña de forma razonablemente segura y no compartir su acceso con otras
-          personas.
-        </p>
-      </section>
-
-      <section>
-        <h2>Disponibilidad y cambios</h2>
-        <p>
-          WellStudio intentará mantener el servicio disponible, pero puede introducir cambios, mejoras o ajustes
-          operativos cuando sea necesario para la evolución del producto o del centro.
+          Cada persona usuaria es responsable de custodiar su contraseña y de no compartir sus credenciales de acceso
+          con terceros.
         </p>
       </section>
 
       <section>
-        <h2>Reservas y operativa del centro</h2>
+        <h2>Disponibilidad del servicio</h2>
         <p>
-          Las reglas concretas sobre reservas, cancelaciones, planes o elegibilidad pueden depender de la operativa del
-          centro y del tipo de servicio contratado en cada momento.
+          WellStudio procurará mantener la plataforma disponible y operativa, aunque podrá introducir cambios, mejoras,
+          interrupciones puntuales o ajustes cuando resulten necesarios para la evolución del producto o de la
+          actividad del centro.
+        </p>
+      </section>
+
+      <section>
+        <h2>Operativa del centro y servicios</h2>
+        <p>
+          Las condiciones concretas aplicables a reservas, cancelaciones, planes, acceso a servicios o criterios de
+          elegibilidad podrán depender de la operativa del centro y del servicio contratado en cada momento.
         </p>
         <p>
-          Si existe alguna duda o incidencia, prevalecerá la información operativa comunicada directamente por
-          WellStudio mientras esta V1 sigue madurando.
+          En caso de duda o incidencia operativa, prevalecerá la información comunicada directamente por WellStudio a
+          la persona usuaria por los canales habituales de atención.
         </p>
       </section>
 
       <section>
         <h2>Contacto</h2>
         <p>
-          Para dudas sobre el uso del acceso o sobre estas condiciones, puedes escribir a{' '}
+          Para consultas sobre el acceso, el uso de la plataforma o estas condiciones, puedes escribir a{' '}
           <a href="mailto:miguel.garglez@gmail.com">miguel.garglez@gmail.com</a>.
         </p>
       </section>
 
       <section>
-        <h2>Estado de este texto</h2>
+        <h2>Vigencia y actualización</h2>
         <p>
-          Estas condiciones son una base mínima y honesta para la V1. No pretenden sustituir todavía una redacción
-          legal más completa, que podrá publicarse más adelante si el proyecto lo necesita.
+          Estas condiciones recogen la regulación esencial aplicable a la versión actual del servicio. WellStudio podrá
+          revisarlas o ampliarlas cuando la evolución del proyecto, la operativa o las necesidades legales lo hagan
+          conveniente.
         </p>
         <p>
           <strong>Última actualización:</strong> 17 de marzo de 2026
