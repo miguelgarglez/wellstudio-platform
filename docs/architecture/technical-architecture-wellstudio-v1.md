@@ -934,7 +934,9 @@ Entornos minimos:
 
 ## Frontend
 
-- preview deployments por rama
+- rama `preview` para sandbox automatico
+- rama `main` para publicacion real
+- preview deployments por rama para revisar cambios antes de promoverlos
 
 ## Backend
 

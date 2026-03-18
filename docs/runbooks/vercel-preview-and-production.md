@@ -34,32 +34,32 @@ Regla critica:
 
 ## Flujo Git
 
-### Rama principal
+### Ramas activas
 
-- `main` es la rama integradora del repo
-- los pushes a `main` deben producir un `Preview Deployment`
+- `preview` es la rama integradora del `sandbox`
+- los pushes a `preview` deben producir un `Preview Deployment`
 - ese `Preview Deployment` es el `sandbox` operativo que se valida antes de cualquier promocion
+- `main` se reserva para la version candidata a `Production`
 
 ### Rama de produccion en Vercel
 
-Para evitar que `main` publique automaticamente en `Production`, el proyecto de `Vercel` debe usar una rama de produccion dedicada y no automatica.
+`main` debe mantenerse como `Production Branch` del proyecto.
 
-Recomendacion:
+Flujo recomendado:
 
-- crear una rama `production` solo cuando haga falta configurar o usar la publicacion real
-- configurar esa rama como `Production Branch` en `Vercel`
-- no trabajar el dia a dia sobre esa rama
-
-Mientras `production` no reciba pushes, `Production` no cambia sola.
+- integrar cambios en `preview`
+- validar en el deployment `Preview`
+- promover cambios a `main` mediante merge o PR
+- dejar que `main` publique en `Production`
 
 ## Setup inicial en Vercel
 
 1. Importar el repo `wellstudio-platform` en `Vercel`.
 2. Confirmar deteccion de `Next.js`.
 3. En `Project Settings -> Environments`, dejar definido:
-   - `Production Branch`: `production` cuando se prepare la publicacion real
+   - `Production Branch`: `main`
 4. Conectar variables de entorno por entorno.
-5. Confirmar que los pushes a `main` generan `Preview Deployments`.
+5. Confirmar que los pushes a `preview` generan `Preview Deployments`.
 
 ## Variables por entorno
 
@@ -96,11 +96,11 @@ Variables minimas:
 - `DATABASE_URL` -> `Supabase sandbox`
 - `NEXT_PUBLIC_SUPABASE_URL` -> `Supabase sandbox`
 - `NEXT_PUBLIC_SUPABASE_ANON_KEY` -> `Supabase sandbox`
-- `NEXT_PUBLIC_APP_URL` -> URL publica estable del `Preview`
+- `NEXT_PUBLIC_APP_URL` -> opcional al inicio; si no existe, la app cae a `window.location.origin`
 
 Recomendacion:
 
-- usar la URL estable del branch deployment de `main`
+- usar la URL estable del branch deployment de `preview`
 - si mas adelante se configura dominio, reservar un subdominio de sandbox para esa rama
 
 ## Production
@@ -119,7 +119,7 @@ Variables minimas:
 
 ## Validacion de sandbox
 
-Cada cambio integrado en `main` debe poder validarse en `Preview` al menos con:
+Cada cambio integrado en `preview` debe poder validarse en `Preview` al menos con:
 
 - carga de landing publica
 - carga de `/login` y `/register`
@@ -135,16 +135,16 @@ pnpm test:e2e:smoke
 
 ## Promocion manual a Production
 
-La promocion se hara manualmente desde `Vercel` dashboard o CLI.
+La publicacion en `Production` se desencadena al integrar `preview` en `main`.
 
 Flujo recomendado:
 
-1. validar el deployment de `Preview` deseado
-2. ir a `Deployments` en `Vercel`
-3. seleccionar el deployment validado
-4. usar `Promote to Production`
+1. validar el deployment de `Preview` deseado en la rama `preview`
+2. abrir PR o merge controlado de `preview` a `main`
+3. confirmar que `main` publica en `Production`
+4. validar la version real contra variables de `Production`
 
-Alternativa CLI:
+Alternativa para promocion puntual desde CLI/dashboard sobre un deployment concreto:
 
 ```bash
 vercel promote <deployment-url-o-id>
@@ -152,8 +152,8 @@ vercel promote <deployment-url-o-id>
 
 Importante:
 
-- la promocion debe usar variables de `Production`
-- no se publica nada a produccion solo por hacer push a `main`
+- el deploy de `main` usa variables de `Production`
+- no se debe trabajar directamente sobre `main` salvo casos excepcionales y muy controlados
 
 ## Rollback
 
@@ -161,7 +161,7 @@ Rollback desde dashboard:
 
 1. abrir `Deployments`
 2. localizar el ultimo deployment sano
-3. promoverlo de nuevo a `Production`
+3. promoverlo de nuevo a `Production` o revertir `main`
 
 Rollback desde CLI:
 

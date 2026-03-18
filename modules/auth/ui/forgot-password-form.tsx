@@ -21,24 +21,13 @@ import {
 } from '@/components/ui/field'
 import { Input } from '@/components/ui/input'
 import { Spinner } from '@/components/ui/spinner'
+import { resolvePublicAppUrl } from '@/modules/auth/lib/public-app-url'
 import { resolveEmailRateLimitErrorMessage } from '@/modules/auth/lib/supabase-auth-error-message'
 import { createSupabaseBrowserClient } from '@/modules/auth/lib/supabase-browser-client'
 
 const SUPPORT_EMAIL = 'wellstudiofit@gmail.com'
 const SUPPORT_WHATSAPP_URL =
   'https://wa.me/34614882404?text=Hola%20WellStudio,%20necesito%20ayuda%20para%20recuperar%20mi%20acceso.'
-
-function resolveRecoveryRedirectUrl() {
-  const baseUrl =
-    process.env.NEXT_PUBLIC_APP_URL ||
-    (typeof window !== 'undefined' ? window.location.origin : '')
-
-  if (!baseUrl) {
-    return undefined
-  }
-
-  return new URL('/reset-password?flow=recovery', baseUrl).toString()
-}
 
 export function ForgotPasswordForm() {
   const supabase = useMemo(() => createSupabaseBrowserClient(), [])
@@ -54,7 +43,7 @@ export function ForgotPasswordForm() {
 
     startTransition(async () => {
       const { error } = await supabase.auth.resetPasswordForEmail(email, {
-        redirectTo: resolveRecoveryRedirectUrl(),
+        redirectTo: resolvePublicAppUrl('/reset-password?flow=recovery'),
       })
 
       if (error) {

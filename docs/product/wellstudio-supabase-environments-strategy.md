@@ -40,8 +40,8 @@ Escala inicial esperada:
 Esta estrategia de datos se cruza con los entornos de despliegue de `Vercel` asi:
 
 - `Development` en `Vercel` = desarrollo local
-- `Preview` en `Vercel` = app desplegada contra `Supabase sandbox`
-- `Production` en `Vercel` = app desplegada contra `Supabase production`
+- rama `preview` en `Vercel Preview` = app desplegada contra `Supabase sandbox`
+- rama `main` en `Vercel Production` = app desplegada contra `Supabase production`
 
 ## Local
 
@@ -138,8 +138,8 @@ Para WellStudio V1:
 - seguir en `Free` de momento
 - no abrir un tercer entorno Supabase todavía
 - documentar bien credenciales, cuentas E2E y uso de cada entorno
-- usar `Vercel Preview` como despliegue `sandbox`
-- usar `Vercel Production` solo por promoción manual
+- usar la rama `preview` como despliegue `sandbox`
+- reservar `main` para la publicacion real en `Production`
 
 ## Siguiente paso recomendado
 

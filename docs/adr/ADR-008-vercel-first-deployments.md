@@ -66,9 +66,10 @@ Modelo de datos:
 
 ## Consecuencias
 
-- `main` sera la rama integradora para `Preview`
-- `Production` no se publicara automaticamente
-- la promocion a produccion se hara desde dashboard o CLI de Vercel
+- `preview` sera la rama integradora del `sandbox` desplegado automaticamente
+- `main` seguira siendo la rama de `Production`
+- la promocion a produccion ocurrira via `preview -> main`
+- `Production` seguira bajo control humano porque no se trabajara directamente sobre `main`
 - `staging` queda diferido
 - `Docker` queda como herramienta opcional local, no como workflow principal de operacion
 
@@ -79,6 +80,7 @@ Modelo de datos:
 - introducir `CI` basica en GitHub Actions
 - alinear README y runbooks con el nuevo flujo
 - dejar explicita la regla de no usar datos o credenciales de `production` en `Preview`
+- mantener una rama `preview` publica y estable para validar cambios antes de integrarlos en `main`
 
 ## Referencias
 

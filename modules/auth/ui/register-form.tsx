@@ -23,6 +23,7 @@ import {
 } from '@/components/ui/field'
 import { Input } from '@/components/ui/input'
 import { Spinner } from '@/components/ui/spinner'
+import { resolvePublicAppUrl } from '@/modules/auth/lib/public-app-url'
 import { resolveEmailRateLimitErrorMessage } from '@/modules/auth/lib/supabase-auth-error-message'
 import { createSupabaseBrowserClient } from '@/modules/auth/lib/supabase-browser-client'
 
@@ -53,7 +54,7 @@ export function RegisterForm() {
     }
 
     startTransition(async () => {
-      const emailRedirectTo = process.env.NEXT_PUBLIC_APP_URL || undefined
+      const emailRedirectTo = resolvePublicAppUrl()
 
       const { data, error } = await supabase.auth.signUp({
         email,

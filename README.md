@@ -74,8 +74,8 @@ Referencias:
 - `Supabase Postgres` aloja el dominio WellStudio (`User`, `Member`, reservas, planes, pagos)
 - `Prisma` es la capa con la que el monolito habla con esa base
 - en local, la app puede apuntar al proyecto `sandbox`
-- `Preview` despliega contra `Supabase sandbox`
-- `Production` se promueve manualmente contra `Supabase production`
+- la rama `preview` despliega contra `Supabase sandbox`
+- la rama `main` publica contra `Supabase production`
 
 ## Notas
 
