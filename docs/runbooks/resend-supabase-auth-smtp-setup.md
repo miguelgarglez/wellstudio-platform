@@ -143,11 +143,14 @@ Y en `Redirect URLs`, añadir explícitamente al menos:
 - `http://127.0.0.1:3000/auth/confirm`
 - `http://127.0.0.1:3000/reset-password`
 - `http://127.0.0.1:3000/auth/callback`
+- `https://*-miguel-garcias-projects-38f9bf81.vercel.app/**`
 
 Aprendizaje importante:
 
 - si `Redirect URLs` está vacío o no incluye la ruta usada por el email, Supabase cae al `Site URL`
 - en la práctica eso rompía el registro, porque el usuario terminaba en `/` en vez de cerrar la confirmación en `/auth/confirm`
+- en `Vercel Preview`, aunque la app construya bien el `redirectTo`, `Supabase` caerá igualmente a `Site URL` si la URL preview no está en allowlist
+- eso se manifestó en sandbox como enlaces de reset que volvían a `http://localhost:3000` hasta añadir el wildcard de Vercel
 
 ## Plantilla validada para confirmación de signup
 
@@ -238,6 +241,7 @@ Una vez activado el SMTP custom:
 1. probar registro nuevo
 2. comprobar que llega el email de confirmación desde el remitente configurado
 3. pulsar el enlace y verificar que se entra en `/app` o, si no, que cae al login con email precompletado
+4. probar `forgot password` desde `Vercel Preview` y verificar que el email apunta al deployment preview, no a `localhost`
 4. probar `forgot password`
 5. comprobar que llega el email de recuperación
 6. cambiar contraseña y verificar acceso

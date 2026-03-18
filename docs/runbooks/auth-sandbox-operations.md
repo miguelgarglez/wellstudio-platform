@@ -124,10 +124,16 @@ Estado actual validado:
 - confirmación de signup entrando correctamente en `/app`
 - forgot password funcionando con email real
 - reset password funcionando
+- signup y reset funcionando tambien desde `Vercel Preview` contra `Supabase sandbox`
 
 Runbook operativo detallado:
 
 - `docs/runbooks/resend-supabase-auth-smtp-setup.md`
+
+Nota importante de configuración:
+
+- para que el sandbox desplegado en `Vercel Preview` funcione con auth por email, `Supabase Auth` debe allowlistear tambien las URLs preview en `Redirect URLs`
+- si no se hace, `Supabase` cae al `Site URL` y los enlaces de recovery/signup pueden volver a `localhost`
 
 ## Incidencias típicas
 

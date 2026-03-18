@@ -103,6 +103,14 @@ Recomendacion:
 - usar la URL estable del branch deployment de `preview`
 - si mas adelante se configura dominio, reservar un subdominio de sandbox para esa rama
 
+Nota operativa importante:
+
+- aunque `NEXT_PUBLIC_APP_URL` no exista en `Preview`, la app puede construir redirects validos usando `window.location.origin`
+- aun asi, `Supabase Auth` solo respetara esos redirects si la URL preview esta allowlisteada en `Authentication -> URL Configuration -> Redirect URLs`
+- para previews de Vercel conviene anadir un patron como:
+  - `https://*-miguel-garcias-projects-38f9bf81.vercel.app/**`
+- si esa allowlist no existe, `Supabase` cae al `Site URL`, que en sandbox puede seguir siendo `http://localhost:3000`
+
 ## Production
 
 Uso:
