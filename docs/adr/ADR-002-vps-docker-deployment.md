@@ -1,7 +1,7 @@
 # ADR-002: Despliegue inicial de la app en VPS con Docker
 
 Fecha: 2026-03-13
-Estado: accepted
+Estado: superseded by ADR-008
 
 ## Contexto
 
@@ -21,6 +21,20 @@ Se estudiaron varias opciones:
 ## Decision
 
 La opcion objetivo inicial sera desplegar el monolito `Next.js` sobre `VPS + Docker`.
+
+## Nota posterior
+
+Esta decision fue superada como camino inmediato de entrega por `ADR-008`.
+
+La motivacion del cambio fue pragmatica:
+
+- reducir operacion en la primera fase real de despliegue
+- aprovechar un flujo `Next.js` nativo con `Preview` y `Production`
+- acelerar la puesta en marcha de `sandbox`
+
+`VPS + Docker` deja de ser el mecanismo principal de despliegue para esta fase,
+pero puede seguir teniendo valor como artefacto de empaquetado local o como
+direccion futura si el proyecto necesita recuperar mas control operativo.
 
 ## Motivo
 

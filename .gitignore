@@ -21,6 +21,7 @@ output/playwright
 .DS_Store
 .idea
 .vscode
+.vercel
 
 # Logs
 npm-debug.log*

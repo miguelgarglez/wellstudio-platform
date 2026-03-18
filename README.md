@@ -8,6 +8,7 @@ Estado actual:
 - documentacion fundacional importada
 - stack objetivo definido
 - `schema.prisma`, test unitario base y smoke E2E inicial ya preparados
+- deploy objetivo inmediato redefinido a `Vercel-first`
 
 ## Direccion tecnica
 
@@ -15,7 +16,8 @@ Estado actual:
 - `Prisma`
 - `Supabase Auth`
 - `Supabase Postgres`
-- `VPS + Docker`
+- `Vercel` para `Preview` y `Production`
+- `Docker` solo como artefacto opcional de empaquetado local
 
 ## Estructura de documentacion
 
@@ -37,7 +39,7 @@ Usar esta regla:
 ## Prioridad inmediata
 
 1. boundary de `Supabase Auth`
-2. workflow Docker local y VPS
+2. workflow `Vercel Preview / Production`
 3. fixtures y gates iniciales de testing
 4. primeros casos de uso de auth y members
 
@@ -53,26 +55,31 @@ pnpm check:foundation
 pnpm check:auth
 pnpm test:unit
 pnpm test:e2e
+pnpm test:e2e:smoke
 ```
 
-## Docker
+## Deploy y entornos
 
 Referencias:
 
-- [`Dockerfile`](./Dockerfile)
-- [`docker-compose.yml`](./docker-compose.yml)
-- [`docs/runbooks/docker-local-and-vps.md`](./docs/runbooks/docker-local-and-vps.md)
+- [`docs/adr/ADR-008-vercel-first-deployments.md`](./docs/adr/ADR-008-vercel-first-deployments.md)
+- [`docs/product/wellstudio-supabase-environments-strategy.md`](./docs/product/wellstudio-supabase-environments-strategy.md)
+- [`docs/runbooks/vercel-preview-and-production.md`](./docs/runbooks/vercel-preview-and-production.md)
 - [`docs/runbooks/supabase-postgres-prisma-workflow.md`](./docs/runbooks/supabase-postgres-prisma-workflow.md)
+- [`docs/runbooks/docker-local-and-vps.md`](./docs/runbooks/docker-local-and-vps.md)
 
 ## Modelo mental de datos
 
 - `Supabase Auth` gestiona identidad, sesión y credenciales
 - `Supabase Postgres` aloja el dominio WellStudio (`User`, `Member`, reservas, planes, pagos)
 - `Prisma` es la capa con la que el monolito habla con esa base
-- en local, la app puede apuntar al proyecto `sandbox` sin exigir Postgres en Docker por defecto
+- en local, la app puede apuntar al proyecto `sandbox`
+- `Preview` despliega contra `Supabase sandbox`
+- `Production` se promueve manualmente contra `Supabase production`
 
 ## Notas
 
 - no mezclar logica de negocio en UI
 - no tratar Supabase como fuente de verdad del dominio
 - mantener el dominio desacoplado del proveedor de auth
+- no usar credenciales o datos de `production` en `Preview`

@@ -37,15 +37,20 @@ Escala inicial esperada:
 
 ## Roles por entorno
 
-## Local
+Esta estrategia de datos se cruza con los entornos de despliegue de `Vercel` asi:
 
-No debe depender de un proyecto Supabase real para todo el desarrollo diario.
+- `Development` en `Vercel` = desarrollo local
+- `Preview` en `Vercel` = app desplegada contra `Supabase sandbox`
+- `Production` en `Vercel` = app desplegada contra `Supabase production`
+
+## Local
 
 Uso principal:
 
 - desarrollo de UI
 - smoke local
 - tests unitarios e integration que no requieran auth real
+- desarrollo diario apuntando, cuando haga falta, a `Supabase sandbox`
 
 ## Sandbox
 
@@ -57,12 +62,14 @@ Uso principal:
 - cuentas de escenario
 - validación de registro, login y logout
 - debugging manual sin tocar datos de producción
+- soporte del `Preview Deployment` principal de la app
 
 Reglas:
 
 - nunca usarlo para datos reales de clientes
 - mantener cuentas E2E reconocibles
 - no compartir credenciales personales en este entorno
+- `Preview` nunca debe usar credenciales o datos de `production`
 
 ## Production
 
@@ -73,6 +80,7 @@ Uso principal:
 - auth de usuarios reales
 - sesiones reales
 - tráfico de cliente real
+- despliegue Vercel promovido manualmente
 
 Reglas:
 
@@ -130,6 +138,8 @@ Para WellStudio V1:
 - seguir en `Free` de momento
 - no abrir un tercer entorno Supabase todavía
 - documentar bien credenciales, cuentas E2E y uso de cada entorno
+- usar `Vercel Preview` como despliegue `sandbox`
+- usar `Vercel Production` solo por promoción manual
 
 ## Siguiente paso recomendado
 
@@ -138,3 +148,4 @@ Crear y documentar:
 - variables de entorno por entorno
 - cuentas E2E de `sandbox`
 - procedimiento básico de alta y rotación de credenciales de test
+- flujo de promoción manual a `production`

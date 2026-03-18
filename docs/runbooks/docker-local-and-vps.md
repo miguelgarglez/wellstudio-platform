@@ -1,12 +1,26 @@
-# Docker local y VPS
+# Docker local y nota sobre VPS
+
+Fecha: 2026-03-18  
+Estado: optional local packaging
+
+## Nota importante
+
+Este documento ya no describe el camino principal de despliegue de WellStudio.
+
+Desde `ADR-008`, la direccion activa es:
+
+- `Vercel` para `Preview` y `Production`
+- `Supabase` para auth y base de datos
+
+Docker queda como herramienta opcional para:
+
+- probar una imagen local cercana a produccion
+- empaquetar la app
+- conservar una via de salida futura si el proyecto vuelve a `VPS + Docker`
 
 ## Objetivo
 
-Tener una base de despliegue simple y repetible para WellStudio V1 usando:
-
-- `Dockerfile` multi-stage para la app `Next.js`
-- `docker-compose.yml` como base de empaquetado y despliegue de la app
-- un camino claro tanto para local como para un VPS sobrio
+Tener una base opcional de empaquetado local para la app `Next.js`.
 
 ## Local
 
@@ -26,7 +40,7 @@ Runbook relacionado:
 
 ### App en Docker
 
-Cuando quieras probar una imagen cercana a produccion:
+Cuando quieras probar una imagen cercana a produccion de forma local:
 
 ```bash
 docker compose up --build
@@ -36,26 +50,12 @@ Esto levanta:
 
 - `app` en `http://localhost:3000`
 
-## VPS
-
-En V1 la estrategia objetivo es una sola maquina con:
-
-- Docker Engine
-- Docker Compose plugin
-- reverse proxy delante si hace falta TLS y dominio
-
-Flujo base:
-
-1. copiar repo o imagen al VPS
-2. definir variables de entorno reales
-3. lanzar `docker compose up -d --build`
-4. verificar health y logs
-
 ## Variables de entorno minimas
 
 - `DATABASE_URL`
 - `NEXT_PUBLIC_SUPABASE_URL`
 - `NEXT_PUBLIC_SUPABASE_ANON_KEY`
+- `NEXT_PUBLIC_APP_URL`
 
 Mas adelante se añadiran:
 
@@ -66,6 +66,6 @@ Mas adelante se añadiran:
 
 ## Notas
 
-- esta base es suficiente para V1, pero no sustituye runbooks de backup, restore y actualizacion
-- `docker-compose.yml` esta orientado a simplicidad, no a alta disponibilidad
+- `docker-compose.yml` esta orientado a simplicidad y validacion local
 - la base de datos se asume alojada en `Supabase Postgres`, no en el mismo stack Docker
+- el runbook principal de despliegue vive ahora en `docs/runbooks/vercel-preview-and-production.md`

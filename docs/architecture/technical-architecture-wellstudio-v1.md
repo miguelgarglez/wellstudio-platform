@@ -929,7 +929,7 @@ Recomendacion inicial:
 Entornos minimos:
 
 - local
-- staging
+- preview / sandbox
 - production
 
 ## Frontend
@@ -938,7 +938,7 @@ Entornos minimos:
 
 ## Backend
 
-- staging con datos anonimizados o seed controlado
+- staging diferido hasta que haga falta un entorno mas parecido a produccion
 
 ## DB
 
@@ -1045,7 +1045,7 @@ La arquitectura recomendada para WellStudio V1 es:
 - Redis + BullMQ para jobs
 - Stripe para pagos y tarjetas
 - email transaccional externo
-- deploy simple con app en VPS y datos en Supabase
+- deploy inicial `Vercel-first` con `Preview` como sandbox y `Production` promovido manualmente
 
 Lo mas importante no es elegir la tecnologia perfecta, sino mantener tres principios:
 
