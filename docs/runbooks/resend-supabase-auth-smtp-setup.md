@@ -129,6 +129,21 @@ Nota:
 - el dominio es temporal y operativo para sandbox
 - no debe considerarse remitente final de producción para usuarios del gimnasio
 
+## Configuración validada en production
+
+A fecha de 2026-03-19, `Supabase production` también quedó alineado con `Resend`:
+
+- `custom SMTP` activado en `wellstudio-prod`
+- `Resend` como proveedor SMTP
+- API key separada para `production`
+- plantillas de auth propias del proyecto
+
+Recomendacion operativa:
+
+- mantener API keys separadas por entorno
+- usar un marcador visible en `sandbox`, por ejemplo `[DEV]`, para no confundir correos de prueba con correos reales
+- dejar `production` sin marcadores de entorno en el asunto
+
 ## URL Configuration validada en Supabase
 
 En `Authentication > URL Configuration`, el setup que funcionó fue:
@@ -151,6 +166,21 @@ Aprendizaje importante:
 - en la práctica eso rompía el registro, porque el usuario terminaba en `/` en vez de cerrar la confirmación en `/auth/confirm`
 - en `Vercel Preview`, aunque la app construya bien el `redirectTo`, `Supabase` caerá igualmente a `Site URL` si la URL preview no está en allowlist
 - eso se manifestó en sandbox como enlaces de reset que volvían a `http://localhost:3000` hasta añadir el wildcard de Vercel
+
+## URL Configuration minima en production
+
+En `Supabase production`, dejar al menos:
+
+- `Site URL`:
+  - `https://wellstudio.miguelgarglez.com`
+- `Redirect URLs`:
+  - `https://wellstudio.miguelgarglez.com/**`
+  - `https://wellstudio-platform.vercel.app/**`
+
+Esto cubre:
+
+- dominio custom final
+- alias de respaldo de Vercel mientras se consolida el setup
 
 ## Plantilla validada para confirmación de signup
 
