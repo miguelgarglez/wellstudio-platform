@@ -2,7 +2,6 @@
 
 import { useMemo, useRef, useState, useTransition } from 'react'
 import Link from 'next/link'
-import { useRouter } from 'next/navigation'
 
 import { Button } from '@/components/ui/button'
 import {
@@ -39,7 +38,6 @@ export function LoginForm({
   redirectTo,
   infoMessage,
 }: LoginFormProps) {
-  const router = useRouter()
   const supabase = useMemo(() => createSupabaseBrowserClient(), [])
   const emailInputRef = useRef<HTMLInputElement | null>(null)
   const [isPending, startTransition] = useTransition()
@@ -65,8 +63,9 @@ export function LoginForm({
         return
       }
 
-      router.push(redirectTo)
-      router.refresh()
+      // Use a full document navigation so the next server render sees the
+      // freshly-written auth cookies reliably in production.
+      window.location.assign(redirectTo)
     })
   }
 
