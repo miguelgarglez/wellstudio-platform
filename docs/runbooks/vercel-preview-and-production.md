@@ -121,9 +121,16 @@ Uso:
 Variables minimas:
 
 - `DATABASE_URL` -> `Supabase production`
+- `DIRECT_URL` -> opcion recomendada para operaciones de schema en `Supabase production`
 - `NEXT_PUBLIC_SUPABASE_URL` -> `Supabase production`
 - `NEXT_PUBLIC_SUPABASE_ANON_KEY` -> `Supabase production`
 - `NEXT_PUBLIC_APP_URL` -> dominio real de produccion
+
+Nota operativa:
+
+- `DATABASE_URL` debe seguir apuntando al `pooler` para runtime de app
+- `DIRECT_URL` conviene guardarla aunque no la use el runtime
+- cuando `Production` arranca por primera vez, puede hacer falta un bootstrap de schema con `prisma db push` usando la conexion directa antes de que `/app` funcione
 
 ## Validacion de sandbox
 
