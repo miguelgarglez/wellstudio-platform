@@ -2,7 +2,6 @@ import Link from 'next/link'
 import {
   ArrowRight,
   BadgeCheck,
-  ChevronRight,
   Clock3,
   Dumbbell,
   Mail,
@@ -14,7 +13,9 @@ import {
 } from 'lucide-react'
 
 import { cn } from '@/lib/utils'
+import { WellstudioLogoMark } from '@/components/brand/wellstudio-logo-mark'
 import { landingContent } from '@/modules/public/content/landing-content'
+import { LandingFaqAccordion } from '@/modules/public/ui/landing/landing-faq-accordion'
 import { PublicSiteFooter } from '@/modules/public/ui/public-site-footer'
 
 const navigationLinks = [
@@ -43,22 +44,19 @@ export function PublicLandingPage() {
       id="main-content"
       className="wellstudio-landing-shell min-h-screen bg-[var(--background)] text-[var(--foreground)]"
     >
-      <section className="relative isolate overflow-hidden bg-[var(--wellstudio-ink)] text-white">
-        <div className="absolute inset-0 bg-[radial-gradient(circle_at_top_left,rgba(79,137,197,0.26),transparent_26%),radial-gradient(circle_at_78%_12%,rgba(183,206,231,0.12),transparent_22%),linear-gradient(180deg,rgba(15,16,18,0.98),rgba(15,16,18,0.92))]" />
-        <div className="absolute inset-x-0 bottom-0 h-px bg-[linear-gradient(90deg,transparent,rgba(183,206,231,0.55),transparent)]" />
-
-        <div className="relative mx-auto flex max-w-7xl flex-col px-4 pb-16 pt-5 sm:px-6 md:pb-20 lg:px-8 lg:pb-24">
-          <header className="flex items-center justify-between gap-6 rounded-full border border-white/10 bg-white/5 px-4 py-3 backdrop-blur-xl sm:px-5">
+      <div className="sticky top-3 z-40 px-4 pt-3 sm:px-6 lg:px-8">
+        <div className="mx-auto max-w-7xl">
+          <header className="flex items-center justify-between gap-6 rounded-full border border-white/12 bg-[color:color-mix(in_srgb,var(--wellstudio-ink)_84%,rgba(13,15,18,0.45))] px-4 py-3 text-white shadow-[0_24px_60px_rgba(8,10,12,0.22)] backdrop-blur-2xl sm:px-5">
             <Link
               href="/"
-              className="flex items-center gap-3 rounded-full focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white/50"
+              className="flex min-w-0 items-center gap-3 rounded-full focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white/50"
             >
-              <div className="wellstudio-logo-badge flex size-12 items-center justify-center rounded-[1.1rem] text-3xl font-semibold text-[var(--wellstudio-ink)] shadow-none">
-                W
-              </div>
-              <div>
+              <WellstudioLogoMark className="size-12 rounded-[1.1rem] shadow-none" />
+              <div className="min-w-0">
                 <p className="font-display text-2xl uppercase tracking-[0.08em] text-white">WellStudio</p>
-                <p className="hidden text-xs text-white/58 sm:block">Fuerza, criterio y seguimiento real</p>
+                <p className="hidden truncate text-xs text-white/58 sm:block">
+                  Fuerza, criterio y seguimiento real
+                </p>
               </div>
             </Link>
 
@@ -79,16 +77,26 @@ export function PublicLandingPage() {
 
             <Link
               href="/login"
-              className={cn(outlineButtonClass, 'border-white/16 bg-white/6 px-4 text-white hover:bg-white/10 hover:text-white focus-visible:ring-white/45')}
+              className={cn(
+                outlineButtonClass,
+                'border-white/16 bg-white/6 px-4 text-white hover:bg-white/10 hover:text-white focus-visible:ring-white/45',
+              )}
             >
               Acceso socios
             </Link>
           </header>
+        </div>
+      </div>
 
+      <section className="relative isolate -mt-20 overflow-hidden bg-[var(--wellstudio-ink)] pt-20 text-white">
+        <div className="absolute inset-0 bg-[radial-gradient(circle_at_top_left,rgba(79,137,197,0.26),transparent_26%),radial-gradient(circle_at_78%_12%,rgba(183,206,231,0.12),transparent_22%),linear-gradient(180deg,rgba(15,16,18,0.98),rgba(15,16,18,0.92))]" />
+        <div className="absolute inset-x-0 bottom-0 h-px bg-[linear-gradient(90deg,transparent,rgba(183,206,231,0.55),transparent)]" />
+
+        <div className="relative mx-auto flex max-w-7xl flex-col px-4 pb-16 pt-5 sm:px-6 md:pb-20 lg:px-8 lg:pb-24">
           <div className="grid gap-12 pt-14 lg:grid-cols-[minmax(0,1.1fr)_24rem] lg:items-end lg:pt-20">
             <div className="max-w-3xl">
               <p className="text-sm uppercase tracking-[0.22em] text-[var(--wellstudio-blue-soft)]">{hero.eyebrow}</p>
-              <h1 className="mt-5 max-w-4xl font-display text-6xl leading-[0.92] uppercase tracking-[0.03em] text-white sm:text-7xl lg:text-[6.4rem]">
+              <h1 className="mt-5 max-w-4xl text-balance font-display text-6xl leading-[0.92] uppercase tracking-[0.03em] text-white sm:text-7xl lg:text-[6.4rem]">
                 {hero.title}
               </h1>
               <p className="mt-6 max-w-2xl text-lg leading-8 text-white/72 sm:text-xl">
@@ -104,7 +112,10 @@ export function PublicLandingPage() {
                   )}
                 >
                   {hero.primaryCtaLabel}
-                  <ArrowRight className="size-4" />
+                  <ArrowRight
+                    aria-hidden="true"
+                    className="size-4"
+                  />
                 </a>
                 <a
                   href={hero.secondaryCtaHref}
@@ -128,7 +139,10 @@ export function PublicLandingPage() {
                     Un estudio serio, no una sala masiva
                   </p>
                 </div>
-                <Sparkles className="mt-1 size-5 text-[var(--wellstudio-blue-soft)]" />
+                <Sparkles
+                  aria-hidden="true"
+                  className="mt-1 size-5 text-[var(--wellstudio-blue-soft)]"
+                />
               </div>
 
               <div className="grid gap-3 pt-5">
@@ -166,7 +180,10 @@ export function PublicLandingPage() {
                 >
                   <div className="flex items-center gap-3">
                     <div className="flex size-10 items-center justify-center rounded-2xl bg-white/10">
-                      <Icon className="size-4 text-[var(--wellstudio-blue-soft)]" />
+                      <Icon
+                        aria-hidden="true"
+                        className="size-4 text-[var(--wellstudio-blue-soft)]"
+                      />
                     </div>
                     <p className="text-xs uppercase tracking-[0.18em] text-white/58">{highlight.label}</p>
                   </div>
@@ -181,12 +198,12 @@ export function PublicLandingPage() {
 
       <section
         id="centro"
-        className="border-b border-[color:color-mix(in_srgb,var(--wellstudio-blue)_10%,var(--border))] bg-[linear-gradient(180deg,rgba(247,245,241,0.96),rgba(240,236,230,0.75))]"
+        className="scroll-mt-32 border-b border-[color:color-mix(in_srgb,var(--wellstudio-blue)_10%,var(--border))] bg-[linear-gradient(180deg,rgba(247,245,241,0.96),rgba(240,236,230,0.75))]"
       >
         <div className="mx-auto grid max-w-7xl gap-10 px-4 py-18 sm:px-6 lg:grid-cols-[minmax(0,1fr)_26rem] lg:px-8 lg:py-24">
           <div className="max-w-3xl">
             <p className="text-sm uppercase tracking-[0.22em] text-[var(--wellstudio-blue-deep)]">{intro.eyebrow}</p>
-            <h2 className="mt-4 font-display text-5xl uppercase leading-[0.94] tracking-[0.03em] text-[var(--wellstudio-ink)] sm:text-6xl">
+            <h2 className="mt-4 text-balance font-display text-5xl uppercase leading-[0.94] tracking-[0.03em] text-[var(--wellstudio-ink)] sm:text-6xl">
               {intro.title}
             </h2>
             <p className="mt-6 text-lg leading-9 text-[color:color-mix(in_srgb,var(--wellstudio-ink)_74%,white)]">
@@ -238,12 +255,12 @@ export function PublicLandingPage() {
 
       <section
         id="metodo"
-        className="bg-[linear-gradient(180deg,rgba(183,206,231,0.16),rgba(247,245,241,0.92))]"
+        className="scroll-mt-32 bg-[linear-gradient(180deg,rgba(183,206,231,0.16),rgba(247,245,241,0.92))]"
       >
         <div className="mx-auto max-w-7xl px-4 py-18 sm:px-6 lg:px-8 lg:py-24">
           <div className="max-w-3xl">
             <p className="text-sm uppercase tracking-[0.22em] text-[var(--wellstudio-blue-deep)]">Método</p>
-            <h2 className="mt-4 font-display text-5xl uppercase leading-[0.94] tracking-[0.03em] text-[var(--wellstudio-ink)] sm:text-6xl">
+            <h2 className="mt-4 text-balance font-display text-5xl uppercase leading-[0.94] tracking-[0.03em] text-[var(--wellstudio-ink)] sm:text-6xl">
               Entrenar mejor empieza por tener menos ruido
             </h2>
             <p className="mt-6 text-lg leading-9 text-muted-foreground">
@@ -274,6 +291,7 @@ export function PublicLandingPage() {
                     0{index + 1}
                   </span>
                   <BadgeCheck
+                    aria-hidden="true"
                     className={cn(
                       'size-5',
                       index === 1 ? 'text-[var(--wellstudio-blue-soft)]' : 'text-[var(--wellstudio-blue-deep)]',
@@ -292,11 +310,11 @@ export function PublicLandingPage() {
         </div>
       </section>
 
-      <section id="testimonios" className="bg-[var(--wellstudio-ink)] text-white">
+      <section id="testimonios" className="scroll-mt-32 bg-[var(--wellstudio-ink)] text-white">
         <div className="mx-auto max-w-7xl px-4 py-18 sm:px-6 lg:px-8 lg:py-24">
           <div className="flex max-w-3xl flex-col gap-4">
             <p className="text-sm uppercase tracking-[0.22em] text-[var(--wellstudio-blue-soft)]">Testimonios</p>
-            <h2 className="font-display text-5xl uppercase leading-[0.94] tracking-[0.03em] text-white sm:text-6xl">
+            <h2 className="text-balance font-display text-5xl uppercase leading-[0.94] tracking-[0.03em] text-white sm:text-6xl">
               Historias reales, no promesas infladas
             </h2>
             <p className="text-lg leading-9 text-white/68">
@@ -327,11 +345,14 @@ export function PublicLandingPage() {
         </div>
       </section>
 
-      <section id="faq" className="bg-[linear-gradient(180deg,rgba(247,245,241,1),rgba(236,230,222,0.55))]">
+      <section
+        id="faq"
+        className="scroll-mt-32 bg-[linear-gradient(180deg,rgba(247,245,241,1),rgba(236,230,222,0.55))]"
+      >
         <div className="mx-auto grid max-w-7xl gap-10 px-4 py-18 sm:px-6 lg:grid-cols-[minmax(0,0.9fr)_minmax(0,1.1fr)] lg:px-8 lg:py-24">
           <div className="max-w-xl">
             <p className="text-sm uppercase tracking-[0.22em] text-[var(--wellstudio-blue-deep)]">Preguntas frecuentes</p>
-            <h2 className="mt-4 font-display text-5xl uppercase leading-[0.94] tracking-[0.03em] text-[var(--wellstudio-ink)] sm:text-6xl">
+            <h2 className="mt-4 text-balance font-display text-5xl uppercase leading-[0.94] tracking-[0.03em] text-[var(--wellstudio-ink)] sm:text-6xl">
               La información importante, sin rodeos
             </h2>
             <p className="mt-6 text-lg leading-9 text-muted-foreground">
@@ -339,29 +360,15 @@ export function PublicLandingPage() {
               primer contacto. La agenda pública llegará después en una superficie propia.
             </p>
           </div>
-
-          <div className="space-y-4">
-            {faq.map((item) => (
-              <details
-                key={item.question}
-                className="group rounded-[1.75rem] border border-[color:color-mix(in_srgb,var(--wellstudio-blue)_14%,var(--border))] bg-white px-5 py-5 shadow-[0_12px_30px_rgba(17,19,22,0.05)]"
-              >
-                <summary className="flex cursor-pointer list-none items-start justify-between gap-4 font-display text-3xl uppercase leading-[0.98] tracking-[0.03em] text-[var(--wellstudio-ink)]">
-                  <span>{item.question}</span>
-                  <ChevronRight className="mt-1 size-5 shrink-0 transition-transform duration-200 group-open:rotate-90" />
-                </summary>
-                <p className="mt-4 max-w-3xl text-base leading-8 text-muted-foreground">{item.answer}</p>
-              </details>
-            ))}
-          </div>
+          <LandingFaqAccordion items={faq} />
         </div>
       </section>
 
-      <section id="contacto" className="bg-[var(--wellstudio-blue-deep)] text-white">
+      <section id="contacto" className="scroll-mt-32 bg-[var(--wellstudio-blue-deep)] text-white">
         <div className="mx-auto grid max-w-7xl gap-10 px-4 py-18 sm:px-6 lg:grid-cols-[minmax(0,1fr)_25rem] lg:px-8 lg:py-24">
           <div className="max-w-3xl">
             <p className="text-sm uppercase tracking-[0.22em] text-[var(--wellstudio-blue-soft)]">Contacto</p>
-            <h2 className="mt-4 font-display text-5xl uppercase leading-[0.94] tracking-[0.03em] text-white sm:text-6xl">
+            <h2 className="mt-4 text-balance font-display text-5xl uppercase leading-[0.94] tracking-[0.03em] text-white sm:text-6xl">
               Si quieres saber si WellStudio encaja contigo, este es el siguiente paso
             </h2>
             <p className="mt-6 text-lg leading-9 text-white/74">
@@ -374,11 +381,14 @@ export function PublicLandingPage() {
                 href={`mailto:${contact.email}`}
                 className={cn(
                   solidButtonClass,
-                  'bg-white text-[var(--wellstudio-blue-deep)] hover:bg-[color:color-mix(in_srgb,white_90%,var(--wellstudio-blue-soft))] focus-visible:ring-white/55',
+                  'border border-white/16 bg-[var(--wellstudio-blue-soft)] text-[var(--wellstudio-ink)] hover:bg-[color:color-mix(in_srgb,var(--wellstudio-blue-soft)_88%,white)] hover:text-[var(--wellstudio-ink)] focus-visible:ring-white/55',
                 )}
               >
                 Escribir por email
-                <MoveUpRight className="size-4" />
+                <MoveUpRight
+                  aria-hidden="true"
+                  className="size-4"
+                />
               </a>
               <a
                 href={`tel:${contact.phone}`}
@@ -395,7 +405,10 @@ export function PublicLandingPage() {
           <div className="grid gap-4">
             <article className="rounded-[1.75rem] border border-white/12 bg-white/7 p-5 backdrop-blur-xl">
               <div className="flex items-center gap-3">
-                <Phone className="size-4 text-[var(--wellstudio-blue-soft)]" />
+                <Phone
+                  aria-hidden="true"
+                  className="size-4 text-[var(--wellstudio-blue-soft)]"
+                />
                 <p className="text-xs uppercase tracking-[0.18em] text-white/58">Teléfono</p>
               </div>
               <a
@@ -408,7 +421,10 @@ export function PublicLandingPage() {
 
             <article className="rounded-[1.75rem] border border-white/12 bg-white/7 p-5 backdrop-blur-xl">
               <div className="flex items-center gap-3">
-                <Mail className="size-4 text-[var(--wellstudio-blue-soft)]" />
+                <Mail
+                  aria-hidden="true"
+                  className="size-4 text-[var(--wellstudio-blue-soft)]"
+                />
                 <p className="text-xs uppercase tracking-[0.18em] text-white/58">Email</p>
               </div>
               <a
@@ -421,7 +437,10 @@ export function PublicLandingPage() {
 
             <article className="rounded-[1.75rem] border border-white/12 bg-white/7 p-5 backdrop-blur-xl">
               <div className="flex items-center gap-3">
-                <MapPinned className="size-4 text-[var(--wellstudio-blue-soft)]" />
+                <MapPinned
+                  aria-hidden="true"
+                  className="size-4 text-[var(--wellstudio-blue-soft)]"
+                />
                 <p className="text-xs uppercase tracking-[0.18em] text-white/58">Dirección</p>
               </div>
               <div className="mt-3 space-y-1 text-sm leading-7 text-white/76">
@@ -433,7 +452,10 @@ export function PublicLandingPage() {
 
             <article className="rounded-[1.75rem] border border-white/12 bg-white/7 p-5 backdrop-blur-xl">
               <div className="flex items-center gap-3">
-                <Clock3 className="size-4 text-[var(--wellstudio-blue-soft)]" />
+                <Clock3
+                  aria-hidden="true"
+                  className="size-4 text-[var(--wellstudio-blue-soft)]"
+                />
                 <p className="text-xs uppercase tracking-[0.18em] text-white/58">Horario</p>
               </div>
               <div className="mt-3 space-y-2 text-sm leading-7 text-white/76">

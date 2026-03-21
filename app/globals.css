@@ -154,11 +154,6 @@ a {
   position: absolute;
 }
 
-.wellstudio-logo-badge {
-  background: linear-gradient(180deg, #5b95d0 0%, #4f89c5 100%);
-  box-shadow: 0 22px 50px color-mix(in srgb, var(--wellstudio-blue) 28%, transparent);
-}
-
 .wellstudio-grid-line {
   background: linear-gradient(90deg, transparent, color-mix(in srgb, white 18%, transparent), transparent);
 }
