@@ -162,3 +162,15 @@ a {
 .wellstudio-grid-line {
   background: linear-gradient(90deg, transparent, color-mix(in srgb, white 18%, transparent), transparent);
 }
+
+.wellstudio-landing-shell {
+  background:
+    radial-gradient(circle at top left, color-mix(in srgb, var(--wellstudio-blue) 9%, transparent), transparent 28%),
+    linear-gradient(180deg, var(--wellstudio-sand) 0%, #f7f4ef 100%);
+}
+
+@media (prefers-reduced-motion: no-preference) {
+  html {
+    scroll-behavior: smooth;
+  }
+}

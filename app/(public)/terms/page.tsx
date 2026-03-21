@@ -1,4 +1,5 @@
 import { LegalPageShell } from '@/modules/public/ui/legal-page-shell'
+import { PUBLIC_CONTACT_EMAIL } from '@/modules/public/content/public-contact'
 
 export default function TermsPage() {
   return (
@@ -8,7 +9,7 @@ export default function TermsPage() {
       description="Condiciones esenciales que regulan el acceso y el uso inicial del área privada de WellStudio."
       currentPath="/terms"
       lastUpdated="17 de marzo de 2026"
-      contactEmail="miguel.garglez@gmail.com"
+      contactEmail={PUBLIC_CONTACT_EMAIL}
     >
       <section>
         <h2>Objeto y alcance</h2>
@@ -55,7 +56,7 @@ export default function TermsPage() {
         <h2>Contacto</h2>
         <p>
           Para consultas sobre el acceso, el uso de la plataforma o estas condiciones, puedes escribir a{' '}
-          <a href="mailto:miguel.garglez@gmail.com">miguel.garglez@gmail.com</a>.
+          <a href={`mailto:${PUBLIC_CONTACT_EMAIL}`}>{PUBLIC_CONTACT_EMAIL}</a>.
         </p>
       </section>
 

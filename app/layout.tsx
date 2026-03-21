@@ -17,6 +17,9 @@ const barlowCondensed = Barlow_Condensed({
 export const metadata: Metadata = {
   title: 'WellStudio',
   description: 'Plataforma WellStudio para socios, reservas y seguimiento.',
+  icons: {
+    icon: '/favicon.ico',
+  },
 }
 
 type RootLayoutProps = Readonly<{
