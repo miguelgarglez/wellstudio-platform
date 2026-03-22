@@ -49,7 +49,8 @@ const heroSurfaceClass =
   'bg-[radial-gradient(circle_at_top_left,rgba(79,137,197,0.32),transparent_24%),radial-gradient(circle_at_78%_12%,rgba(183,206,231,0.14),transparent_22%),linear-gradient(180deg,rgba(15,16,18,0.98),rgba(15,16,18,0.92))]'
 
 export function PublicLandingPage() {
-  const { hero, intro, highlights, pillars, testimonials, faq, contact } = landingContent
+  const { hero, intro, highlights, method, pillars, testimonials, faqSection, faq, contactSection, contact } =
+    landingContent
   const fullAddress = contact.addressLines.join(', ')
 
   return (
@@ -104,26 +105,6 @@ export function PublicLandingPage() {
                   {hero.secondaryCtaLabel}
                 </a>
               </div>
-
-              <div className="mt-9 grid gap-3 sm:grid-cols-3">
-                <div className="rounded-[1.55rem] border border-white/10 bg-white/7 px-4 py-4 backdrop-blur-xl">
-                  <p className="text-xs uppercase tracking-[0.18em] text-white/56">Grupos premium</p>
-                  <p className="mt-3 font-display text-3xl uppercase leading-none text-white">4 max</p>
-                </div>
-                <div className="rounded-[1.55rem] border border-white/10 bg-white/7 px-4 py-4 backdrop-blur-xl">
-                  <p className="text-xs uppercase tracking-[0.18em] text-white/56">Grupos dinámicos</p>
-                  <p className="mt-3 font-display text-3xl uppercase leading-none text-white">10 max</p>
-                </div>
-                <a
-                  href={contact.mapsHref}
-                  {...externalLocationLinkProps}
-                  className="rounded-[1.55rem] border border-[color:color-mix(in_srgb,var(--wellstudio-blue)_38%,transparent)] bg-[color:color-mix(in_srgb,var(--wellstudio-blue-deep)_78%,black)] px-4 py-4 text-left shadow-[0_18px_40px_rgba(15,20,28,0.18)] backdrop-blur-xl transition-[background-color,border-color,transform] hover:-translate-y-0.5 hover:bg-[color:color-mix(in_srgb,var(--wellstudio-blue-deep)_70%,black)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white/45"
-                >
-                  <p className="text-xs uppercase tracking-[0.18em] text-[var(--wellstudio-blue-soft)]">Ubicación</p>
-                  <p className="mt-3 font-display text-3xl uppercase leading-none text-white">Tetuán</p>
-                  <p className="mt-3 text-sm leading-6 text-white/72">Abrir dirección en mapas</p>
-                </a>
-              </div>
             </div>
 
             <div className="relative">
@@ -139,17 +120,17 @@ export function PublicLandingPage() {
               </div>
 
               <div className="pointer-events-none absolute right-4 top-4 hidden rounded-full border border-white/14 bg-[rgba(8,10,12,0.52)] px-3 py-2 text-xs uppercase tracking-[0.2em] text-white/72 backdrop-blur sm:flex">
-                Madrid · Fuerza Boutique
+                {hero.badge}
               </div>
 
               <article className="absolute inset-x-4 bottom-4 max-w-[calc(100%-2rem)] overflow-hidden rounded-[1.65rem] border border-white/12 bg-[rgba(9,11,14,0.72)] p-5 shadow-[0_18px_50px_rgba(4,5,8,0.26)] backdrop-blur-xl sm:inset-x-auto sm:left-4 sm:w-[18rem] md:w-[21rem] lg:w-[20rem] xl:w-[21rem]">
                 <div className="flex items-start justify-between gap-4 border-b border-white/10 pb-4">
                   <div className="min-w-0">
                     <p className="text-xs uppercase tracking-[0.22em] text-[var(--wellstudio-blue-soft)]">
-                      Qué encontrarás
+                      {hero.panel.eyebrow}
                     </p>
                     <p className="mt-2 text-balance font-display text-[1.8rem] uppercase leading-[0.92] text-white sm:text-3xl">
-                      Fuerza guiada con criterio
+                      {hero.panel.title}
                     </p>
                   </div>
                   <Sparkles
@@ -159,9 +140,9 @@ export function PublicLandingPage() {
                 </div>
 
                 <div className="grid gap-3 pt-4 text-sm leading-7 text-white/72">
-                  <p>Seguimiento real, grupos reducidos y una metodología diseñada para progresar sin ruido.</p>
+                  <p>{hero.panel.description}</p>
                   <p className="rounded-[1.15rem] border border-white/10 bg-white/6 px-3 py-2 leading-6 break-words">
-                    Premium 4 max · Dinámicos 10 max
+                    {hero.panel.summary}
                   </p>
                   <a
                     href={contact.mapsHref}
@@ -229,7 +210,7 @@ export function PublicLandingPage() {
         id="centro"
         className="scroll-mt-36 border-b border-[color:color-mix(in_srgb,var(--wellstudio-blue)_10%,var(--border))] bg-[linear-gradient(180deg,rgba(247,245,241,0.96),rgba(240,236,230,0.75))]"
       >
-        <div className="mx-auto grid max-w-7xl gap-10 px-4 py-18 sm:px-6 lg:grid-cols-[minmax(0,0.95fr)_minmax(0,1.05fr)] lg:px-8 lg:py-24">
+        <div className="mx-auto grid max-w-7xl gap-10 px-4 py-18 sm:px-6 lg:grid-cols-[minmax(0,0.95fr)_minmax(0,1.05fr)] lg:items-stretch lg:px-8 lg:py-24">
           <div className="max-w-3xl">
             <p className="text-sm uppercase tracking-[0.22em] text-[var(--wellstudio-blue-deep)]">{intro.eyebrow}</p>
             <h2 className="mt-4 text-balance font-display text-[2.8rem] uppercase leading-[0.94] tracking-[0.03em] text-[var(--wellstudio-ink)] sm:text-6xl">
@@ -239,63 +220,40 @@ export function PublicLandingPage() {
               {intro.description}
             </p>
 
-            <div className="mt-8 grid gap-4 sm:grid-cols-2">
-              <a
-                href={contact.mapsHref}
-                {...externalLocationLinkProps}
-                className="rounded-[1.75rem] border border-[color:color-mix(in_srgb,var(--wellstudio-blue)_16%,var(--border))] bg-white px-5 py-5 shadow-[0_18px_40px_rgba(17,19,22,0.05)] transition-[border-color,transform,box-shadow] hover:-translate-y-0.5 hover:border-[color:color-mix(in_srgb,var(--wellstudio-blue)_24%,var(--border))] hover:shadow-[0_18px_46px_rgba(17,19,22,0.08)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--wellstudio-blue)]/45"
-              >
-                <p className="text-xs uppercase tracking-[0.18em] text-[var(--wellstudio-blue-deep)]">Dirección</p>
-                <p className="mt-3 text-lg font-medium text-[var(--wellstudio-ink)]">{contact.addressLines[0]}</p>
-                <p className="mt-1 text-sm leading-7 text-muted-foreground">{contact.addressLines[1]}</p>
-                <p className="mt-4 inline-flex items-center gap-2 text-sm font-medium text-[var(--wellstudio-blue-deep)]">
-                  Abrir en Mapas
-                  <MoveUpRight
-                    aria-hidden="true"
-                    className="size-4"
-                  />
-                </p>
-              </a>
-              <div className="rounded-[1.75rem] border border-[color:color-mix(in_srgb,var(--wellstudio-blue)_16%,var(--border))] bg-[var(--wellstudio-blue-deep)] px-5 py-5 text-white shadow-[0_18px_40px_rgba(47,75,103,0.18)]">
-                <p className="text-xs uppercase tracking-[0.18em] text-white/58">Horarios</p>
-                <div className="mt-3 space-y-2 text-sm leading-7 text-white/76">
-                  {contact.hours.map((hour) => (
-                    <p key={hour}>{hour}</p>
-                  ))}
+            <div className="mt-8 grid gap-3 sm:grid-cols-3">
+              {intro.values.map((value, index) => (
+                <div
+                  key={value.title}
+                  className={cn(
+                    'rounded-[1.45rem] border border-[color:color-mix(in_srgb,var(--wellstudio-blue)_16%,var(--border))] px-4 py-4 shadow-[0_18px_36px_rgba(17,19,22,0.08)]',
+                    index === 0
+                      ? 'bg-[var(--wellstudio-ink)] text-white'
+                      : index === 1
+                        ? 'bg-[var(--wellstudio-blue-deep)] text-white shadow-[0_18px_36px_rgba(47,75,103,0.12)]'
+                        : 'bg-white text-[var(--wellstudio-ink)] shadow-[0_18px_36px_rgba(17,19,22,0.05)]',
+                  )}
+                >
+                  <p className="font-display text-2xl uppercase leading-none">{value.title}</p>
+                  <p className={cn('mt-3 text-sm leading-6', index < 2 ? 'text-white/72' : 'text-muted-foreground')}>
+                    {value.description}
+                  </p>
                 </div>
-              </div>
+              ))}
             </div>
           </div>
 
-          <div className="space-y-4">
-            <div className="relative overflow-hidden rounded-[2rem] border border-[color:color-mix(in_srgb,var(--wellstudio-blue)_14%,var(--border))] bg-[var(--wellstudio-ink)] shadow-[0_24px_80px_rgba(17,19,22,0.12)]">
+          <div className="lg:flex lg:h-full">
+            <div className="relative overflow-hidden rounded-[2rem] border border-[color:color-mix(in_srgb,var(--wellstudio-blue)_14%,var(--border))] bg-[var(--wellstudio-ink)] shadow-[0_24px_80px_rgba(17,19,22,0.12)] lg:h-full lg:w-full">
               <Image
                 src={introTrainingImage}
                 alt="Entrenamiento de fuerza con mancuernas dentro del estudio"
-                className="aspect-[4/4.2] h-full w-full object-cover"
+                className="aspect-[4/4.2] h-full w-full object-cover lg:aspect-auto"
               />
               <div className="absolute inset-0 bg-[linear-gradient(180deg,rgba(17,19,22,0.02),rgba(17,19,22,0.18)_48%,rgba(17,19,22,0.72)_100%)]" />
               <div className="absolute inset-x-4 bottom-4 max-w-sm rounded-[1.5rem] border border-white/10 bg-[rgba(8,10,12,0.72)] p-5 text-white shadow-[0_18px_50px_rgba(4,5,8,0.24)] backdrop-blur-xl">
-                <p className="text-xs uppercase tracking-[0.2em] text-[var(--wellstudio-blue-soft)]">Atmósfera</p>
-                <p className="mt-2 font-display text-3xl uppercase leading-none">Entrenar sin masificación</p>
-                <p className="mt-3 text-sm leading-7 text-white/74">
-                  Un entorno cuidado, cercano y sobrio para que la atención no se pierda entre ruido visual ni clases masivas.
-                </p>
-              </div>
-            </div>
-
-            <div className="grid gap-3 sm:grid-cols-3">
-              <div className="rounded-[1.45rem] border border-[color:color-mix(in_srgb,var(--wellstudio-blue)_16%,var(--border))] bg-[var(--wellstudio-ink)] px-4 py-4 text-white shadow-[0_18px_36px_rgba(17,19,22,0.08)]">
-                <p className="font-display text-2xl uppercase leading-none">Premium</p>
-                <p className="mt-3 text-sm leading-6 text-white/70">Serio, claro y cuidado en la ejecución.</p>
-              </div>
-              <div className="rounded-[1.45rem] border border-[color:color-mix(in_srgb,var(--wellstudio-blue)_16%,var(--border))] bg-[var(--wellstudio-blue-deep)] px-4 py-4 text-white shadow-[0_18px_36px_rgba(47,75,103,0.12)]">
-                <p className="font-display text-2xl uppercase leading-none">Cercano</p>
-                <p className="mt-3 text-sm leading-6 text-white/74">El seguimiento importa y se nota en el formato.</p>
-              </div>
-              <div className="rounded-[1.45rem] border border-[color:color-mix(in_srgb,var(--wellstudio-blue)_16%,var(--border))] bg-white px-4 py-4 text-[var(--wellstudio-ink)] shadow-[0_18px_36px_rgba(17,19,22,0.05)]">
-                <p className="font-display text-2xl uppercase leading-none">Sostenible</p>
-                <p className="mt-3 text-sm leading-6 text-muted-foreground">Progreso que se puede mantener en el tiempo.</p>
+                <p className="text-xs uppercase tracking-[0.2em] text-[var(--wellstudio-blue-soft)]">{intro.atmosphere.eyebrow}</p>
+                <p className="mt-2 font-display text-3xl uppercase leading-none">{intro.atmosphere.title}</p>
+                <p className="mt-3 text-sm leading-7 text-white/74">{intro.atmosphere.description}</p>
               </div>
             </div>
           </div>
@@ -308,14 +266,11 @@ export function PublicLandingPage() {
       >
         <div className="mx-auto max-w-7xl px-4 py-18 sm:px-6 lg:px-8 lg:py-24">
           <div className="max-w-3xl">
-            <p className="text-sm uppercase tracking-[0.22em] text-[var(--wellstudio-blue-deep)]">Método</p>
+            <p className="text-sm uppercase tracking-[0.22em] text-[var(--wellstudio-blue-deep)]">{method.eyebrow}</p>
             <h2 className="mt-4 text-balance font-display text-[2.8rem] uppercase leading-[0.94] tracking-[0.03em] text-[var(--wellstudio-ink)] sm:text-6xl">
-              Entrenar mejor empieza por tener menos ruido
+              {method.title}
             </h2>
-            <p className="mt-6 text-lg leading-9 text-muted-foreground">
-              La propuesta de WellStudio busca quitar fricción y devolver claridad: qué entrenas, con qué objetivo, en
-              qué formato y con qué nivel de seguimiento.
-            </p>
+            <p className="mt-6 text-lg leading-9 text-muted-foreground">{method.description}</p>
           </div>
 
           <div className="mt-10 grid gap-5 lg:grid-cols-3">
@@ -368,28 +323,41 @@ export function PublicLandingPage() {
             </div>
 
             <article className="rounded-[2rem] border border-[color:color-mix(in_srgb,var(--wellstudio-blue)_16%,var(--border))] bg-white px-6 py-6 shadow-[0_24px_70px_rgba(17,19,22,0.06)]">
-              <p className="text-xs uppercase tracking-[0.22em] text-[var(--wellstudio-blue-deep)]">Ritmo de trabajo</p>
+              <p className="text-xs uppercase tracking-[0.22em] text-[var(--wellstudio-blue-deep)]">{method.supportCard.eyebrow}</p>
               <h3 className="mt-3 text-balance font-display text-4xl uppercase leading-[0.96] tracking-[0.03em] text-[var(--wellstudio-ink)] sm:text-5xl">
-                Sesiones activas, estructura clara y corrección real
+                {method.supportCard.title}
               </h3>
-              <p className="mt-5 max-w-2xl text-base leading-8 text-muted-foreground">
-                La energía del grupo está presente, pero nunca sustituye al criterio técnico. La sesión sigue teniendo
-                dirección, ajustes y seguimiento para que el progreso sea sostenible.
-              </p>
+              <p className="mt-5 max-w-2xl text-base leading-8 text-muted-foreground">{method.supportCard.description}</p>
 
               <div className="mt-6 grid gap-3 sm:grid-cols-3">
-                <div className="rounded-[1.35rem] border border-[color:color-mix(in_srgb,var(--wellstudio-blue)_14%,var(--border))] bg-[color:color-mix(in_srgb,var(--wellstudio-blue)_4%,white)] px-4 py-4">
-                  <p className="font-display text-3xl uppercase leading-none text-[var(--wellstudio-blue-deep)]">1:1</p>
-                  <p className="mt-3 text-sm leading-6 text-muted-foreground">Cuando hace falta máxima atención y ajuste fino.</p>
-                </div>
-                <div className="rounded-[1.35rem] border border-[color:color-mix(in_srgb,var(--wellstudio-blue)_14%,var(--border))] bg-[var(--wellstudio-blue-deep)] px-4 py-4 text-white">
-                  <p className="font-display text-3xl uppercase leading-none text-[var(--wellstudio-blue-soft)]">4 max</p>
-                  <p className="mt-3 text-sm leading-6 text-white/74">Formato premium para supervisión, técnica y continuidad.</p>
-                </div>
-                <div className="rounded-[1.35rem] border border-[color:color-mix(in_srgb,var(--wellstudio-blue)_14%,var(--border))] bg-[var(--wellstudio-ink)] px-4 py-4 text-white">
-                  <p className="font-display text-3xl uppercase leading-none text-[var(--wellstudio-blue-soft)]">10 max</p>
-                  <p className="mt-3 text-sm leading-6 text-white/70">Sesiones grupales con más energía, sin perder estructura.</p>
-                </div>
+                {method.formats.map((format, index) => (
+                  <div
+                    key={format.label}
+                    className={cn(
+                      'rounded-[1.35rem] border border-[color:color-mix(in_srgb,var(--wellstudio-blue)_14%,var(--border))] px-4 py-4',
+                      index === 0
+                        ? 'bg-[color:color-mix(in_srgb,var(--wellstudio-blue)_4%,white)]'
+                        : index === 1
+                          ? 'bg-[var(--wellstudio-blue-deep)] text-white'
+                          : 'bg-[var(--wellstudio-ink)] text-white',
+                    )}
+                  >
+                    <p className={cn('text-xs uppercase tracking-[0.18em]', index === 0 ? 'text-[var(--wellstudio-blue-deep)]' : 'text-white/58')}>
+                      {format.label}
+                    </p>
+                    <p
+                      className={cn(
+                        'mt-3 font-display text-3xl uppercase leading-none',
+                        index === 0 ? 'text-[var(--wellstudio-blue-deep)]' : 'text-[var(--wellstudio-blue-soft)]',
+                      )}
+                    >
+                      {format.value}
+                    </p>
+                    <p className={cn('mt-3 text-sm leading-6', index === 0 ? 'text-muted-foreground' : 'text-white/72')}>
+                      {format.description}
+                    </p>
+                  </div>
+                ))}
               </div>
             </article>
           </div>
@@ -399,18 +367,15 @@ export function PublicLandingPage() {
       <section id="testimonios" className="scroll-mt-36 bg-[var(--wellstudio-ink)] text-white">
         <div className="mx-auto max-w-7xl px-4 py-18 sm:px-6 lg:px-8 lg:py-24">
           <div className="flex max-w-3xl flex-col gap-4">
-            <p className="text-sm uppercase tracking-[0.22em] text-[var(--wellstudio-blue-soft)]">Testimonios</p>
+            <p className="text-sm uppercase tracking-[0.22em] text-[var(--wellstudio-blue-soft)]">{testimonials.eyebrow}</p>
             <h2 className="text-balance font-display text-[2.8rem] uppercase leading-[0.94] tracking-[0.03em] text-white sm:text-6xl">
-              Historias reales, no promesas infladas
+              {testimonials.title}
             </h2>
-            <p className="text-lg leading-9 text-white/68">
-              El valor de un centro así se nota en la continuidad, en la confianza y en cómo cambia la relación con el
-              entrenamiento a medio plazo.
-            </p>
+            <p className="text-lg leading-9 text-white/68">{testimonials.description}</p>
           </div>
 
           <div className="mt-10 grid gap-5 lg:grid-cols-3">
-            {testimonials.map((testimonial, index) => (
+            {testimonials.items.map((testimonial, index) => (
               <blockquote
                 key={testimonial.author}
                 className={cn(
@@ -437,14 +402,11 @@ export function PublicLandingPage() {
       >
         <div className="mx-auto grid max-w-7xl gap-10 px-4 py-18 sm:px-6 lg:grid-cols-[minmax(0,0.9fr)_minmax(0,1.1fr)] lg:px-8 lg:py-24">
           <div className="max-w-xl">
-            <p className="text-sm uppercase tracking-[0.22em] text-[var(--wellstudio-blue-deep)]">Preguntas frecuentes</p>
+            <p className="text-sm uppercase tracking-[0.22em] text-[var(--wellstudio-blue-deep)]">{faqSection.eyebrow}</p>
             <h2 className="mt-4 text-balance font-display text-[2.8rem] uppercase leading-[0.94] tracking-[0.03em] text-[var(--wellstudio-ink)] sm:text-6xl">
-              La información importante, sin rodeos
+              {faqSection.title}
             </h2>
-            <p className="mt-6 text-lg leading-9 text-muted-foreground">
-              Esta primera versión de la landing está pensada para explicar bien la propuesta de valor y facilitar el
-              primer contacto. La agenda pública llegará después en una superficie propia.
-            </p>
+            <p className="mt-6 text-lg leading-9 text-muted-foreground">{faqSection.description}</p>
 
             <a
               href={contact.mapsHref}
@@ -465,14 +427,11 @@ export function PublicLandingPage() {
       <section id="contacto" className="scroll-mt-36 bg-[var(--wellstudio-blue-deep)] text-white">
         <div className="mx-auto grid max-w-7xl gap-10 px-4 py-18 sm:px-6 lg:grid-cols-[minmax(0,1fr)_25rem] lg:px-8 lg:py-24">
           <div className="max-w-3xl">
-            <p className="text-sm uppercase tracking-[0.22em] text-[var(--wellstudio-blue-soft)]">Contacto</p>
+            <p className="text-sm uppercase tracking-[0.22em] text-[var(--wellstudio-blue-soft)]">{contactSection.eyebrow}</p>
             <h2 className="mt-4 text-balance font-display text-[2.8rem] uppercase leading-[0.94] tracking-[0.03em] text-white sm:text-6xl">
-              Si quieres saber si WellStudio encaja contigo, este es el siguiente paso
+              {contactSection.title}
             </h2>
-            <p className="mt-6 text-lg leading-9 text-white/74">
-              Escríbenos, llámanos o pásate por el centro. La siguiente iteración incorporará el formulario de captación
-              dentro de la propia landing; de momento dejamos ya resuelto el bloque comercial y el CTA principal.
-            </p>
+            <p className="mt-6 text-lg leading-9 text-white/74">{contactSection.description}</p>
 
             <div className="mt-8 flex flex-wrap gap-3">
               <a
@@ -606,8 +565,8 @@ export function PublicLandingPage() {
               Fuerza, criterio y seguimiento real
             </p>
             <p className="mt-4 text-base leading-8 text-muted-foreground sm:text-lg">
-              Una experiencia boutique para entrenar mejor, con metodología propia, grupos reducidos y una identidad
-              visual que ya se siente más cerca del centro real.
+              Un centro de entrenamiento con metodología propia, grupos reducidos y un planteamiento orientado a
+              mejorar salud, rendimiento y composición corporal.
             </p>
           </div>
         </div>
