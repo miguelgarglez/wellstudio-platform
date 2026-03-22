@@ -58,6 +58,16 @@ pnpm test:e2e
 pnpm test:e2e:smoke
 ```
 
+## Visual feedback en desarrollo
+
+`Agentation` queda integrado de forma `dev-only` desde el layout raiz.
+
+- activar/desactivar desde `NEXT_PUBLIC_AGENTATION_ENABLED`
+- el endpoint MCP por defecto es `http://localhost:4747`
+- comprobar el setup con `pnpm agentation:doctor`
+- arrancar el servidor manualmente con `pnpm agentation:mcp`
+- si SQLite da problemas locales, usar `pnpm agentation:mcp:memory`
+
 ## Deploy y entornos
 
 Referencias:

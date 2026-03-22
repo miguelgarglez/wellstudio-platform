@@ -1,4 +1,5 @@
 import { LegalPageShell } from '@/modules/public/ui/legal-page-shell'
+import { PUBLIC_CONTACT_EMAIL } from '@/modules/public/content/public-contact'
 
 export default function PrivacyPolicyPage() {
   return (
@@ -8,7 +9,7 @@ export default function PrivacyPolicyPage() {
       description="Información esencial sobre cómo WellStudio recoge, utiliza y protege los datos personales asociados al registro, al acceso privado y al uso básico de la plataforma."
       currentPath="/privacy-policy"
       lastUpdated="17 de marzo de 2026"
-      contactEmail="miguel.garglez@gmail.com"
+      contactEmail={PUBLIC_CONTACT_EMAIL}
     >
       <section>
         <h2>Responsable</h2>
@@ -18,7 +19,7 @@ export default function PrivacyPolicyPage() {
         </p>
         <p>
           Para cualquier consulta relacionada con privacidad o protección de datos, puedes escribir a{' '}
-          <a href="mailto:miguel.garglez@gmail.com">miguel.garglez@gmail.com</a>.
+          <a href={`mailto:${PUBLIC_CONTACT_EMAIL}`}>{PUBLIC_CONTACT_EMAIL}</a>.
         </p>
       </section>
 
@@ -58,7 +59,7 @@ export default function PrivacyPolicyPage() {
         <p>
           Puedes solicitar información sobre los datos asociados a tu cuenta, así como pedir su corrección o su
           eliminación cuando proceda, escribiendo a{' '}
-          <a href="mailto:miguel.garglez@gmail.com">miguel.garglez@gmail.com</a>.
+          <a href={`mailto:${PUBLIC_CONTACT_EMAIL}`}>{PUBLIC_CONTACT_EMAIL}</a>.
         </p>
       </section>
 

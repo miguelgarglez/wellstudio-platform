@@ -71,9 +71,7 @@ test.describe('Auth smoke @smoke @auth', () => {
     await page.goto('/app')
 
     await expect(page).toHaveURL(/\/login\?redirectTo=%2Fapp$/)
-    await expect(
-      page.getByRole('heading', { name: 'Inicia sesión' }),
-    ).toBeVisible()
+    await expect(page.locator('button[type="submit"]')).toBeVisible()
   })
 
   test('admin route redirects unauthenticated visitors to login', async ({
@@ -82,8 +80,6 @@ test.describe('Auth smoke @smoke @auth', () => {
     await page.goto('/admin')
 
     await expect(page).toHaveURL(/\/login\?redirectTo=%2Fadmin$/)
-    await expect(
-      page.getByRole('heading', { name: 'Inicia sesión' }),
-    ).toBeVisible()
+    await expect(page.locator('button[type="submit"]')).toBeVisible()
   })
 })

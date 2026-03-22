@@ -1,6 +1,8 @@
 import type { ReactNode } from 'react'
 import Link from 'next/link'
 
+import { WellstudioLogoMark } from '@/components/brand/wellstudio-logo-mark'
+
 type AuthShellProps = {
   eyebrow: string
   title: string
@@ -29,9 +31,7 @@ export function AuthShell({
               href="/"
               className="flex items-center gap-4"
             >
-              <div className="wellstudio-logo-badge flex size-20 items-center justify-center rounded-[1.7rem] text-[3rem] font-semibold text-[var(--wellstudio-ink)] shadow-lg sm:size-24 sm:text-[3.5rem]">
-                W
-              </div>
+              <WellstudioLogoMark className="size-20 rounded-[1.7rem] shadow-lg sm:size-24" />
               <div className="hidden sm:block">
                 <p className="font-display text-4xl uppercase tracking-[0.08em] text-white">
                   WellStudio
@@ -102,9 +102,7 @@ export function AuthShell({
               href="/"
               className="inline-flex items-center gap-3 self-start rounded-full border border-[color:color-mix(in_srgb,var(--wellstudio-blue)_18%,var(--border))] bg-white/90 px-3 py-2 text-[var(--wellstudio-ink)] shadow-sm md:hidden"
             >
-              <span className="wellstudio-logo-badge flex size-10 items-center justify-center rounded-2xl text-2xl font-semibold text-[var(--wellstudio-ink)] shadow-none">
-                W
-              </span>
+              <WellstudioLogoMark className="size-10 rounded-2xl shadow-none" />
               <span className="font-display text-xl uppercase tracking-[0.08em]">
                 WellStudio
               </span>

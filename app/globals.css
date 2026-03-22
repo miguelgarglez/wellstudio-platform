@@ -154,11 +154,18 @@ a {
   position: absolute;
 }
 
-.wellstudio-logo-badge {
-  background: linear-gradient(180deg, #5b95d0 0%, #4f89c5 100%);
-  box-shadow: 0 22px 50px color-mix(in srgb, var(--wellstudio-blue) 28%, transparent);
-}
-
 .wellstudio-grid-line {
   background: linear-gradient(90deg, transparent, color-mix(in srgb, white 18%, transparent), transparent);
+}
+
+.wellstudio-landing-shell {
+  background:
+    radial-gradient(circle at top left, color-mix(in srgb, var(--wellstudio-blue) 9%, transparent), transparent 28%),
+    linear-gradient(180deg, var(--wellstudio-sand) 0%, #f7f4ef 100%);
+}
+
+@media (prefers-reduced-motion: no-preference) {
+  html {
+    scroll-behavior: smooth;
+  }
 }

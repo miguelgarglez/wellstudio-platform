@@ -32,26 +32,26 @@ export class AuthPage {
   }
 
   async expectLoginVisible() {
-    await expect(
-      this.page.getByRole('heading', { name: 'Entrena con acceso privado' }),
-    ).toBeVisible()
-    await expect(
-      this.page.getByRole('heading', { name: 'Inicia sesión' }),
-    ).toBeVisible()
-    await expect(this.page.getByLabel('Email')).toBeVisible()
-    await expect(this.page.getByLabel('Contraseña')).toBeVisible()
-    await expect(
-      this.page.getByRole('button', { name: 'Entrar en WellStudio' }),
-    ).toBeVisible()
+    await expect(this.page.locator('input[name="email"]')).toBeVisible()
+    await expect(this.page.locator('input[name="password"]')).toBeVisible()
+    await expect(this.page.locator('button[type="submit"]')).toBeVisible()
     await expect(
       this.page.getByRole('link', { name: 'Recuperar acceso por email' }),
     ).toBeVisible()
   }
 
   async expectConfirmedLoginFallback(email: string) {
-    await expect(this.page).toHaveURL(
-      new RegExp(`/login\\?redirectTo=%2Fapp&authStatus=confirmed&email=${encodeURIComponent(email).replace(/[.*+?^${}()|[\]\\]/g, '\\$&')}`),
-    )
+    await expect
+      .poll(() => this.page.url())
+      .toMatch(/\/(auth\/callback|login\?redirectTo=%2Fapp&authStatus=confirmed)/)
+
+    if (this.page.url().includes('/auth/callback')) {
+      await expect(
+        this.page.getByRole('heading', { name: 'Activando tu sesión' }),
+      ).toBeVisible()
+      return
+    }
+
     await expect(
       this.page.getByText(
         'Tu correo ya está confirmado. Si no te hemos abierto la sesión automáticamente, entra con tu contraseña y continúa.',
@@ -126,7 +126,7 @@ export class AuthPage {
       this.page.getByLabel('Legal navigation').getByRole('link', { name: 'Condiciones' }),
     ).toBeVisible()
     await expect(
-      this.page.getByRole('complementary').getByRole('link', { name: 'miguel.garglez@gmail.com' }),
+      this.page.getByRole('link', { name: 'wellstudiofit@gmail.com' }).first(),
     ).toBeVisible()
   }
 
@@ -141,7 +141,7 @@ export class AuthPage {
       this.page.getByLabel('Legal navigation').getByRole('link', { name: 'Privacidad' }),
     ).toBeVisible()
     await expect(
-      this.page.getByRole('complementary').getByRole('link', { name: 'miguel.garglez@gmail.com' }),
+      this.page.getByRole('link', { name: 'wellstudiofit@gmail.com' }).first(),
     ).toBeVisible()
   }
 

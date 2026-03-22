@@ -1,6 +1,7 @@
 import type { ReactNode } from 'react'
 import Link from 'next/link'
 
+import { WellstudioLogoMark } from '@/components/brand/wellstudio-logo-mark'
 import { cn } from '@/lib/utils'
 import { PublicSiteFooter } from '@/modules/public/ui/public-site-footer'
 
@@ -41,9 +42,7 @@ export function LegalPageShell({
               href="/"
               className="flex items-center gap-3 rounded-full focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--wellstudio-blue-soft)]"
             >
-              <div className="wellstudio-logo-badge flex size-12 items-center justify-center rounded-[1.2rem] text-3xl font-semibold text-[var(--wellstudio-ink)] shadow-none">
-                W
-              </div>
+              <WellstudioLogoMark className="size-12 rounded-[1.2rem] shadow-none" />
               <div>
                 <p className="font-display text-2xl uppercase tracking-[0.08em] text-[var(--wellstudio-ink)]">
                   WellStudio

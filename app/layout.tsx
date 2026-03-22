@@ -2,6 +2,7 @@ import type { Metadata } from 'next'
 import '@/app/globals.css'
 import { Barlow_Condensed, Manrope } from 'next/font/google'
 import { cn } from '@/lib/utils'
+import { AgentationDevtools } from '@/components/dev/agentation-devtools'
 
 const manrope = Manrope({
   subsets: ['latin'],
@@ -17,6 +18,9 @@ const barlowCondensed = Barlow_Condensed({
 export const metadata: Metadata = {
   title: 'WellStudio',
   description: 'Plataforma WellStudio para socios, reservas y seguimiento.',
+  icons: {
+    icon: '/favicon.ico',
+  },
 }
 
 type RootLayoutProps = Readonly<{
@@ -37,6 +41,7 @@ export default function RootLayout({ children }: RootLayoutProps) {
           Saltar al contenido principal
         </a>
         {children}
+        <AgentationDevtools />
       </body>
     </html>
   )
