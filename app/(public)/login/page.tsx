@@ -1,4 +1,5 @@
 import { AuthShell } from '@/modules/auth/ui/auth-shell'
+import { authPageContent } from '@/modules/auth/ui/auth-page-content'
 import { LoginForm } from '@/modules/auth/ui/login-form'
 import { PublicSiteFooter } from '@/modules/public/ui/public-site-footer'
 
@@ -23,9 +24,7 @@ export default async function LoginPage({ searchParams }: LoginPageProps) {
 
   return (
     <AuthShell
-      eyebrow="Socios WellStudio"
-      title="Entrena con acceso privado"
-      description="Gestiona tus reservas, revisa tus planes y mantén tu rutina al día desde una experiencia más clara, directa y alineada con la marca WellStudio."
+      panel={authPageContent.login.panel}
       footer={<PublicSiteFooter />}
     >
       <LoginForm

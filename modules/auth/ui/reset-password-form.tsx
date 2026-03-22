@@ -22,6 +22,11 @@ import {
 } from '@/components/ui/field'
 import { Input } from '@/components/ui/input'
 import { Spinner } from '@/components/ui/spinner'
+import {
+  AUTH_FORM_DESCRIPTION_CLASS,
+  AUTH_FORM_EYEBROW_CLASS,
+  AUTH_FORM_TITLE_CLASS,
+} from '@/modules/auth/ui/auth-form-classes'
 import { createSupabaseBrowserClient } from '@/modules/auth/lib/supabase-browser-client'
 
 type ResetPasswordFormProps = {
@@ -132,23 +137,20 @@ export function ResetPasswordForm({ flow }: ResetPasswordFormProps) {
 
   if (state === 'checking') {
     return (
-      <Card
-        size="sm"
-        className="border-white/70 bg-white/82 py-5 shadow-[0_18px_60px_rgba(47,75,103,0.12)] ring-1 ring-[color:color-mix(in_srgb,var(--wellstudio-blue)_12%,transparent)] backdrop-blur"
-      >
-        <CardHeader className="gap-2 px-5 sm:px-6">
-          <p className="text-xs uppercase tracking-[0.18em] text-[var(--wellstudio-blue-deep)]">
+      <Card className="overflow-visible border-transparent bg-transparent py-2 shadow-none ring-0">
+        <CardHeader className="gap-3 px-0 pb-2 pt-1">
+          <p className={AUTH_FORM_EYEBROW_CLASS}>
             Recuperación en curso
           </p>
-          <CardTitle className="font-display text-balance text-4xl uppercase tracking-[0.04em] text-[var(--wellstudio-ink)]">
+          <CardTitle className={AUTH_FORM_TITLE_CLASS}>
             Validando tu enlace
           </CardTitle>
-          <CardDescription className="text-[0.95rem] leading-7 text-muted-foreground">
+          <CardDescription className={AUTH_FORM_DESCRIPTION_CLASS}>
             Estamos comprobando que este acceso sigue siendo válido antes de dejarte crear una nueva contraseña.
           </CardDescription>
         </CardHeader>
-        <CardContent className="px-5 sm:px-6">
-          <div className="flex items-center gap-3 rounded-2xl border border-[color:color-mix(in_srgb,var(--wellstudio-blue)_16%,var(--border))] bg-[color:color-mix(in_srgb,var(--wellstudio-blue)_4%,white)] px-4 py-4 text-sm text-muted-foreground">
+        <CardContent className="px-0 pb-0">
+          <div className="flex items-center gap-3 rounded-[1.5rem] border border-[color:color-mix(in_srgb,var(--wellstudio-blue)_14%,var(--border))] bg-[color:color-mix(in_srgb,var(--wellstudio-blue)_4%,white)] px-4 py-4 text-sm text-muted-foreground">
             <Spinner />
             Verificando acceso de recuperación…
           </div>
@@ -159,23 +161,20 @@ export function ResetPasswordForm({ flow }: ResetPasswordFormProps) {
 
   if (state === 'invalid') {
     return (
-      <Card
-        size="sm"
-        className="border-white/70 bg-white/82 py-5 shadow-[0_18px_60px_rgba(47,75,103,0.12)] ring-1 ring-[color:color-mix(in_srgb,var(--wellstudio-blue)_12%,transparent)] backdrop-blur"
-      >
-        <CardHeader className="gap-2 px-5 sm:px-6">
-          <p className="text-xs uppercase tracking-[0.18em] text-[var(--wellstudio-blue-deep)]">
+      <Card className="overflow-visible border-transparent bg-transparent py-2 shadow-none ring-0">
+        <CardHeader className="gap-3 px-0 pb-2 pt-1">
+          <p className={AUTH_FORM_EYEBROW_CLASS}>
             Enlace no válido
           </p>
-          <CardTitle className="font-display text-balance text-4xl uppercase tracking-[0.04em] text-[var(--wellstudio-ink)]">
+          <CardTitle className={AUTH_FORM_TITLE_CLASS}>
             Solicita uno nuevo
           </CardTitle>
-          <CardDescription className="text-[0.95rem] leading-7 text-muted-foreground">
+          <CardDescription className={AUTH_FORM_DESCRIPTION_CLASS}>
             Este enlace ha caducado, ya fue usado o no corresponde a una recuperación activa.
           </CardDescription>
         </CardHeader>
-        <CardContent className="flex flex-col gap-4 px-5 sm:px-6">
-          <div className="rounded-2xl border border-[color:color-mix(in_srgb,var(--destructive)_28%,var(--border))] bg-[color:color-mix(in_srgb,var(--destructive)_10%,white)] px-4 py-4 text-sm leading-7 text-[var(--wellstudio-ink)]">
+        <CardContent className="flex flex-col gap-4 px-0 pb-0">
+          <div className="rounded-[1.5rem] border border-[color:color-mix(in_srgb,var(--destructive)_28%,var(--border))] bg-[color:color-mix(in_srgb,var(--destructive)_10%,white)] px-4 py-4 text-sm leading-7 text-[var(--wellstudio-ink)]">
             Vuelve a pedir un nuevo email de recuperación para continuar con seguridad.
           </div>
           <div className="flex flex-col gap-3">
@@ -198,30 +197,27 @@ export function ResetPasswordForm({ flow }: ResetPasswordFormProps) {
   }
 
   return (
-    <Card
-      size="sm"
-      className="border-white/70 bg-white/82 py-5 shadow-[0_18px_60px_rgba(47,75,103,0.12)] ring-1 ring-[color:color-mix(in_srgb,var(--wellstudio-blue)_12%,transparent)] backdrop-blur"
-    >
-      <CardHeader className="gap-2 px-5 sm:px-6">
-        <p className="text-xs uppercase tracking-[0.18em] text-[var(--wellstudio-blue-deep)]">
+    <Card className="overflow-visible border-transparent bg-transparent py-2 shadow-none ring-0">
+      <CardHeader className="gap-3 px-0 pb-2 pt-1">
+        <p className={AUTH_FORM_EYEBROW_CLASS}>
           Nueva contraseña
         </p>
-        <CardTitle className="font-display text-balance text-4xl uppercase tracking-[0.04em] text-[var(--wellstudio-ink)]">
+        <CardTitle className={AUTH_FORM_TITLE_CLASS}>
           Crea tu nuevo acceso
         </CardTitle>
-        <CardDescription className="text-[0.95rem] leading-7 text-muted-foreground">
-          Elige una contraseña nueva para entrar de nuevo en tu cuenta con normalidad.
+        <CardDescription className={AUTH_FORM_DESCRIPTION_CLASS}>
+          Define tu nueva contraseña para volver a entrar con normalidad.
         </CardDescription>
       </CardHeader>
-      <CardContent className="px-5 sm:px-6">
+      <CardContent className="px-0 pb-0">
         <form
-          className="flex flex-col gap-6"
+          className="flex flex-col gap-5"
           onSubmit={(event) => {
             event.preventDefault()
             handleSubmit(new FormData(event.currentTarget))
           }}
         >
-          <FieldGroup>
+          <FieldGroup className="gap-4">
             <Field data-invalid={errorMessage ? true : undefined}>
               <FieldLabel htmlFor="reset-password">Nueva contraseña</FieldLabel>
               <FieldContent>
@@ -256,16 +252,32 @@ export function ResetPasswordForm({ flow }: ResetPasswordFormProps) {
             </Field>
           </FieldGroup>
 
-          <div className="flex flex-col gap-3">
+          <section
+            aria-labelledby="reset-password-note"
+            className="border-t border-[color:color-mix(in_srgb,var(--wellstudio-blue)_10%,var(--border))] pt-4 text-sm leading-7 text-muted-foreground"
+          >
+            <p
+              id="reset-password-note"
+              className="font-medium text-[var(--wellstudio-ink)]"
+            >
+              Actualización segura
+            </p>
+            <p className="mt-1">
+              Cuando guardes la nueva contraseña, recuperaremos tu acceso normal a la cuenta y volverás a entrar con continuidad.
+            </p>
+          </section>
+
+          <div className="flex flex-col gap-3 pt-1">
             <Button
               type="submit"
               size="lg"
               disabled={isPending}
+              className="shadow-[0_18px_44px_rgba(79,137,197,0.24)]"
             >
               {isPending ? (
                 <>
                   <Spinner data-icon="inline-start" />
-                  Guardando contraseña
+                  Guardando contraseña…
                 </>
               ) : (
                 'Guardar nueva contraseña'

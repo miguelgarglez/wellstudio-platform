@@ -21,6 +21,11 @@ import {
 } from '@/components/ui/field'
 import { Input } from '@/components/ui/input'
 import { Spinner } from '@/components/ui/spinner'
+import {
+  AUTH_FORM_DESCRIPTION_CLASS,
+  AUTH_FORM_EYEBROW_CLASS,
+  AUTH_FORM_TITLE_CLASS,
+} from '@/modules/auth/ui/auth-form-classes'
 import { resolvePublicAppUrl } from '@/modules/auth/lib/public-app-url'
 import { resolveEmailRateLimitErrorMessage } from '@/modules/auth/lib/supabase-auth-error-message'
 import { createSupabaseBrowserClient } from '@/modules/auth/lib/supabase-browser-client'
@@ -61,32 +66,32 @@ export function ForgotPasswordForm() {
 
   if (requestedEmail) {
     return (
-      <Card className="border-white/70 bg-white/82 py-5 shadow-[0_18px_60px_rgba(47,75,103,0.12)] ring-1 ring-[color:color-mix(in_srgb,var(--wellstudio-blue)_12%,transparent)] backdrop-blur">
-        <CardHeader className="gap-2 px-5 sm:px-6">
-          <p className="text-xs uppercase tracking-[0.18em] text-[var(--wellstudio-blue-deep)]">
+      <Card className="overflow-visible border-transparent bg-transparent py-2 shadow-none ring-0">
+        <CardHeader className="gap-3 px-0 pb-2 pt-1">
+          <p className={AUTH_FORM_EYEBROW_CLASS}>
             Revisa tu correo
           </p>
-          <CardTitle className="font-display text-balance text-4xl uppercase tracking-[0.04em] text-[var(--wellstudio-ink)]">
+          <CardTitle className={AUTH_FORM_TITLE_CLASS}>
             Enlace enviado
           </CardTitle>
-          <CardDescription className="text-[0.95rem] leading-7 text-muted-foreground">
+          <CardDescription className={AUTH_FORM_DESCRIPTION_CLASS}>
             Si existe una cuenta con este email, recibirás un enlace para definir una nueva contraseña.
           </CardDescription>
         </CardHeader>
-        <CardContent className="flex flex-col gap-6 px-5 sm:px-6">
-          <div className="rounded-2xl border border-[color:color-mix(in_srgb,var(--wellstudio-blue)_20%,var(--border))] bg-[color:color-mix(in_srgb,var(--wellstudio-blue)_8%,white)] px-4 py-4 text-sm leading-7 text-[var(--wellstudio-blue-deep)]">
+        <CardContent className="flex flex-col gap-4 px-0 pb-0">
+          <div className="rounded-[1.25rem] border border-[color:color-mix(in_srgb,var(--wellstudio-blue)_20%,var(--border))] bg-[color:color-mix(in_srgb,var(--wellstudio-blue)_8%,white)] px-4 py-4 text-sm leading-7 text-[var(--wellstudio-blue-deep)]">
             Hemos preparado la recuperación para{' '}
             <span className="font-semibold text-[var(--wellstudio-ink)]">
               {requestedEmail}
             </span>
             . Revisa también spam o promociones si no lo ves enseguida.
           </div>
-          <div className="rounded-2xl border border-[color:color-mix(in_srgb,var(--wellstudio-blue)_16%,var(--border))] bg-[color:color-mix(in_srgb,var(--wellstudio-blue)_4%,white)] px-4 py-4 text-sm leading-7 text-muted-foreground">
+          <div className="text-sm leading-7 text-muted-foreground">
             <p className="font-medium text-[var(--wellstudio-ink)]">Si el correo no llega</p>
             <p>
               Vuelve a intentarlo en unos minutos o pide ayuda al equipo para revisar tu acceso contigo.
             </p>
-            <div className="mt-2 flex flex-wrap gap-x-4 gap-y-1">
+            <div className="mt-2 flex flex-wrap gap-x-4 gap-y-2">
               <a
                 href={SUPPORT_WHATSAPP_URL}
                 target="_blank"
@@ -124,24 +129,21 @@ export function ForgotPasswordForm() {
   }
 
   return (
-    <Card
-      size="sm"
-      className="border-white/70 bg-white/82 py-5 shadow-[0_18px_60px_rgba(47,75,103,0.12)] ring-1 ring-[color:color-mix(in_srgb,var(--wellstudio-blue)_12%,transparent)] backdrop-blur"
-    >
-      <CardHeader className="gap-2 px-5 sm:px-6">
-        <p className="text-xs uppercase tracking-[0.18em] text-[var(--wellstudio-blue-deep)]">
+    <Card className="overflow-visible border-transparent bg-transparent py-2 shadow-none ring-0">
+      <CardHeader className="gap-3 px-0 pb-2 pt-1">
+        <p className={AUTH_FORM_EYEBROW_CLASS}>
           Recuperar acceso
         </p>
-        <CardTitle className="font-display text-balance text-4xl uppercase tracking-[0.04em] text-[var(--wellstudio-ink)]">
+        <CardTitle className={AUTH_FORM_TITLE_CLASS}>
           Restablece tu contraseña
         </CardTitle>
-        <CardDescription className="text-[0.95rem] leading-7 text-muted-foreground">
+        <CardDescription className={AUTH_FORM_DESCRIPTION_CLASS}>
           Introduce tu email y te enviaremos un enlace para crear una nueva contraseña.
         </CardDescription>
       </CardHeader>
-      <CardContent className="px-5 sm:px-6">
+      <CardContent className="px-0 pb-0">
         <form
-          className="flex flex-col gap-6"
+          className="flex flex-col gap-5"
           onSubmit={(event) => {
             event.preventDefault()
             handleSubmit(new FormData(event.currentTarget))
@@ -171,16 +173,48 @@ export function ForgotPasswordForm() {
             </Field>
           </FieldGroup>
 
-          <div className="flex flex-col gap-3">
+          <section
+            aria-labelledby="forgot-password-help"
+            className="border-t border-[color:color-mix(in_srgb,var(--wellstudio-blue)_10%,var(--border))] pt-4 text-sm leading-7 text-muted-foreground"
+          >
+            <p
+              id="forgot-password-help"
+              className="font-medium text-[var(--wellstudio-ink)]"
+            >
+              Si prefieres ayuda humana
+            </p>
+            <p className="mt-1">
+              También podemos revisar tu acceso contigo por una vía más directa.
+            </p>
+            <div className="mt-2 flex flex-wrap gap-x-4 gap-y-2">
+              <a
+                href={SUPPORT_WHATSAPP_URL}
+                target="_blank"
+                rel="noreferrer"
+                className="rounded-full font-medium text-[var(--wellstudio-blue-deep)] underline-offset-4 transition-colors hover:text-[var(--wellstudio-blue)] hover:underline focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--wellstudio-blue-soft)]"
+              >
+                Hablar por WhatsApp
+              </a>
+              <a
+                href={`mailto:${SUPPORT_EMAIL}?subject=Ayuda%20recuperar%20acceso%20WellStudio`}
+                className="rounded-full font-medium text-[var(--wellstudio-blue-deep)] underline-offset-4 transition-colors hover:text-[var(--wellstudio-blue)] hover:underline focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--wellstudio-blue-soft)]"
+              >
+                Escribir por email
+              </a>
+            </div>
+          </section>
+
+          <div className="flex flex-col gap-3 pt-1">
             <Button
               type="submit"
               size="lg"
               disabled={isPending}
+              className="shadow-[0_14px_36px_rgba(79,137,197,0.2)]"
             >
               {isPending ? (
                 <>
                   <Spinner data-icon="inline-start" />
-                  Enviando enlace
+                  Enviando enlace…
                 </>
               ) : (
                 'Enviar enlace de recuperación'

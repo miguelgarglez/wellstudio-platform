@@ -1,4 +1,5 @@
 import { AuthShell } from '@/modules/auth/ui/auth-shell'
+import { authPageContent } from '@/modules/auth/ui/auth-page-content'
 import { ResetPasswordForm } from '@/modules/auth/ui/reset-password-form'
 import { PublicSiteFooter } from '@/modules/public/ui/public-site-footer'
 
@@ -15,9 +16,7 @@ export default async function ResetPasswordPage({
 
   return (
     <AuthShell
-      eyebrow="Nueva contraseña"
-      title="Recupera tu acceso privado"
-      description="Verifica tu enlace, define una nueva contraseña y vuelve a entrar en tu cuenta con un flujo claro y seguro."
+      panel={authPageContent.resetPassword.panel}
       footer={<PublicSiteFooter />}
     >
       <ResetPasswordForm flow={resolvedSearchParams?.flow} />

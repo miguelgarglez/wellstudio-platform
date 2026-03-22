@@ -1,44 +1,44 @@
-import Image from 'next/image'
-import { ArrowRight, MapPinned, Sparkles } from 'lucide-react'
+import Image from "next/image";
+import { ArrowRight, MapPinned, Sparkles } from "lucide-react";
 
-import { cn } from '@/lib/utils'
-import heroBarbellImage from '@/modules/public/ui/landing/assets/hero-barbell.jpeg'
-import type { LandingContact, LandingHero } from '@/modules/public/content/landing-content'
+import { cn } from "@/lib/utils";
+import heroBarbellImage from "@/modules/public/ui/landing/assets/hero-barbell.jpeg";
+import type {
+  LandingContact,
+  LandingHero,
+} from "@/modules/public/content/landing-content";
 import {
   externalLocationLinkProps,
   heroSurfaceClass,
   outlineButtonClass,
   solidButtonClass,
-} from '@/modules/public/ui/landing/landing-config'
+} from "@/modules/public/ui/landing/landing-config";
 
 type LandingHeroSectionProps = {
-  hero: LandingHero
-  contact: LandingContact
-}
+  hero: LandingHero;
+  contact: LandingContact;
+};
 
-export function LandingHeroSection({
-  hero,
-  contact,
-}: LandingHeroSectionProps) {
-  const fullAddress = contact.addressLines.join(', ')
+export function LandingHeroSection({ hero, contact }: LandingHeroSectionProps) {
+  const fullAddress = contact.addressLines.join(", ");
 
   return (
     <section
       aria-labelledby="landing-hero-heading"
       className="relative isolate -mt-36 overflow-hidden bg-[var(--wellstudio-ink)] pt-36 text-white lg:-mt-24 lg:pt-24"
     >
-      <div className={cn('absolute inset-0', heroSurfaceClass)} />
+      <div className={cn("absolute inset-0", heroSurfaceClass)} />
       <div className="absolute inset-x-0 bottom-0 h-px bg-[linear-gradient(90deg,transparent,rgba(183,206,231,0.55),transparent)]" />
 
-      <div className="relative mx-auto flex max-w-7xl flex-col px-4 pb-16 pt-7 sm:px-6 md:pb-20 lg:px-8 lg:pb-24">
-        <div className="grid gap-10 pt-10 lg:grid-cols-[minmax(0,1.02fr)_minmax(0,0.98fr)] lg:items-center lg:pt-20">
+      <div className="relative mx-auto flex max-w-7xl flex-col px-4 pb-16 pt-4 sm:px-6 sm:pt-5 md:pb-20 lg:px-8 lg:pb-24 lg:pt-6">
+        <div className="grid gap-10 pt-4 sm:pt-6 lg:grid-cols-[minmax(0,1.02fr)_minmax(0,0.98fr)] lg:items-center lg:pt-12">
           <div className="max-w-3xl">
             <p className="text-sm uppercase tracking-[0.22em] text-[var(--wellstudio-blue-soft)]">
               {hero.eyebrow}
             </p>
             <h1
               id="landing-hero-heading"
-              className="mt-5 max-w-4xl text-balance font-display text-[3.35rem] leading-[0.92] uppercase tracking-[0.03em] text-white sm:text-7xl lg:text-[6.35rem]"
+              className="mt-5 max-w-4xl text-balance font-display text-[3.35rem] leading-[0.92] uppercase tracking-[0.03em] text-white sm:text-7xl lg:text-[5rem] xl:text-[6.35rem]"
             >
               {hero.title}
             </h1>
@@ -51,20 +51,17 @@ export function LandingHeroSection({
                 href={hero.primaryCtaHref}
                 className={cn(
                   solidButtonClass,
-                  'bg-[var(--wellstudio-blue)] text-[var(--wellstudio-ink)] shadow-[0_18px_40px_rgba(79,137,197,0.28)] hover:bg-[color:color-mix(in_srgb,var(--wellstudio-blue)_88%,white)] focus-visible:ring-[var(--wellstudio-blue-soft)]',
+                  "bg-[var(--wellstudio-blue)] text-[var(--wellstudio-ink)] shadow-[0_18px_40px_rgba(79,137,197,0.28)] hover:bg-[color:color-mix(in_srgb,var(--wellstudio-blue)_88%,white)] focus-visible:ring-[var(--wellstudio-blue-soft)]",
                 )}
               >
                 {hero.primaryCtaLabel}
-                <ArrowRight
-                  aria-hidden="true"
-                  className="size-4"
-                />
+                <ArrowRight aria-hidden="true" className="size-4" />
               </a>
               <a
                 href={hero.secondaryCtaHref}
                 className={cn(
                   outlineButtonClass,
-                  'border-white/14 bg-white/5 text-white hover:bg-white/10 hover:text-white focus-visible:ring-white/45',
+                  "border-white/14 bg-white/5 text-white hover:bg-white/10 hover:text-white focus-visible:ring-white/45",
                 )}
               >
                 {hero.secondaryCtaLabel}
@@ -128,5 +125,5 @@ export function LandingHeroSection({
         </div>
       </div>
     </section>
-  )
+  );
 }

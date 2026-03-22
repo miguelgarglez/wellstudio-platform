@@ -133,28 +133,29 @@ a {
 
 .wellstudio-auth-shell {
   background:
-    radial-gradient(circle at top left, color-mix(in srgb, var(--wellstudio-blue) 20%, transparent), transparent 28%),
-    linear-gradient(135deg, var(--wellstudio-sand) 0%, #f8f6f2 38%, #efe8df 100%);
+    radial-gradient(circle at top left, color-mix(in srgb, var(--wellstudio-blue) 16%, transparent), transparent 26%),
+    radial-gradient(circle at bottom right, color-mix(in srgb, var(--wellstudio-blue-soft) 18%, transparent), transparent 24%),
+    linear-gradient(135deg, #faf7f2 0%, #f7f3ed 36%, #ebe4da 100%);
 }
 
-.wellstudio-brand-panel {
+.wellstudio-auth-panel-entry {
   background:
-    linear-gradient(160deg, color-mix(in srgb, var(--wellstudio-ink) 88%, #1b1d21 12%) 0%, var(--wellstudio-panel) 100%);
-  position: relative;
+    linear-gradient(160deg, color-mix(in srgb, var(--wellstudio-ink) 90%, #1c2026 10%) 0%, #13171d 58%, #101317 100%);
 }
 
-.wellstudio-brand-panel::before {
+.wellstudio-auth-panel-recovery {
   background:
-    radial-gradient(circle at 15% 20%, color-mix(in srgb, var(--wellstudio-blue) 28%, transparent), transparent 24%),
-    radial-gradient(circle at 80% 10%, color-mix(in srgb, var(--wellstudio-blue-soft) 24%, transparent), transparent 20%);
-  content: "";
-  inset: 0;
-  opacity: 0.95;
-  pointer-events: none;
-  position: absolute;
+    linear-gradient(155deg, #1a2129 0%, #10161d 62%, #0d1014 100%);
 }
 
-.wellstudio-grid-line {
+.wellstudio-auth-panel-glow {
+  background:
+    radial-gradient(circle at 16% 22%, color-mix(in srgb, var(--wellstudio-blue) 28%, transparent), transparent 24%),
+    radial-gradient(circle at 82% 12%, color-mix(in srgb, var(--wellstudio-blue-soft) 18%, transparent), transparent 18%),
+    radial-gradient(circle at 70% 76%, color-mix(in srgb, white 7%, transparent), transparent 22%);
+}
+
+.wellstudio-auth-panel-gridline {
   background: linear-gradient(90deg, transparent, color-mix(in srgb, white 18%, transparent), transparent);
 }
 
@@ -162,6 +163,40 @@ a {
   background:
     radial-gradient(circle at top left, color-mix(in srgb, var(--wellstudio-blue) 9%, transparent), transparent 28%),
     linear-gradient(180deg, var(--wellstudio-sand) 0%, #f7f4ef 100%);
+}
+
+@keyframes wellstudio-auth-rise {
+  from {
+    opacity: 0;
+    transform: translate3d(0, 18px, 0);
+  }
+
+  to {
+    opacity: 1;
+    transform: translate3d(0, 0, 0);
+  }
+}
+
+@media (prefers-reduced-motion: no-preference) {
+  .wellstudio-auth-animate [data-slot="auth-brand-rail"] {
+    animation: wellstudio-auth-rise 720ms cubic-bezier(0.2, 0.8, 0.2, 1) both;
+    animation-delay: var(--auth-shell-brand-rail-delay, 0ms);
+  }
+
+  .wellstudio-auth-animate [data-slot="auth-brand-copy"] {
+    animation: wellstudio-auth-rise 760ms cubic-bezier(0.2, 0.8, 0.2, 1) both;
+    animation-delay: var(--auth-shell-brand-copy-delay, 0ms);
+  }
+
+  .wellstudio-auth-animate [data-slot="auth-action-rail"] {
+    animation: wellstudio-auth-rise 760ms cubic-bezier(0.2, 0.8, 0.2, 1) both;
+    animation-delay: var(--auth-shell-action-rail-delay, 0ms);
+  }
+
+  .wellstudio-auth-animate [data-slot="auth-footer"] {
+    animation: wellstudio-auth-rise 760ms cubic-bezier(0.2, 0.8, 0.2, 1) both;
+    animation-delay: var(--auth-shell-footer-delay, 0ms);
+  }
 }
 
 @media (prefers-reduced-motion: no-preference) {
