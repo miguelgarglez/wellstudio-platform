@@ -4,7 +4,7 @@ test('public shell routes are reachable @smoke', async ({ page }) => {
   await page.goto('/')
 
   await expect(page.getByRole('link', { name: 'Quiero conocer el centro' })).toBeVisible()
-  await expect(page.locator('a[href="#metodo"]')).toBeVisible()
+  await expect(page.getByRole('link', { name: 'Ver metodología' })).toBeVisible()
   await expect(page.locator('a[href="/login"]').first()).toBeVisible()
 
   await page.locator('a[href="/login"]').first().click()
