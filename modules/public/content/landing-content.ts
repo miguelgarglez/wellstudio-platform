@@ -7,23 +7,12 @@ export type LandingHero = {
   secondaryCtaLabel: string
   secondaryCtaHref: string
   badge: string
-  stats: Array<{
-    label: string
-    value: string
-    description?: string
-  }>
   panel: {
     eyebrow: string
     title: string
     description: string
     summary: string
   }
-}
-
-export type LandingHighlight = {
-  label: string
-  value: string
-  description: string
 }
 
 export type LandingPillar = {
@@ -65,20 +54,13 @@ export type LandingContent = {
       description: string
     }>
   }
-  highlights: LandingHighlight[]
   method: {
     eyebrow: string
     title: string
     description: string
-    supportCard: {
-      eyebrow: string
-      title: string
-      description: string
-    }
-    formats: Array<{
+    formatBadges: Array<{
       label: string
       value: string
-      description: string
     }>
   }
   pillars: LandingPillar[]
@@ -113,21 +95,6 @@ export const landingContent: LandingContent = {
     secondaryCtaLabel: 'Ver metodología',
     secondaryCtaHref: '#metodo',
     badge: 'Madrid · Grupos reducidos',
-    stats: [
-      {
-        label: 'Grupo premium',
-        value: '4 personas max.',
-      },
-      {
-        label: 'Grupo dinámico',
-        value: '10 personas max.',
-      },
-      {
-        label: 'Ubicación',
-        value: 'Tetuán, Madrid',
-        description: 'Abrir dirección en mapas',
-      },
-    ],
     panel: {
       eyebrow: 'Qué ofrece WellStudio',
       title: 'Entrenamiento guiado con grupos reducidos',
@@ -162,54 +129,19 @@ export const landingContent: LandingContent = {
       },
     ],
   },
-  highlights: [
-    {
-      label: 'Grupos premium',
-      value: '4 personas',
-      description: 'Grupo reducido para trabajar con más seguimiento durante la sesión.',
-    },
-    {
-      label: 'Grupos dinámicos',
-      value: '10 personas',
-      description: 'Clases grupales guiadas con estructura y ritmo de trabajo definido.',
-    },
-    {
-      label: 'Horario continuo',
-      value: 'mañana y tarde',
-      description: 'Ventanas de entrenamiento que encajan con ritmos de trabajo reales.',
-    },
-    {
-      label: 'Ubicación',
-      value: 'Tetuán, Madrid',
-      description: 'Centro boutique en Calle de Juan Pradillo, 2.',
-    },
-  ],
   method: {
     eyebrow: 'Método',
     title: 'Entrenamiento de fuerza con grupos reducidos',
     description:
       'La propuesta de WellStudio se apoya en una metodología propia, seguimiento profesional y dos formatos de clase: grupos premium de hasta 4 personas y grupos dinámicos de hasta 10.',
-    supportCard: {
-      eyebrow: 'Formato de trabajo',
-      title: 'Dos formatos de clase, misma metodología',
-      description:
-        'Las sesiones están guiadas y estructuradas para trabajar fuerza con criterio, continuidad y supervisión durante la clase.',
-    },
-    formats: [
-      {
-        label: 'Entrenamiento de fuerza',
-        value: 'Sesiones guiadas',
-        description: 'Trabajo estructurado con atención técnica y objetivos claros en cada sesión.',
-      },
+    formatBadges: [
       {
         label: 'Grupos premium',
         value: '4 personas max.',
-        description: 'Formato reducido para un seguimiento más cercano durante la clase.',
       },
       {
         label: 'Grupos dinámicos',
         value: '10 personas max.',
-        description: 'Clases grupales con energía de grupo y una estructura bien definida.',
       },
     ],
   },

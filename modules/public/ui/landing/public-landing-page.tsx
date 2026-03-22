@@ -3,13 +3,11 @@ import {
   ArrowRight,
   BadgeCheck,
   Clock3,
-  Dumbbell,
   Mail,
   MapPinned,
   MoveUpRight,
   Phone,
   Sparkles,
-  Users,
 } from 'lucide-react'
 
 import { WellstudioWordmark } from '@/components/brand/wellstudio-wordmark'
@@ -30,8 +28,6 @@ const navigationLinks = [
   { href: '#contacto', label: 'Contacto' },
 ] as const
 
-const highlightIcons = [Users, Dumbbell, Clock3, MapPinned]
-
 const externalLocationLinkProps = {
   target: '_blank',
   rel: 'noopener noreferrer',
@@ -49,8 +45,7 @@ const heroSurfaceClass =
   'bg-[radial-gradient(circle_at_top_left,rgba(79,137,197,0.32),transparent_24%),radial-gradient(circle_at_78%_12%,rgba(183,206,231,0.14),transparent_22%),linear-gradient(180deg,rgba(15,16,18,0.98),rgba(15,16,18,0.92))]'
 
 export function PublicLandingPage() {
-  const { hero, intro, highlights, method, pillars, testimonials, faqSection, faq, contactSection, contact } =
-    landingContent
+  const { hero, intro, method, pillars, testimonials, faqSection, faq, contactSection, contact } = landingContent
   const fullAddress = contact.addressLines.join(', ')
 
   return (
@@ -140,7 +135,7 @@ export function PublicLandingPage() {
                 </div>
 
                 <div className="grid gap-3 pt-4 text-sm leading-7 text-white/72">
-                  <p>{hero.panel.description}</p>
+                  <p className="hidden sm:block">{hero.panel.description}</p>
                   <p className="rounded-[1.15rem] border border-white/10 bg-white/6 px-3 py-2 leading-6 break-words">
                     {hero.panel.summary}
                   </p>
@@ -158,50 +153,6 @@ export function PublicLandingPage() {
                 </div>
               </article>
             </div>
-          </div>
-
-          <div className="mt-12 grid gap-3 sm:grid-cols-2 lg:mt-14 lg:grid-cols-4">
-            {highlights.map((highlight, index) => {
-              const Icon = highlightIcons[index]
-              const isLocationCard = highlight.label === 'Ubicación'
-              const content = (
-                <>
-                  <div className="flex items-center gap-3">
-                    <div className="flex size-10 items-center justify-center rounded-2xl bg-white/10">
-                      <Icon
-                        aria-hidden="true"
-                        className="size-4 text-[var(--wellstudio-blue-soft)]"
-                      />
-                    </div>
-                    <p className="text-xs uppercase tracking-[0.18em] text-white/58">{highlight.label}</p>
-                  </div>
-                  <p className="mt-4 font-display text-4xl uppercase leading-none text-white">{highlight.value}</p>
-                  <p className="mt-3 text-sm leading-7 text-white/68">{highlight.description}</p>
-                </>
-              )
-
-              if (isLocationCard) {
-                return (
-                  <a
-                    key={highlight.label}
-                    href={contact.mapsHref}
-                    {...externalLocationLinkProps}
-                    className="rounded-[1.55rem] border border-[color:color-mix(in_srgb,var(--wellstudio-blue)_28%,transparent)] bg-[color:color-mix(in_srgb,var(--wellstudio-blue-deep)_74%,black)] px-4 py-4 shadow-[0_18px_40px_rgba(8,11,15,0.22)] backdrop-blur-xl transition-[background-color,border-color,transform] hover:-translate-y-0.5 hover:bg-[color:color-mix(in_srgb,var(--wellstudio-blue-deep)_68%,black)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white/45"
-                  >
-                    {content}
-                  </a>
-                )
-              }
-
-              return (
-                <article
-                  key={highlight.label}
-                  className="rounded-[1.55rem] border border-white/10 bg-white/6 px-4 py-4 backdrop-blur-xl"
-                >
-                  {content}
-                </article>
-              )
-            })}
           </div>
         </div>
       </section>
@@ -312,54 +263,45 @@ export function PublicLandingPage() {
             ))}
           </div>
 
-          <div className="mt-8 grid gap-5 lg:grid-cols-[minmax(0,0.84fr)_minmax(0,1.16fr)]">
+          <div className="mt-8">
             <div className="relative overflow-hidden rounded-[2rem] border border-[color:color-mix(in_srgb,var(--wellstudio-blue)_16%,var(--border))] bg-[var(--wellstudio-ink)] shadow-[0_24px_70px_rgba(17,19,22,0.12)]">
               <Image
                 src={methodRopeImage}
                 alt="Entrenamiento funcional intenso con cuerdas"
-                className="aspect-[4/3.8] h-full w-full object-cover"
+                className="aspect-[4/3.8] h-full w-full object-cover lg:aspect-[4/2.35]"
               />
               <div className="absolute inset-0 bg-[linear-gradient(180deg,rgba(17,19,22,0.08),rgba(17,19,22,0.55)_80%)]" />
-            </div>
-
-            <article className="rounded-[2rem] border border-[color:color-mix(in_srgb,var(--wellstudio-blue)_16%,var(--border))] bg-white px-6 py-6 shadow-[0_24px_70px_rgba(17,19,22,0.06)]">
-              <p className="text-xs uppercase tracking-[0.22em] text-[var(--wellstudio-blue-deep)]">{method.supportCard.eyebrow}</p>
-              <h3 className="mt-3 text-balance font-display text-4xl uppercase leading-[0.96] tracking-[0.03em] text-[var(--wellstudio-ink)] sm:text-5xl">
-                {method.supportCard.title}
-              </h3>
-              <p className="mt-5 max-w-2xl text-base leading-8 text-muted-foreground">{method.supportCard.description}</p>
-
-              <div className="mt-6 grid gap-3 sm:grid-cols-3">
-                {method.formats.map((format, index) => (
+              <div className="absolute inset-x-4 bottom-4 flex flex-col gap-3 sm:inset-x-auto sm:bottom-5 sm:left-5 sm:max-w-xl sm:flex-row">
+                {method.formatBadges.map((format, index) => (
                   <div
                     key={format.label}
                     className={cn(
-                      'rounded-[1.35rem] border border-[color:color-mix(in_srgb,var(--wellstudio-blue)_14%,var(--border))] px-4 py-4',
+                      'rounded-[1.25rem] border px-4 py-3 shadow-[0_18px_36px_rgba(4,6,8,0.2)] backdrop-blur-xl',
                       index === 0
-                        ? 'bg-[color:color-mix(in_srgb,var(--wellstudio-blue)_4%,white)]'
-                        : index === 1
-                          ? 'bg-[var(--wellstudio-blue-deep)] text-white'
-                          : 'bg-[var(--wellstudio-ink)] text-white',
+                        ? 'border-[color:color-mix(in_srgb,var(--wellstudio-blue)_26%,transparent)] bg-[rgba(247,245,241,0.9)] text-[var(--wellstudio-ink)]'
+                        : 'border-white/14 bg-[rgba(15,16,18,0.74)] text-white',
                     )}
                   >
-                    <p className={cn('text-xs uppercase tracking-[0.18em]', index === 0 ? 'text-[var(--wellstudio-blue-deep)]' : 'text-white/58')}>
+                    <p
+                      className={cn(
+                        'text-[0.72rem] uppercase tracking-[0.18em]',
+                        index === 0 ? 'text-[var(--wellstudio-blue-deep)]' : 'text-white/58',
+                      )}
+                    >
                       {format.label}
                     </p>
                     <p
                       className={cn(
-                        'mt-3 font-display text-3xl uppercase leading-none',
+                        'mt-2 font-display text-2xl uppercase leading-none sm:text-3xl',
                         index === 0 ? 'text-[var(--wellstudio-blue-deep)]' : 'text-[var(--wellstudio-blue-soft)]',
                       )}
                     >
                       {format.value}
                     </p>
-                    <p className={cn('mt-3 text-sm leading-6', index === 0 ? 'text-muted-foreground' : 'text-white/72')}>
-                      {format.description}
-                    </p>
                   </div>
                 ))}
               </div>
-            </article>
+            </div>
           </div>
         </div>
       </section>
@@ -379,15 +321,21 @@ export function PublicLandingPage() {
               <blockquote
                 key={testimonial.author}
                 className={cn(
-                  'rounded-[2rem] border p-6 shadow-[0_18px_40px_rgba(5,7,9,0.16)]',
+                  'rounded-[2rem] border p-6 transition-[border-color,background-color,box-shadow]',
+                  index === 0 ? 'order-2 lg:order-1' : index === 1 ? 'order-1 lg:order-2' : 'order-3',
                   index === 1
-                    ? 'border-[color:color-mix(in_srgb,var(--wellstudio-blue)_34%,transparent)] bg-[var(--wellstudio-blue-deep)]'
-                    : 'border-white/10 bg-white/5',
+                    ? 'border-[color:color-mix(in_srgb,var(--wellstudio-blue)_34%,transparent)] bg-[var(--wellstudio-blue-deep)] shadow-[0_20px_46px_rgba(13,18,24,0.18)]'
+                    : 'border-white/8 bg-white/4 shadow-[0_12px_28px_rgba(5,7,9,0.1)]',
                 )}
               >
                 <p className="font-display text-4xl leading-none text-[var(--wellstudio-blue-soft)]">“</p>
                 <p className="mt-4 text-base leading-8 text-white/78">{testimonial.quote}</p>
-                <footer className="mt-6 border-t border-white/10 pt-4 text-sm uppercase tracking-[0.18em] text-white/54">
+                <footer
+                  className={cn(
+                    'mt-6 border-t pt-4 text-sm uppercase tracking-[0.18em]',
+                    index === 1 ? 'border-white/10 text-white/58' : 'border-white/8 text-white/44',
+                  )}
+                >
                   {testimonial.author}
                 </footer>
               </blockquote>
@@ -408,17 +356,6 @@ export function PublicLandingPage() {
             </h2>
             <p className="mt-6 text-lg leading-9 text-muted-foreground">{faqSection.description}</p>
 
-            <a
-              href={contact.mapsHref}
-              {...externalLocationLinkProps}
-              className="mt-7 inline-flex items-center gap-2 rounded-full border border-[color:color-mix(in_srgb,var(--wellstudio-blue)_18%,var(--border))] bg-white px-4 py-3 text-sm font-medium text-[var(--wellstudio-blue-deep)] shadow-[0_12px_30px_rgba(17,19,22,0.05)] transition-colors hover:bg-[color:color-mix(in_srgb,var(--wellstudio-blue)_5%,white)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--wellstudio-blue)]/45"
-            >
-              Ver ubicación del centro
-              <MoveUpRight
-                aria-hidden="true"
-                className="size-4"
-              />
-            </a>
           </div>
           <LandingFaqAccordion items={faq} />
         </div>
@@ -479,35 +416,39 @@ export function PublicLandingPage() {
 
           <div className="grid gap-4">
             <article className="rounded-[1.75rem] border border-white/12 bg-white/7 p-5 backdrop-blur-xl">
-              <div className="flex items-center gap-3">
-                <Phone
-                  aria-hidden="true"
-                  className="size-4 text-[var(--wellstudio-blue-soft)]"
-                />
-                <p className="text-xs uppercase tracking-[0.18em] text-white/58">Teléfono</p>
-              </div>
-              <a
-                href={`tel:${contact.phone}`}
-                className="mt-3 block font-display text-3xl uppercase tracking-[0.03em] text-white"
-              >
-                {contact.phone}
-              </a>
-            </article>
+              <div className="grid gap-5">
+                <div>
+                  <div className="flex items-center gap-3">
+                    <Phone
+                      aria-hidden="true"
+                      className="size-4 text-[var(--wellstudio-blue-soft)]"
+                    />
+                    <p className="text-xs uppercase tracking-[0.18em] text-white/58">Teléfono</p>
+                  </div>
+                  <a
+                    href={`tel:${contact.phone}`}
+                    className="mt-3 block font-display text-3xl uppercase tracking-[0.03em] text-white"
+                  >
+                    {contact.phone}
+                  </a>
+                </div>
 
-            <article className="rounded-[1.75rem] border border-white/12 bg-white/7 p-5 backdrop-blur-xl">
-              <div className="flex items-center gap-3">
-                <Mail
-                  aria-hidden="true"
-                  className="size-4 text-[var(--wellstudio-blue-soft)]"
-                />
-                <p className="text-xs uppercase tracking-[0.18em] text-white/58">Email</p>
+                <div className="border-t border-white/10 pt-5">
+                  <div className="flex items-center gap-3">
+                    <Mail
+                      aria-hidden="true"
+                      className="size-4 text-[var(--wellstudio-blue-soft)]"
+                    />
+                    <p className="text-xs uppercase tracking-[0.18em] text-white/58">Email</p>
+                  </div>
+                  <a
+                    href={`mailto:${contact.email}`}
+                    className="mt-3 block break-all text-base leading-8 text-white/80 transition-colors hover:text-white"
+                  >
+                    {contact.email}
+                  </a>
+                </div>
               </div>
-              <a
-                href={`mailto:${contact.email}`}
-                className="mt-3 block break-all text-base leading-8 text-white/80 transition-colors hover:text-white"
-              >
-                {contact.email}
-              </a>
             </article>
 
             <a
@@ -515,41 +456,45 @@ export function PublicLandingPage() {
               {...externalLocationLinkProps}
               className="rounded-[1.75rem] border border-white/12 bg-white/7 p-5 text-left backdrop-blur-xl transition-[background-color,border-color,transform] hover:-translate-y-0.5 hover:bg-white/10 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white/45"
             >
-              <div className="flex items-center gap-3">
-                <MapPinned
-                  aria-hidden="true"
-                  className="size-4 text-[var(--wellstudio-blue-soft)]"
-                />
-                <p className="text-xs uppercase tracking-[0.18em] text-white/58">Dirección</p>
-              </div>
-              <div className="mt-3 space-y-1 text-sm leading-7 text-white/76">
-                {contact.addressLines.map((line) => (
-                  <p key={line}>{line}</p>
-                ))}
-              </div>
-              <p className="mt-4 inline-flex items-center gap-2 text-sm font-medium text-white">
-                Abrir en Mapas
-                <MoveUpRight
-                  aria-hidden="true"
-                  className="size-4"
-                />
-              </p>
-            </a>
+              <div className="grid gap-5">
+                <div>
+                  <div className="flex items-center gap-3">
+                    <MapPinned
+                      aria-hidden="true"
+                      className="size-4 text-[var(--wellstudio-blue-soft)]"
+                    />
+                    <p className="text-xs uppercase tracking-[0.18em] text-white/58">Dirección</p>
+                  </div>
+                  <div className="mt-3 space-y-1 text-sm leading-7 text-white/76">
+                    {contact.addressLines.map((line) => (
+                      <p key={line}>{line}</p>
+                    ))}
+                  </div>
+                  <p className="mt-4 inline-flex items-center gap-2 text-sm font-medium text-white">
+                    Abrir en Mapas
+                    <MoveUpRight
+                      aria-hidden="true"
+                      className="size-4"
+                    />
+                  </p>
+                </div>
 
-            <article className="rounded-[1.75rem] border border-white/12 bg-white/7 p-5 backdrop-blur-xl">
-              <div className="flex items-center gap-3">
-                <Clock3
-                  aria-hidden="true"
-                  className="size-4 text-[var(--wellstudio-blue-soft)]"
-                />
-                <p className="text-xs uppercase tracking-[0.18em] text-white/58">Horario</p>
+                <div className="border-t border-white/10 pt-5">
+                  <div className="flex items-center gap-3">
+                    <Clock3
+                      aria-hidden="true"
+                      className="size-4 text-[var(--wellstudio-blue-soft)]"
+                    />
+                    <p className="text-xs uppercase tracking-[0.18em] text-white/58">Horario</p>
+                  </div>
+                  <div className="mt-3 space-y-2 text-sm leading-7 text-white/76">
+                    {contact.hours.map((hour) => (
+                      <p key={hour}>{hour}</p>
+                    ))}
+                  </div>
+                </div>
               </div>
-              <div className="mt-3 space-y-2 text-sm leading-7 text-white/76">
-                {contact.hours.map((hour) => (
-                  <p key={hour}>{hour}</p>
-                ))}
-              </div>
-            </article>
+            </a>
           </div>
         </div>
       </section>
