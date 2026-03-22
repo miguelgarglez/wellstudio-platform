@@ -87,6 +87,8 @@ Reglas:
 - sin cuentas E2E de pruebas agresivas
 - sin experimentos manuales
 - cualquier validación sensible debe haberse hecho antes en `sandbox`
+- el runtime web debe usar `DATABASE_URL` por `pooler`
+- las operaciones de schema deben reservarse para conexion directa (`DIRECT_URL`) cuando haga falta bootstrap o migraciones
 
 ## Cuentas de escenario recomendadas
 

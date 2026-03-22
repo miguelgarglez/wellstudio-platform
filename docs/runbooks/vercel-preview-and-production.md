@@ -121,9 +121,40 @@ Uso:
 Variables minimas:
 
 - `DATABASE_URL` -> `Supabase production`
+- `DIRECT_URL` -> opcion recomendada para operaciones de schema en `Supabase production`
 - `NEXT_PUBLIC_SUPABASE_URL` -> `Supabase production`
 - `NEXT_PUBLIC_SUPABASE_ANON_KEY` -> `Supabase production`
 - `NEXT_PUBLIC_APP_URL` -> dominio real de produccion
+
+Nota operativa:
+
+- `DATABASE_URL` debe seguir apuntando al `pooler` para runtime de app
+- `DIRECT_URL` conviene guardarla aunque no la use el runtime
+- cuando `Production` arranca por primera vez, puede hacer falta un bootstrap de schema con `prisma db push` usando la conexion directa antes de que `/app` funcione
+
+## Estado validado actual
+
+A fecha de 2026-03-19, el setup operativo real queda asi:
+
+- `preview` branch -> `Vercel Preview` -> `Supabase sandbox`
+- `main` branch -> `Vercel Production` -> `Supabase production`
+- dominio de `Production` operativo:
+  - `https://wellstudio.miguelgarglez.com`
+- alias de respaldo de `Production`:
+  - `https://wellstudio-platform.vercel.app`
+
+Variables confirmadas:
+
+- `Preview` usa credenciales de `sandbox`
+- `Production` usa credenciales de `production`
+- `NEXT_PUBLIC_APP_URL` de `Production` apunta al dominio custom final
+
+Aprendizajes operativos que ya se validaron:
+
+- `Preview` necesita wildcard allowlisteado en `Supabase sandbox` para que signup y reset no caigan a `localhost`
+- `Production` necesita su propio `Site URL`, `Redirect URLs`, `SMTP custom` y plantillas de email
+- al bootstrapear `Production`, `Supabase Auth` puede funcionar antes de que existan las tablas Prisma; en ese caso `/app` falla hasta aplicar el schema
+- despues del login cliente, la entrada a una ruta privada server-side es mas robusta con navegacion completa que con `router.push()` inmediato
 
 ## Validacion de sandbox
 
@@ -162,6 +193,21 @@ Importante:
 
 - el deploy de `main` usa variables de `Production`
 - no se debe trabajar directamente sobre `main` salvo casos excepcionales y muy controlados
+
+## Checklist minimo de auth en Production
+
+Antes de considerar `Production` operativa, confirmar:
+
+- `Supabase production` con `Site URL`:
+  - `https://wellstudio.miguelgarglez.com`
+- `Redirect URLs` en `Supabase production`:
+  - `https://wellstudio.miguelgarglez.com/**`
+  - `https://wellstudio-platform.vercel.app/**`
+- `Resend` configurado como `custom SMTP` en `Supabase production`
+- plantillas de signup y reset alineadas con las validadas en sandbox
+- `DATABASE_URL` de runtime por `pooler`
+- `DIRECT_URL` disponible para operaciones de schema
+- login, register y reset password probados manualmente en `Production`
 
 ## Rollback
 
