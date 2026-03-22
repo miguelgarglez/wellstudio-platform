@@ -33,6 +33,7 @@ export type LandingContact = {
   phone: string
   email: string
   addressLines: string[]
+  mapsHref: string
   hours: string[]
 }
 
@@ -149,6 +150,8 @@ export const landingContent: LandingContent = {
     phone: '614882404',
     email: 'wellstudiofit@gmail.com',
     addressLines: ['Calle de Juan Pradillo, 2', '28039, Tetuán, Madrid'],
+    mapsHref:
+      'https://www.google.com/maps/search/?api=1&query=Calle+de+Juan+Pradillo+2%2C+28039+Madrid',
     hours: ['Lunes a viernes: 07:15 - 15:00 y 17:00 - 21:30', 'Sábado y domingo: cerrado'],
   },
 }
