@@ -74,6 +74,19 @@ test.describe('Auth smoke @smoke @auth', () => {
     await expect(page.locator('button[type="submit"]')).toBeVisible()
   })
 
+  test('member child routes redirect unauthenticated visitors to login', async ({
+    page,
+  }) => {
+    for (const path of ['/app/reservations', '/app/profile', '/app/account']) {
+      await page.goto(path)
+
+      await expect(page).toHaveURL(
+        new RegExp(`/login\\?redirectTo=${encodeURIComponent(path).replace(/\//g, '%2F')}$`),
+      )
+      await expect(page.locator('button[type="submit"]')).toBeVisible()
+    }
+  })
+
   test('admin route redirects unauthenticated visitors to login', async ({
     page,
   }) => {

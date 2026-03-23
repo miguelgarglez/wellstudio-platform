@@ -1,62 +1,80 @@
-import { requireAuthenticatedContext } from '@/modules/auth/server/identity'
-import { LogoutButton } from '@/modules/auth/ui/logout-button'
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
+import { MemberPortalSectionShell } from '@/modules/members/ui/member-portal-section-shell'
+import { getAuthenticatedMemberShellSummary } from '@/modules/members/server/member-shell-summary'
 
 export default async function MemberAppPage() {
-  const authContext = await requireAuthenticatedContext()
-  const memberName =
-    [authContext.member?.firstName, authContext.member?.lastName]
-      .filter(Boolean)
-      .join(' ')
-      .trim() || 'Member profile pending'
-  const roles = authContext.roles.map((role) => role.role).join(', ')
+  const summary = await getAuthenticatedMemberShellSummary()
 
   return (
-    <main className="min-h-screen bg-[radial-gradient(circle_at_top_left,_rgba(107,167,228,0.12),_transparent_36%),linear-gradient(180deg,#0d1014_0%,#171c24_100%)] px-6 py-8 text-white">
-      <section className="mx-auto flex max-w-5xl flex-col gap-8 rounded-[2rem] border border-white/10 bg-white/6 p-8 shadow-[0_32px_120px_rgba(7,10,14,0.3)] backdrop-blur">
-        <div className="flex flex-col gap-4 border-b border-white/10 pb-6 sm:flex-row sm:items-end sm:justify-between">
-          <div className="space-y-3">
-            <p className="text-xs uppercase tracking-[0.22em] text-[var(--wellstudio-blue-soft)]">
-              Área privada
+    <MemberPortalSectionShell
+      eyebrow="Inicio"
+      title="Bienvenido de nuevo"
+      description="La shell privada ya está activa, con navegación estable y contexto real del socio. El dashboard operativo de reservas llegará en MIG-75."
+    >
+      <div className="grid gap-4 lg:grid-cols-[minmax(0,1.35fr)_minmax(0,0.95fr)]">
+        <Card className="overflow-visible rounded-[1.6rem] border border-[color:color-mix(in_srgb,var(--wellstudio-blue)_10%,white)] bg-white py-0">
+          <CardHeader className="px-5 py-5 sm:px-6">
+            <CardTitle className="text-lg text-[var(--wellstudio-ink)]">
+              Zona privada lista
+            </CardTitle>
+          </CardHeader>
+          <CardContent className="space-y-4 px-5 pb-5 sm:px-6 sm:pb-6">
+            <p className="text-sm leading-7 text-[color:color-mix(in_srgb,var(--foreground)_72%,white)]">
+              Ya tienes una base navegable para moverte entre Inicio, Reservas,
+              Perfil y Cuenta sin depender de una sola página aislada.
             </p>
-            <h1 className="font-display text-4xl uppercase tracking-[0.04em] text-white">
-              Member App
-            </h1>
-            <p className="max-w-2xl text-sm leading-7 text-white/74 sm:text-base">
-              Este shell ya está detrás de auth real y ya lee identidad del dominio
-              desde Prisma sobre Supabase Postgres.
-            </p>
-          </div>
-          <LogoutButton />
-        </div>
+            <div className="rounded-[1.35rem] border border-[color:color-mix(in_srgb,var(--border)_74%,white)] bg-[var(--muted)]/65 px-4 py-4">
+              <p className="text-xs uppercase tracking-[0.24em] text-[var(--wellstudio-blue-deep)]">
+                Siguiente paso
+              </p>
+              <p className="mt-2 text-sm leading-7 text-[color:color-mix(in_srgb,var(--foreground)_74%,white)]">
+                El siguiente ticket convertirá esta portada en una home orientada a
+                reservas, con próximas sesiones, estado comercial y CTA real hacia
+                la agenda.
+              </p>
+            </div>
+          </CardContent>
+        </Card>
 
-        <div className="grid gap-4 md:grid-cols-3">
-          <article className="rounded-[1.5rem] border border-white/10 bg-black/20 p-5">
-            <h2 className="text-sm font-semibold uppercase tracking-[0.16em] text-[var(--wellstudio-blue-soft)]">
-              Estado
-            </h2>
-            <p className="mt-4 text-lg font-medium text-white">
-              Sesión protegida activa
-            </p>
-          </article>
-          <article className="rounded-[1.5rem] border border-white/10 bg-black/20 p-5">
-            <h2 className="text-sm font-semibold uppercase tracking-[0.16em] text-[var(--wellstudio-blue-soft)]">
-              Member
-            </h2>
-            <p className="mt-4 text-lg font-medium text-white">
-              {memberName}
-            </p>
-            <p className="mt-2 text-sm text-white/70">{authContext.localUser.email}</p>
-          </article>
-          <article className="rounded-[1.5rem] border border-white/10 bg-black/20 p-5">
-            <h2 className="text-sm font-semibold uppercase tracking-[0.16em] text-[var(--wellstudio-blue-soft)]">
-              Roles
-            </h2>
-            <p className="mt-4 text-lg font-medium text-white">
-              {roles || 'No roles found'}
-            </p>
-          </article>
-        </div>
-      </section>
-    </main>
+        <Card className="overflow-visible rounded-[1.6rem] border border-[color:color-mix(in_srgb,var(--wellstudio-blue)_10%,white)] bg-white py-0">
+          <CardHeader className="px-5 py-5 sm:px-6">
+            <CardTitle className="text-lg text-[var(--wellstudio-ink)]">
+              Contexto de sesión
+            </CardTitle>
+          </CardHeader>
+          <CardContent className="grid gap-4 px-5 pb-5 sm:px-6 sm:pb-6">
+            <div className="rounded-[1.25rem] border border-[color:color-mix(in_srgb,var(--border)_74%,white)] px-4 py-4">
+              <p className="text-xs uppercase tracking-[0.24em] text-[var(--wellstudio-blue-deep)]">
+                Socio
+              </p>
+              <p className="mt-2 text-base font-medium text-[var(--wellstudio-ink)]">
+                {summary.displayName}
+              </p>
+              <p className="mt-1 text-sm text-[color:color-mix(in_srgb,var(--foreground)_72%,white)]">
+                {summary.email}
+              </p>
+            </div>
+            <div className="grid gap-3 sm:grid-cols-2">
+              <div className="rounded-[1.25rem] border border-[color:color-mix(in_srgb,var(--border)_74%,white)] px-4 py-4">
+                <p className="text-xs uppercase tracking-[0.24em] text-[var(--wellstudio-blue-deep)]">
+                  Estado
+                </p>
+                <p className="mt-2 text-sm font-medium text-[var(--wellstudio-ink)]">
+                  {summary.memberStatusLabel}
+                </p>
+              </div>
+              <div className="rounded-[1.25rem] border border-[color:color-mix(in_srgb,var(--border)_74%,white)] px-4 py-4">
+                <p className="text-xs uppercase tracking-[0.24em] text-[var(--wellstudio-blue-deep)]">
+                  Roles
+                </p>
+                <p className="mt-2 text-sm font-medium text-[var(--wellstudio-ink)]">
+                  {summary.rolesLabel}
+                </p>
+              </div>
+            </div>
+          </CardContent>
+        </Card>
+      </div>
+    </MemberPortalSectionShell>
   )
 }

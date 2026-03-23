@@ -182,13 +182,13 @@ export class AuthPage {
 
   async expectProtectedMemberShell() {
     await expect(
-      this.page.getByRole('heading', { name: 'Member App' }),
+      this.page.getByRole('heading', { name: 'Bienvenido de nuevo' }),
     ).toBeVisible()
     await expect(
-      this.page.getByText('Sesión protegida activa'),
+      this.page.getByLabel('Navegación privada').getByRole('link', { name: 'Reservas' }),
     ).toBeVisible()
     await expect(
-      this.page.getByText('Roles'),
+      this.page.getByLabel('Navegación privada').getByRole('link', { name: 'Cuenta' }),
     ).toBeVisible()
     await expect(
       this.page.getByText('MEMBER', { exact: true }),

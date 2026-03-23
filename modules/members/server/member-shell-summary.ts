@@ -1,0 +1,51 @@
+import { cache } from 'react'
+
+import { requireAuthenticatedContext, type AuthContext } from '@/modules/auth/server/identity'
+
+export type MemberShellSummary = {
+  displayName: string
+  email: string
+  memberStatusLabel: string
+  rolesLabel: string
+}
+
+export const getAuthenticatedMemberShellSummary = cache(async (): Promise<MemberShellSummary> => {
+  const authContext = await requireAuthenticatedContext()
+
+  return buildMemberShellSummary(authContext)
+})
+
+export function buildMemberShellSummary(
+  authContext: Extract<AuthContext, { isAuthenticated: true }>,
+): MemberShellSummary {
+  const displayName =
+    [authContext.member?.firstName, authContext.member?.lastName]
+      .filter(Boolean)
+      .join(' ')
+      .trim() || authContext.localUser.email
+
+  return {
+    displayName,
+    email: authContext.localUser.email,
+    memberStatusLabel: formatMemberStatusLabel(
+      authContext.member?.status ?? authContext.localUser.status,
+    ),
+    rolesLabel:
+      authContext.roles.map((role) => role.role).join(' · ') || 'Sin roles asignados',
+  }
+}
+
+function formatMemberStatusLabel(status: string) {
+  switch (status) {
+    case 'ACTIVE':
+      return 'Socio activo'
+    case 'PENDING':
+      return 'Perfil pendiente'
+    case 'INACTIVE':
+      return 'Socio inactivo'
+    case 'SUSPENDED':
+      return 'Socio suspendido'
+    default:
+      return 'Estado de socio'
+  }
+}
