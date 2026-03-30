@@ -22,7 +22,7 @@ export function MemberPortalSectionShell({
           {eyebrow}
         </p>
         <div className="space-y-3">
-          <h1 className="font-display text-5xl uppercase tracking-[0.03em] text-[var(--wellstudio-ink)] sm:text-6xl">
+          <h1 className="font-display text-4xl uppercase tracking-[0.03em] text-[var(--wellstudio-ink)] sm:text-5xl lg:text-[3.65rem]">
             {title}
           </h1>
           <p className="max-w-3xl text-base leading-8 text-[color:color-mix(in_srgb,var(--foreground)_72%,white)] sm:text-lg">
@@ -31,7 +31,7 @@ export function MemberPortalSectionShell({
         </div>
       </header>
 
-      <Card className="overflow-visible rounded-[2rem] border border-[color:color-mix(in_srgb,var(--wellstudio-blue-deep)_10%,white)] bg-[color:color-mix(in_srgb,var(--card)_82%,white)] py-0 shadow-[0_24px_70px_rgba(16,18,24,0.06)]">
+      <Card className="overflow-visible rounded-[2rem] border border-[color:color-mix(in_srgb,var(--wellstudio-blue-deep)_10%,white)] bg-[color:color-mix(in_srgb,var(--card)_82%,white)] py-0 shadow-none">
         <CardHeader className="border-b border-[color:color-mix(in_srgb,var(--border)_72%,white)] px-6 py-6 sm:px-8">
           <CardTitle className="text-lg text-[var(--wellstudio-ink)]">
             Espacio en preparación

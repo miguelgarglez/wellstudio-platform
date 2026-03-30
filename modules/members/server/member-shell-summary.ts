@@ -1,6 +1,6 @@
 import { cache } from 'react'
 
-import { requireAuthenticatedContext, type AuthContext } from '@/modules/auth/server/identity'
+import type { AuthContext } from '@/modules/auth/server/identity'
 
 export type MemberShellSummary = {
   displayName: string
@@ -10,6 +10,7 @@ export type MemberShellSummary = {
 }
 
 export const getAuthenticatedMemberShellSummary = cache(async (): Promise<MemberShellSummary> => {
+  const { requireAuthenticatedContext } = await import('@/modules/auth/server/identity')
   const authContext = await requireAuthenticatedContext()
 
   return buildMemberShellSummary(authContext)

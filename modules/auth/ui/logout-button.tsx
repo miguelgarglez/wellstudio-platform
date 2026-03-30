@@ -1,13 +1,23 @@
 'use client'
 
+import type { ComponentProps } from 'react'
 import { useMemo, useState, useTransition } from 'react'
 import { useRouter } from 'next/navigation'
 
 import { Button } from '@/components/ui/button'
+import { cn } from '@/lib/utils'
 import { Spinner } from '@/components/ui/spinner'
 import { createSupabaseBrowserClient } from '@/modules/auth/lib/supabase-browser-client'
 
-export function LogoutButton() {
+type LogoutButtonProps = {
+  buttonClassName?: string
+  variant?: ComponentProps<typeof Button>['variant']
+}
+
+export function LogoutButton({
+  buttonClassName,
+  variant = 'outline',
+}: LogoutButtonProps) {
   const router = useRouter()
   const supabase = useMemo(() => createSupabaseBrowserClient(), [])
   const [isPending, startTransition] = useTransition()
@@ -33,9 +43,10 @@ export function LogoutButton() {
     <div className="flex flex-col items-start gap-3">
       <Button
         type="button"
-        variant="outline"
+        variant={variant}
         disabled={isPending}
         onClick={handleLogout}
+        className={cn(buttonClassName)}
       >
         {isPending ? (
           <>
