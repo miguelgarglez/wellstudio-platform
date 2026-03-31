@@ -45,6 +45,8 @@ En `.env.local`:
 - `DATABASE_URL`
 - `NEXT_PUBLIC_SUPABASE_URL`
 - `NEXT_PUBLIC_SUPABASE_ANON_KEY`
+- `SUPABASE_SERVICE_ROLE_KEY` para operaciones admin locales controladas
+- `SUPABASE_SANDBOX_PROJECT_REF` para asegurar que esas operaciones solo apuntan a sandbox
 
 ### E2E sandbox
 
@@ -81,6 +83,16 @@ pnpm test:e2e:auth:sandbox
 pnpm check:auth
 ```
 
+### Asegurar o resetear cuenta sandbox de scenario
+
+```bash
+node scripts/auth/ensure-sandbox-user.mjs member --confirm-sandbox-reset
+```
+
+Runbook detallado relacionado:
+
+- `docs/runbooks/agent-browser-sandbox-validation.md`
+
 ## Qué cubre hoy la suite sandbox
 
 - login válido de member
@@ -103,6 +115,7 @@ Runbook relacionado:
 
 - `docs/runbooks/supabase-postgres-prisma-workflow.md`
 - `docs/runbooks/resend-supabase-auth-smtp-setup.md`
+- `docs/runbooks/agent-browser-sandbox-validation.md`
 
 Esto significa que la suite actual prueba `auth real + identidad local provisionada`, pero no automatiza todavía el paso completo de verificación de email.
 
