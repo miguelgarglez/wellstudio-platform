@@ -1,3 +1,5 @@
+import { Prisma } from '@prisma/client'
+
 function normalizeEmail(email) {
   return email.trim().toLowerCase()
 }
@@ -75,6 +77,8 @@ export async function ensureMemberReservationsFlowScenario({
   const timeline = buildMemberReservationsFlowTimeline(now)
 
   return prisma.$transaction(async (tx) => {
+    await tx.$executeRaw`SELECT pg_advisory_xact_lock(${BigInt(8015780)})`
+
     const memberIdentity = await ensureManagedMemberIdentity(tx, {
       authUserId: authUser.id,
       email,
@@ -124,6 +128,17 @@ export async function ensureMemberReservationsFlowScenario({
       },
     })
 
+    const fillerMembership = await tx.memberMembership.create({
+      data: {
+        memberId: fillerIdentity.member.id,
+        membershipPlanId: membershipPlan.id,
+        status: 'ACTIVE',
+        startsAt: shiftDays(now, -14),
+        endsAt: shiftDays(now, 45),
+        autoRenews: false,
+      },
+    })
+
     const sessions = await createManagedSessions(tx, {
       coachId: coach.id,
       reservableClassTypeId: reservableClassType.id,
@@ -144,10 +159,16 @@ export async function ensureMemberReservationsFlowScenario({
       now,
     })
 
-    await createBookedReservationWithoutEntitlement(tx, {
+    await createMembershipReservation(tx, {
       memberId: fillerIdentity.member.id,
       classSessionId: sessions.fullWaitlist.id,
+      memberMembershipId: fillerMembership.id,
+      status: 'BOOKED',
       bookedAt: shiftMinutes(timeline.fullWaitlist.startsAt, -60 * 24),
+      attendanceStatus: 'PENDING',
+      canceledAt: null,
+      cancellationReason: null,
+      now,
     })
 
     const waitlistEntry = await tx.waitlistEntry.create({
@@ -214,6 +235,8 @@ export async function ensureMemberReservationsFlowScenario({
         startsAt: session.startsAt,
       })),
     }
+  }, {
+    isolationLevel: Prisma.TransactionIsolationLevel.Serializable,
   })
 }
 
@@ -621,22 +644,6 @@ async function createMembershipReservation(
   })
 
   return reservation
-}
-
-async function createBookedReservationWithoutEntitlement(
-  tx,
-  { memberId, classSessionId, bookedAt },
-) {
-  return tx.reservation.create({
-    data: {
-      memberId,
-      classSessionId,
-      status: 'BOOKED',
-      bookedAt,
-      attendanceStatus: 'PENDING',
-      source: 'STAFF',
-    },
-  })
 }
 
 async function syncReservedCounts(tx, classSessionIds) {

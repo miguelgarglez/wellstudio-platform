@@ -58,6 +58,11 @@ const currentProjectRef = assertSandboxContext({
   sandboxEnabled,
 })
 
+assertDatabaseUrlMatchesSandbox({
+  databaseUrl,
+  sandboxProjectRef,
+})
+
 const supabase = createClient(supabaseUrl, serviceRoleKey, {
   auth: {
     autoRefreshToken: false,
@@ -153,6 +158,25 @@ function printSummary({ scenario, currentProjectRef }) {
   console.log('1. agent-browser --session-name wellstudio-sandbox open http://localhost:3000/login')
   console.log('2. Log in with the sandbox member credentials')
   console.log('3. Open /app and /app/reservations to validate the scenario visually')
+}
+
+function assertDatabaseUrlMatchesSandbox({ databaseUrl, sandboxProjectRef }) {
+  let databaseConnectionUrl
+
+  try {
+    databaseConnectionUrl = new URL(databaseUrl)
+  } catch {
+    throw new Error('DATABASE_URL is not a valid URL')
+  }
+
+  const hostMatches = databaseConnectionUrl.hostname.includes(sandboxProjectRef)
+  const usernameMatches = databaseConnectionUrl.username.includes(sandboxProjectRef)
+
+  if (!hostMatches && !usernameMatches) {
+    throw new Error(
+      `Sandbox guard failed: DATABASE_URL does not appear to target project ref "${sandboxProjectRef}".`,
+    )
+  }
 }
 
 function exitWithHelp(message) {

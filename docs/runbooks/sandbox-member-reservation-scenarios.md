@@ -19,6 +19,12 @@ La estrategia es `scenario reconciliation`:
 - refresca fechas y estados del escenario
 - no borra datos ajenos del sandbox
 
+Nota operativa importante:
+
+- sí destruye y recrea las entidades gestionadas por el propio escenario
+- eso incluye sesiones canónicas, reservas/waitlists E2E asociadas y relaciones E2E derivadas
+- por tanto, los IDs de esas entidades no deben tratarse como estables entre ejecuciones
+
 ## Escenario disponible hoy
 
 ### `member-reservations-flow`
