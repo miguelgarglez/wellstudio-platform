@@ -92,6 +92,21 @@ node scripts/auth/ensure-sandbox-user.mjs member --confirm-sandbox-reset
 Runbook detallado relacionado:
 
 - `docs/runbooks/agent-browser-sandbox-validation.md`
+- `docs/runbooks/sandbox-member-reservation-scenarios.md`
+
+### Reconciliar escenario de reservas para member portal
+
+```bash
+pnpm sandbox:scenario member-reservations-flow
+```
+
+Este comando prepara el dominio sandbox para QA visual y futura validación E2E de:
+
+- plan activo
+- reserva cancelable
+- sesión reservable
+- waitlist activa
+- historial reciente
 
 ## Qué cubre hoy la suite sandbox
 

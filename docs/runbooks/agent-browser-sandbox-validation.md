@@ -69,6 +69,18 @@ Nota importante:
 - esto solo crea o corrige el usuario en `Supabase Auth`
 - para `ADMIN`, la promoción de rol local sigue siendo otra capa
 
+## Reconciliar escenario de dominio
+
+Después de asegurar el usuario auth, preparar el escenario de reservas:
+
+```bash
+pnpm sandbox:scenario member-reservations-flow
+```
+
+Runbook detallado relacionado:
+
+- [sandbox-member-reservation-scenarios.md](/Users/miguelgarglez/Developer/wellstudio-platform/docs/runbooks/sandbox-member-reservation-scenarios.md)
+
 ## Dónde sacar `SUPABASE_SERVICE_ROLE_KEY`
 
 En el dashboard del proyecto `sandbox`:
@@ -137,3 +149,4 @@ agent-browser --session-name wellstudio-sandbox storage session clear
 Complementa:
 
 - [auth-sandbox-operations.md](/Users/miguelgarglez/Developer/wellstudio-platform/docs/runbooks/auth-sandbox-operations.md)
+- [sandbox-member-reservation-scenarios.md](/Users/miguelgarglez/Developer/wellstudio-platform/docs/runbooks/sandbox-member-reservation-scenarios.md)

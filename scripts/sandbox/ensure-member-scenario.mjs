@@ -1,0 +1,174 @@
+#!/usr/bin/env node
+
+import process from 'node:process'
+
+import { PrismaPg } from '@prisma/adapter-pg'
+import { PrismaClient } from '@prisma/client'
+import { createClient } from '@supabase/supabase-js'
+
+import {
+  assertSandboxContext,
+  formatSummaryDate,
+  isManagedScenarioEmail,
+  loadEnvFiles,
+  requireEnv,
+  SCENARIO_CONFIRMATION_FLAG,
+} from '../../modules/testing/server/sandbox-scenarios/shared.mjs'
+import {
+  ensureMemberReservationsFlowScenario,
+  MEMBER_RESERVATIONS_FLOW_SCENARIO,
+} from '../../modules/testing/server/sandbox-scenarios/member-reservations-flow.mjs'
+
+const ROOT = process.cwd()
+const SCENARIOS = {
+  [MEMBER_RESERVATIONS_FLOW_SCENARIO]: ensureMemberReservationsFlowScenario,
+}
+
+loadEnvFiles(ROOT)
+
+const args = process.argv.slice(2)
+const scenarioName = args.find((arg) => !arg.startsWith('--'))
+
+if (!scenarioName || !SCENARIOS[scenarioName]) {
+  exitWithHelp(
+    `Unknown or missing sandbox scenario "${scenarioName ?? ''}". Available scenarios: ${Object.keys(SCENARIOS).join(', ')}`,
+  )
+}
+
+if (!args.includes(SCENARIO_CONFIRMATION_FLAG)) {
+  exitWithHelp(`Missing required confirmation flag: ${SCENARIO_CONFIRMATION_FLAG}`)
+}
+
+const databaseUrl = requireEnv('DATABASE_URL')
+const supabaseUrl = requireEnv('NEXT_PUBLIC_SUPABASE_URL')
+const serviceRoleKey = requireEnv('SUPABASE_SERVICE_ROLE_KEY')
+const sandboxProjectRef = requireEnv('SUPABASE_SANDBOX_PROJECT_REF')
+const sandboxEnabled = requireEnv('E2E_AUTH_SANDBOX')
+const memberEmail = requireEnv('E2E_MEMBER_EMAIL')
+
+if (!isManagedScenarioEmail(memberEmail)) {
+  exitWithHelp(
+    `Refusing to reconcile scenario for non-managed email "${memberEmail}". Expected an e2e sandbox account.`,
+  )
+}
+
+const currentProjectRef = assertSandboxContext({
+  supabaseUrl,
+  sandboxProjectRef,
+  sandboxEnabled,
+})
+
+const supabase = createClient(supabaseUrl, serviceRoleKey, {
+  auth: {
+    autoRefreshToken: false,
+    persistSession: false,
+  },
+})
+
+const authUser = await findAuthUserByEmail(supabase, memberEmail)
+
+if (!authUser) {
+  exitWithHelp(
+    `Sandbox auth user "${memberEmail}" was not found. Run node scripts/auth/ensure-sandbox-user.mjs member --confirm-sandbox-reset first.`,
+  )
+}
+
+const adapter = new PrismaPg({ connectionString: databaseUrl })
+const prisma = new PrismaClient({
+  adapter,
+  log: process.env.NODE_ENV === 'development' ? ['warn', 'error'] : ['error'],
+})
+
+try {
+  const scenario = await SCENARIOS[scenarioName]({
+    prisma,
+    authUser: {
+      id: authUser.id,
+      email: authUser.email ?? memberEmail,
+    },
+    email: memberEmail,
+    now: new Date(),
+  })
+
+  printSummary({
+    scenario,
+    currentProjectRef,
+  })
+} catch (error) {
+  console.error('Failed to reconcile sandbox scenario.')
+  console.error(error instanceof Error ? error.message : error)
+  process.exitCode = 1
+} finally {
+  await prisma.$disconnect()
+}
+
+async function findAuthUserByEmail(client, email) {
+  for (let page = 1; page <= 5; page += 1) {
+    const { data, error } = await client.auth.admin.listUsers({
+      page,
+      perPage: 200,
+    })
+
+    if (error) {
+      throw new Error(`Failed to list sandbox auth users: ${error.message}`)
+    }
+
+    const user = (data?.users ?? []).find(
+      (candidate) => candidate.email?.toLowerCase() === email.toLowerCase(),
+    )
+
+    if (user) {
+      return user
+    }
+
+    if ((data?.users ?? []).length < 200) {
+      break
+    }
+  }
+
+  return null
+}
+
+function printSummary({ scenario, currentProjectRef }) {
+  console.log(
+    `Reconciled sandbox scenario "${scenario.scenario}" for ${scenario.memberEmail} in project ${currentProjectRef}.`,
+  )
+  console.log(`Local member id: ${scenario.memberId}`)
+  console.log(`Local user id: ${scenario.localUserId}`)
+  console.log(`Membership plan: ${scenario.planSlug}`)
+  console.log(`Class types: ${scenario.classTypeSlugs.join(', ')}`)
+  console.log(`Cancelable reservation id: ${scenario.cancelableReservationId}`)
+  console.log(`Active waitlist id: ${scenario.waitlistEntryId}`)
+  console.log('Managed sessions:')
+
+  for (const session of scenario.sessions) {
+    console.log(
+      `- ${session.key}: ${session.locationLabel} · ${formatSummaryDate(session.startsAt)} · ${session.id}`,
+    )
+  }
+
+  console.log('')
+  console.log(`Login account ready: ${scenario.memberEmail}`)
+  console.log('Recommended next steps:')
+  console.log('1. agent-browser --session-name wellstudio-sandbox open http://localhost:3000/login')
+  console.log('2. Log in with the sandbox member credentials')
+  console.log('3. Open /app and /app/reservations to validate the scenario visually')
+}
+
+function exitWithHelp(message) {
+  console.error(message)
+  console.error('')
+  console.error('Expected local setup:')
+  console.error(
+    '- .env.local with DATABASE_URL, NEXT_PUBLIC_SUPABASE_URL, SUPABASE_SERVICE_ROLE_KEY and SUPABASE_SANDBOX_PROJECT_REF',
+  )
+  console.error(
+    '- .env.e2e.local with E2E_AUTH_SANDBOX=true plus E2E_MEMBER_EMAIL / E2E_MEMBER_PASSWORD',
+  )
+  console.error('')
+  console.error('Example:')
+  console.error(
+    `  node scripts/sandbox/ensure-member-scenario.mjs ${MEMBER_RESERVATIONS_FLOW_SCENARIO} ${SCENARIO_CONFIRMATION_FLAG}`,
+  )
+  process.exit(1)
+}

@@ -357,7 +357,7 @@ function UpcomingReservationCard({
             triggerLabel="Cancelar reserva"
             dialogTitle="Cancelar esta reserva"
             dialogDescription={reservation.confirmCopy}
-            confirmLabel="Confirmar cancelación"
+            confirmLabel="Cancelar"
             pendingLabel="Cancelando"
             confirmVariant="destructive"
             triggerClassName="w-full sm:w-auto"
