@@ -1,5 +1,6 @@
 import Link from 'next/link'
 import {
+  BadgeAlert,
   CalendarDays,
   CircleAlert,
   Clock3,
@@ -13,9 +14,11 @@ import {
 } from 'lucide-react'
 
 import { buttonVariants } from '@/components/ui/button-variants'
+import { Button } from '@/components/ui/button'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Separator } from '@/components/ui/separator'
 import { cn } from '@/lib/utils'
+import type { ReservationMutationResult } from '@/modules/reservations/server/member-reservation-mutations'
 import type {
   MemberReservationsOverview,
   ReservationActionTone,
@@ -24,13 +27,26 @@ import type {
   UpcomingReservationRow,
   WaitlistReservationRow,
 } from '@/modules/reservations/server/member-reservations-overview'
+import { ReservationConfirmationAction } from '@/modules/reservations/ui/reservation-confirmation-action'
+
+type ReservationServerAction = (
+  previousState: ReservationMutationResult | null,
+  formData: FormData,
+) => Promise<ReservationMutationResult>
 
 type MemberReservationsDashboardProps = {
   overview: MemberReservationsOverview
+  actions: {
+    reserve: ReservationServerAction
+    cancel: ReservationServerAction
+    joinWaitlist: ReservationServerAction
+    leaveWaitlist: ReservationServerAction
+  }
 }
 
 export function MemberReservationsDashboard({
   overview,
+  actions,
 }: MemberReservationsDashboardProps) {
   return (
     <section className="space-y-5 lg:space-y-6">
@@ -74,8 +90,8 @@ export function MemberReservationsDashboard({
 
             <div className="hidden sm:flex sm:flex-row sm:items-center sm:justify-between sm:gap-3">
               <p className="text-sm text-[color:color-mix(in_srgb,var(--foreground)_74%,white)]">
-                La agenda publicada ya está visible aquí. Las acciones reales de reservar
-                y cancelar entrarán en el siguiente paso.
+                Desde esta pantalla ya puedes reservar, cancelar dentro de ventana y
+                gestionar tu waitlist sin salir del portal privado.
               </p>
               <Link
                 href="#agenda-futura"
@@ -129,6 +145,7 @@ export function MemberReservationsDashboard({
                   <UpcomingReservationCard
                     key={reservation.id}
                     reservation={reservation}
+                    cancelAction={actions.cancel}
                   />
                 ))}
               </div>
@@ -146,13 +163,17 @@ export function MemberReservationsDashboard({
                   Waitlist activa
                 </p>
                 <CardTitle className="text-2xl text-[var(--wellstudio-ink)]">
-                  Sigues dentro del movimiento
+                  Tu waitlist en curso
                 </CardTitle>
               </div>
             </CardHeader>
             <CardContent className="grid gap-3 px-6 py-6 sm:px-7">
               {overview.activeWaitlists.map((waitlist) => (
-                <WaitlistCard key={waitlist.id} waitlist={waitlist} />
+                <WaitlistCard
+                  key={waitlist.id}
+                  waitlist={waitlist}
+                  leaveWaitlistAction={actions.leaveWaitlist}
+                />
               ))}
             </CardContent>
           </Card>
@@ -191,9 +212,8 @@ export function MemberReservationsDashboard({
             </CardTitle>
           </div>
           <p className="max-w-3xl pt-2 text-sm leading-7 text-[color:color-mix(in_srgb,var(--foreground)_72%,white)]">
-            La agenda ya se puede consultar con contexto real de capacidad. La acción
-            de reservar entrará en el siguiente paso, pero aquí ya puedes anticipar qué
-            huecos siguen abiertos y dónde la waitlist será la vía natural.
+            Aquí ves plazas reales y el siguiente gesto disponible en cada sesión:
+            reservar, entrar en waitlist o detectar el bloqueo antes de intentarlo.
           </p>
         </CardHeader>
         <CardContent className="grid gap-5 px-6 py-6 sm:px-7">
@@ -211,7 +231,12 @@ export function MemberReservationsDashboard({
                 </div>
                 <div className="grid gap-3">
                   {day.sessions.map((session) => (
-                    <ScheduleSessionCard key={session.id} session={session} />
+                    <ScheduleSessionCard
+                      key={session.id}
+                      session={session}
+                      reserveAction={actions.reserve}
+                      joinWaitlistAction={actions.joinWaitlist}
+                    />
                   ))}
                 </div>
               </div>
@@ -261,8 +286,10 @@ export function MemberReservationsDashboard({
 
 function UpcomingReservationCard({
   reservation,
+  cancelAction,
 }: {
   reservation: UpcomingReservationRow
+  cancelAction: ReservationServerAction
 }) {
   return (
     <div className="rounded-[1.55rem] border border-[color:color-mix(in_srgb,var(--border)_74%,white)] bg-white px-5 py-5">
@@ -311,17 +338,53 @@ function UpcomingReservationCard({
               {reservation.cancellationLabel}
             </p>
             <p className="text-sm text-[color:color-mix(in_srgb,var(--foreground)_70%,white)]">
-              La política visible del portal usa la ventana de cancelación de 120
-              minutos acordada para v1.
+              Ventana activa de cancelación para esta sesión.
             </p>
           </div>
         </div>
+      </div>
+
+      <div className="mt-4 flex flex-wrap items-center justify-between gap-3">
+        <p className="text-sm text-[color:color-mix(in_srgb,var(--foreground)_72%,white)]">
+          {reservation.canCancel
+            ? 'Si cancelas ahora, la plaza se liberará y la waitlist se reevaluará.'
+            : 'La cancelación ya está fuera de ventana.'}
+        </p>
+        {reservation.canCancel ? (
+          <ReservationConfirmationAction
+            action={cancelAction}
+            fields={{ reservationId: reservation.id }}
+            triggerLabel="Cancelar reserva"
+            dialogTitle="Cancelar esta reserva"
+            dialogDescription={reservation.confirmCopy}
+            confirmLabel="Confirmar cancelación"
+            pendingLabel="Cancelando"
+            confirmVariant="destructive"
+            triggerClassName="w-full sm:w-auto"
+          />
+        ) : (
+          <Button
+            type="button"
+            variant="outline"
+            size="sm"
+            disabled
+            className="w-full sm:w-auto"
+          >
+            Cancelación cerrada
+          </Button>
+        )}
       </div>
     </div>
   )
 }
 
-function WaitlistCard({ waitlist }: { waitlist: WaitlistReservationRow }) {
+function WaitlistCard({
+  waitlist,
+  leaveWaitlistAction,
+}: {
+  waitlist: WaitlistReservationRow
+  leaveWaitlistAction: ReservationServerAction
+}) {
   return (
     <div className="rounded-[1.5rem] border border-[color:color-mix(in_srgb,var(--border)_74%,white)] bg-white px-5 py-5">
       <div className="flex flex-col gap-4">
@@ -350,6 +413,22 @@ function WaitlistCard({ waitlist }: { waitlist: WaitlistReservationRow }) {
             <MetaLine icon={MapPin} label={waitlist.locationLabel} />
           ) : null}
         </div>
+        {waitlist.canLeave ? (
+          <div className="flex justify-end">
+            <ReservationConfirmationAction
+              action={leaveWaitlistAction}
+              fields={{ waitlistEntryId: waitlist.id }}
+              triggerLabel="Salir de waitlist"
+              dialogTitle="Salir de esta waitlist"
+              dialogDescription={waitlist.confirmCopy}
+              confirmLabel="Salir"
+              pendingLabel="Saliendo"
+              triggerVariant="outline"
+              confirmVariant="destructive"
+              triggerClassName="w-full sm:w-auto"
+            />
+          </div>
+        ) : null}
       </div>
     </div>
   )
@@ -357,8 +436,12 @@ function WaitlistCard({ waitlist }: { waitlist: WaitlistReservationRow }) {
 
 function ScheduleSessionCard({
   session,
+  reserveAction,
+  joinWaitlistAction,
 }: {
   session: SchedulePreviewSession
+  reserveAction: ReservationServerAction
+  joinWaitlistAction: ReservationServerAction
 }) {
   return (
     <div className="rounded-[1.55rem] border border-[color:color-mix(in_srgb,var(--border)_74%,white)] bg-white px-5 py-5">
@@ -380,8 +463,74 @@ function ScheduleSessionCard({
           </span>
         </div>
       </div>
+
+      <div className="mt-4 flex flex-wrap items-center justify-between gap-3">
+        <p className="text-sm text-[color:color-mix(in_srgb,var(--foreground)_72%,white)]">
+          {session.primaryAction.description ?? 'La sesión refleja ya su estado operativo actual.'}
+        </p>
+        <ScheduleActionButton
+          session={session}
+          reserveAction={reserveAction}
+          joinWaitlistAction={joinWaitlistAction}
+        />
+      </div>
     </div>
   )
+}
+
+function ScheduleActionButton({
+  session,
+  reserveAction,
+  joinWaitlistAction,
+}: {
+  session: SchedulePreviewSession
+  reserveAction: ReservationServerAction
+  joinWaitlistAction: ReservationServerAction
+}) {
+  switch (session.primaryAction.kind) {
+    case 'book':
+      return (
+        <ReservationConfirmationAction
+          action={reserveAction}
+          fields={{ classSessionId: session.id }}
+          triggerLabel="Reservar"
+          dialogTitle="Confirmar reserva"
+          dialogDescription={`Reservarás tu plaza para ${session.className} en el tramo ${session.timeLabel}.`}
+          confirmLabel="Confirmar reserva"
+          pendingLabel="Reservando"
+          triggerClassName="w-full sm:w-auto"
+        />
+      )
+    case 'join-waitlist':
+      return (
+        <ReservationConfirmationAction
+          action={joinWaitlistAction}
+          fields={{ classSessionId: session.id }}
+          triggerLabel="Entrar en waitlist"
+          dialogTitle="Entrar en la waitlist"
+          dialogDescription={`Te unirás a la waitlist de ${session.className}. Si se libera una plaza y sigues siendo elegible, el sistema intentará promocionarte.`}
+          confirmLabel="Entrar en waitlist"
+          pendingLabel="Entrando"
+          triggerVariant="outline"
+          triggerClassName="w-full sm:w-auto"
+        />
+      )
+    case 'already-booked':
+    case 'already-waitlisted':
+      return (
+        <Button type="button" variant="outline" size="sm" disabled className="w-full sm:w-auto">
+          {session.primaryAction.label}
+        </Button>
+      )
+    case 'blocked':
+    default:
+      return (
+        <Button type="button" variant="outline" size="sm" disabled className="w-full sm:w-auto">
+          <BadgeAlert data-icon="inline-start" />
+          {session.primaryAction.label}
+        </Button>
+      )
+  }
 }
 
 function HistoryRow({ entry }: { entry: ReservationHistoryRow }) {

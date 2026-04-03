@@ -1,11 +1,20 @@
 import { cache } from 'react'
 import type {
+  ClassTypeEligibilityRule,
   ClassSession,
   MemberCreditAccount,
   MemberMembership,
   Reservation,
   WaitlistEntry,
 } from '@prisma/client'
+import {
+  buildCancellationWindow,
+  buildSchedulePrimaryAction,
+  evaluateReservationEligibilityFromSnapshots,
+  type CreditAccountEligibilitySnapshot,
+  type MembershipEligibilitySnapshot,
+  type ReservationSchedulePrimaryAction,
+} from '@/modules/reservations/server/reservation-eligibility'
 
 type ReservationWithSession = Reservation & {
   classSession: {
@@ -70,6 +79,18 @@ type PublishedSession = Pick<
 > & {
   classType: {
     name: string
+    eligibilityRules: Array<
+      Pick<
+        ClassTypeEligibilityRule,
+        | 'id'
+        | 'ruleType'
+        | 'membershipPlanId'
+        | 'creditCost'
+        | 'priority'
+        | 'createdAt'
+        | 'isActive'
+      >
+    >
   }
   coach: {
     displayName: string
@@ -89,6 +110,7 @@ export type MemberBookingState = {
 
 export type UpcomingReservationRow = {
   id: string
+  classSessionId: string
   className: string
   coachName: string | null
   dateLabel: string
@@ -97,10 +119,13 @@ export type UpcomingReservationRow = {
   availabilityLabel: string
   cancellationLabel: string
   cancellationTone: ReservationActionTone
+  canCancel: boolean
+  confirmCopy: string
 }
 
 export type WaitlistReservationRow = {
   id: string
+  classSessionId: string
   className: string
   coachName: string | null
   dateLabel: string
@@ -108,6 +133,8 @@ export type WaitlistReservationRow = {
   locationLabel: string | null
   availabilityLabel: string
   positionLabel: string | null
+  canLeave: boolean
+  confirmCopy: string
 }
 
 export type ReservationHistoryRow = {
@@ -129,6 +156,7 @@ export type SchedulePreviewSession = {
   locationLabel: string | null
   availabilityLabel: string
   framingLabel: string
+  primaryAction: ReservationSchedulePrimaryAction
 }
 
 export type SchedulePreviewDay = {
@@ -302,6 +330,20 @@ export const getMemberReservationsOverview = cache(
           classType: {
             select: {
               name: true,
+              eligibilityRules: {
+                where: {
+                  isActive: true,
+                },
+                select: {
+                  id: true,
+                  ruleType: true,
+                  membershipPlanId: true,
+                  creditCost: true,
+                  priority: true,
+                  createdAt: true,
+                  isActive: true,
+                },
+              },
             },
           },
           coach: {
@@ -401,18 +443,28 @@ export function buildMemberReservationsOverview({
     creditsRemaining,
   })
 
-  const upcomingRows = upcomingReservations.map((reservation) =>
-    mapUpcomingReservationRow(reservation, now),
-  )
+  const bookedSessionIds = new Set(upcomingReservations.map((reservation) => reservation.classSessionId))
+  const waitlistedSessionIds = new Set(activeWaitlists.map((entry) => entry.classSessionId))
+
+  const upcomingRows = upcomingReservations.map((reservation) => mapUpcomingReservationRow(reservation, now))
 
   const waitlistRows = activeWaitlists.map((entry) => mapWaitlistRow(entry, now))
   const historyRows = recentHistory.map((reservation) => mapHistoryRow(reservation, now))
-  const scheduleDays = groupSchedulePreviewByDay(publishedSessions, now)
+  const scheduleDays = groupSchedulePreviewByDay(
+    publishedSessions,
+    {
+      memberships,
+      creditAccounts,
+      bookedSessionIds,
+      waitlistedSessionIds,
+    },
+    now,
+  )
 
   return {
     introTitle: 'Centro operativo',
     introDescription:
-      'Aquí se concentra tu movimiento real dentro de la agenda: próximas reservas, waitlists activas, sesiones publicadas y seguimiento reciente sin salir del portal.',
+      'Aquí se concentra tu movimiento real dentro de la agenda: reservas confirmadas, waitlists activas, sesiones publicadas e historial reciente, todo ya preparado para actuar desde el portal.',
     summaryLabels: buildSummaryLabels({
       upcomingCount: upcomingRows.length,
       waitlistCount: waitlistRows.length,
@@ -451,16 +503,7 @@ export function selectPendingMembership(
 }
 
 export function calculateCreditsRemaining(
-  creditAccounts: Array<
-    Pick<MemberCreditAccount, 'status'> & {
-      creditPack: {
-        creditsTotal: number
-      }
-      ledgerEntries: Array<{
-        balanceAfter: number
-      }>
-    }
-  >,
+  creditAccounts: CreditAccountEligibilitySnapshot[],
 ) {
   return creditAccounts.reduce((total, account) => {
     const latestBalance = account.ledgerEntries[0]?.balanceAfter
@@ -513,7 +556,10 @@ export function buildCancellationStatus(startsAt: Date, now: Date): {
   label: string
   tone: ReservationActionTone
 } {
-  const cutoffAt = new Date(startsAt.getTime() - 120 * 60 * 1000)
+  const { canCancel, cutoffAt } = buildCancellationWindow({
+    startsAt,
+    now,
+  })
   const timeFormatter = new Intl.DateTimeFormat('es-ES', {
     hour: '2-digit',
     minute: '2-digit',
@@ -524,7 +570,7 @@ export function buildCancellationStatus(startsAt: Date, now: Date): {
     month: 'short',
   })
 
-  if (cutoffAt.getTime() > now.getTime()) {
+  if (canCancel) {
     const sameDay = startsAt.toDateString() === cutoffAt.toDateString()
     return {
       label: sameDay
@@ -631,9 +677,14 @@ function mapUpcomingReservationRow(
 ): UpcomingReservationRow {
   const sessionSnapshot = mapSessionTiming(reservation.classSession, now)
   const cancellation = buildCancellationStatus(reservation.classSession.startsAt, now)
+  const { canCancel } = buildCancellationWindow({
+    startsAt: reservation.classSession.startsAt,
+    now,
+  })
 
   return {
     id: reservation.id,
+    classSessionId: reservation.classSessionId,
     className: reservation.classSession.classType.name,
     coachName: reservation.classSession.coach?.displayName ?? null,
     dateLabel: sessionSnapshot.dateLabel,
@@ -646,6 +697,10 @@ function mapUpcomingReservationRow(
     }).availabilityLabel,
     cancellationLabel: cancellation.label,
     cancellationTone: cancellation.tone,
+    canCancel,
+    confirmCopy: canCancel
+      ? `Cancelarás tu reserva de ${reservation.classSession.classType.name} del ${sessionSnapshot.dateLabel.toLowerCase()} a las ${sessionSnapshot.timeLabel.split(' – ')[0]}.`
+      : 'La ventana de cancelación ya está cerrada para esta reserva.',
   }
 }
 
@@ -662,6 +717,7 @@ function mapWaitlistRow(
 
   return {
     id: entry.id,
+    classSessionId: entry.classSessionId,
     className: entry.classSession.classType.name,
     coachName: entry.classSession.coach?.displayName ?? null,
     dateLabel: sessionSnapshot.dateLabel,
@@ -669,6 +725,8 @@ function mapWaitlistRow(
     locationLabel: entry.classSession.locationLabel,
     availabilityLabel: availability.framingLabel,
     positionLabel: entry.position ? `Posición ${entry.position}` : null,
+    canLeave: true,
+    confirmCopy: `Saldrás de la waitlist de ${entry.classSession.classType.name} del ${sessionSnapshot.dateLabel.toLowerCase()} a las ${sessionSnapshot.timeLabel.split(' – ')[0]}.`,
   }
 }
 
@@ -693,6 +751,12 @@ function mapHistoryRow(
 
 function groupSchedulePreviewByDay(
   sessions: PublishedSession[],
+  eligibilityContext: {
+    memberships: MembershipEligibilitySnapshot[]
+    creditAccounts: CreditAccountEligibilitySnapshot[]
+    bookedSessionIds: Set<string>
+    waitlistedSessionIds: Set<string>
+  },
   now: Date,
 ): SchedulePreviewDay[] {
   const formatter = new Intl.DateTimeFormat('es-ES', {
@@ -715,6 +779,19 @@ function groupSchedulePreviewByDay(
       reservedCount: session.reservedCount,
       waitlistEnabled: session.waitlistEnabled,
     })
+    const eligibility = evaluateReservationEligibilityFromSnapshots({
+      rules: session.classType.eligibilityRules,
+      memberships: eligibilityContext.memberships,
+      creditAccounts: eligibilityContext.creditAccounts,
+      sessionStartsAt: session.startsAt,
+    })
+    const primaryAction = buildSchedulePrimaryAction({
+      isAlreadyBooked: eligibilityContext.bookedSessionIds.has(session.id),
+      isAlreadyWaitlisted: eligibilityContext.waitlistedSessionIds.has(session.id),
+      isFull: session.reservedCount >= session.capacity,
+      waitlistEnabled: session.waitlistEnabled,
+      eligibility,
+    })
 
     if (!groups.has(dayKey)) {
       groups.set(dayKey, {
@@ -732,6 +809,7 @@ function groupSchedulePreviewByDay(
       locationLabel: session.locationLabel,
       availabilityLabel: availability.availabilityLabel,
       framingLabel: availability.framingLabel,
+      primaryAction,
     })
   }
 

@@ -32,12 +32,18 @@ describe('member reservations overview helpers', () => {
     expect(
       calculateCreditsRemaining([
         {
+          id: 'credit-1',
           status: 'ACTIVE',
+          openedAt: new Date('2026-03-01T08:00:00.000Z'),
+          expiresAt: null,
           creditPack: { creditsTotal: 10 },
           ledgerEntries: [{ balanceAfter: 4 }],
         },
         {
+          id: 'credit-2',
           status: 'ACTIVE',
+          openedAt: new Date('2026-03-02T08:00:00.000Z'),
+          expiresAt: null,
           creditPack: { creditsTotal: 6 },
           ledgerEntries: [],
         },
@@ -190,7 +196,10 @@ describe('buildMemberReservationsOverview', () => {
           reservedCount: 8,
           waitlistEnabled: true,
           status: 'PUBLISHED',
-          classType: { name: 'Grupo Dinámico' },
+          classType: {
+            name: 'Grupo Dinámico',
+            eligibilityRules: [],
+          },
           coach: { displayName: 'Pablo García' },
         },
         {
@@ -202,7 +211,10 @@ describe('buildMemberReservationsOverview', () => {
           reservedCount: 4,
           waitlistEnabled: true,
           status: 'PUBLISHED',
-          classType: { name: 'Grupo Premium' },
+          classType: {
+            name: 'Grupo Premium',
+            eligibilityRules: [],
+          },
           coach: { displayName: 'Gabriel Mozos' },
         },
         {
@@ -214,7 +226,10 @@ describe('buildMemberReservationsOverview', () => {
           reservedCount: 5,
           waitlistEnabled: false,
           status: 'PUBLISHED',
-          classType: { name: 'Grupo Dinámico' },
+          classType: {
+            name: 'Grupo Dinámico',
+            eligibilityRules: [],
+          },
           coach: { displayName: 'Pablo García' },
         },
       ] as Parameters<typeof buildMemberReservationsOverview>[0]['publishedSessions'],
@@ -234,6 +249,7 @@ describe('buildMemberReservationsOverview', () => {
       className: 'Grupo Dinámico',
       availabilityLabel: '3 plazas libres',
       cancellationTone: 'allowed',
+      canCancel: true,
     })
 
     expect(overview.activeWaitlists[0]).toMatchObject({
@@ -252,6 +268,10 @@ describe('buildMemberReservationsOverview', () => {
     expect(overview.schedulePreview[1].sessions[0]).toMatchObject({
       availabilityLabel: '5 plazas libres',
       framingLabel: 'Reserva próximamente',
+      primaryAction: {
+        kind: 'blocked',
+        label: 'Sin regla activa',
+      },
     })
   })
 })
