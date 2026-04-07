@@ -112,8 +112,8 @@ Este comando prepara el dominio sandbox para QA visual y futura validación E2E 
 
 - login válido de member
 - error por credenciales inválidas
-- logout real
-- pérdida de acceso a `/app` tras logout
+- logout real con bug SSR actualmente reproducido por la suite
+- pérdida de acceso a `/app` tras logout todavía pendiente de cierre en `MIG-51`
 - lectura real de identidad local provisionada en `/app`
 
 ## Limitación conocida sobre registro
@@ -184,9 +184,9 @@ Revisar:
 
 Revisar:
 
-- que el test espera a la redirección completa a `/login`
+- si el logout está ocurriendo solo en cliente y no está invalidando la sesión SSR
+- la coherencia entre `modules/auth/ui/logout-button.tsx`, el boundary server-side de auth y `proxy.ts`
 - que no se está reutilizando una sesión previa del navegador
-- que `proxy.ts` sigue protegiendo `/app` y `/admin`
 
 ## Próxima evolución recomendada
 

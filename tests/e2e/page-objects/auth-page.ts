@@ -44,6 +44,9 @@ export class AuthPage {
     const activatingHeading = this.page.getByRole('heading', {
       name: 'Activando tu sesión',
     })
+    const redirectingHeading = this.page.getByRole('heading', {
+      name: 'Redirigiendo tu acceso',
+    })
     const fallbackCopy = this.page.getByText(
       'Tu correo ya está confirmado. Si no te hemos abierto la sesión automáticamente, entra con tu contraseña y continúa.',
     )
@@ -52,8 +55,16 @@ export class AuthPage {
       .poll(() => this.page.url())
       .toMatch(/\/(auth\/callback|login\?redirectTo=%2Fapp&authStatus=confirmed)/)
 
-    if (await activatingHeading.isVisible()) {
-      await expect(activatingHeading).toBeVisible()
+    if (/\/auth\/callback/.test(this.page.url())) {
+      if (await activatingHeading.isVisible()) {
+        return
+      }
+
+      if (await redirectingHeading.isVisible()) {
+        return
+      }
+
+      await expect(fallbackCopy).toBeVisible()
       return
     }
 
@@ -171,6 +182,7 @@ export class AuthPage {
 
   async logout() {
     await this.page.getByRole('button', { name: 'Cerrar sesión' }).click()
+    await expect(this.page).toHaveURL(/\/login$/)
   }
 
   async expectInvalidLoginFeedback() {

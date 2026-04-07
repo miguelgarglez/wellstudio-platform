@@ -132,8 +132,8 @@ Estado actual:
 
 - login correcto cubierto
 - error por credenciales incorrectas cubierto
-- logout cubierto
-- acceso posterior a ruta protegida cubierto
+- logout con bug real de invalidación SSR detectado y cubierto como regresión pendiente de cierre en `MIG-51`
+- acceso posterior a ruta protegida tras logout también queda pendiente de cierre dentro de `MIG-51`
 - provisión local explícita todavía pendiente
 - la base de escenarios sandbox poblados ya existe para suites de portal privado
 

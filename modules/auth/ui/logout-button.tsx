@@ -1,13 +1,16 @@
 'use client'
 
+import { useActionState } from 'react'
 import type { ComponentProps } from 'react'
-import { useMemo, useState, useTransition } from 'react'
-import { useRouter } from 'next/navigation'
+import { useFormStatus } from 'react-dom'
 
 import { Button } from '@/components/ui/button'
 import { cn } from '@/lib/utils'
 import { Spinner } from '@/components/ui/spinner'
-import { createSupabaseBrowserClient } from '@/modules/auth/lib/supabase-browser-client'
+import {
+  logoutCurrentSessionAction,
+  type LogoutActionState,
+} from '@/modules/auth/server/logout-action'
 
 type LogoutButtonProps = {
   buttonClassName?: string
@@ -18,50 +21,44 @@ export function LogoutButton({
   buttonClassName,
   variant = 'outline',
 }: LogoutButtonProps) {
-  const router = useRouter()
-  const supabase = useMemo(() => createSupabaseBrowserClient(), [])
-  const [isPending, startTransition] = useTransition()
-  const [errorMessage, setErrorMessage] = useState<string | null>(null)
-
-  function handleLogout() {
-    setErrorMessage(null)
-
-    startTransition(async () => {
-      const { error } = await supabase.auth.signOut()
-
-      if (error) {
-        setErrorMessage('No hemos podido cerrar tu sesión. Inténtalo de nuevo.')
-        return
-      }
-
-      router.replace('/login')
-      router.refresh()
-    })
-  }
+  const [state, formAction] = useActionState<LogoutActionState, FormData>(
+    async () => logoutCurrentSessionAction(),
+    null,
+  )
 
   return (
-    <div className="flex flex-col items-start gap-3">
-      <Button
-        type="button"
-        variant={variant}
-        disabled={isPending}
-        onClick={handleLogout}
-        className={cn(buttonClassName)}
-      >
-        {isPending ? (
-          <>
-            <Spinner data-icon="inline-start" />
-            Cerrando sesión
-          </>
-        ) : (
-          'Cerrar sesión'
-        )}
-      </Button>
-      {errorMessage ? (
+    <form action={formAction} className="flex flex-col items-start gap-3">
+      <LogoutSubmitButton buttonClassName={buttonClassName} variant={variant} />
+      {state?.message ? (
         <p className="text-sm text-destructive" role="alert">
-          {errorMessage}
+          {state.message}
         </p>
       ) : null}
-    </div>
+    </form>
+  )
+}
+
+function LogoutSubmitButton({
+  buttonClassName,
+  variant,
+}: LogoutButtonProps) {
+  const { pending } = useFormStatus()
+
+  return (
+    <Button
+      type="submit"
+      variant={variant}
+      disabled={pending}
+      className={cn(buttonClassName)}
+    >
+      {pending ? (
+        <>
+          <Spinner data-icon="inline-start" />
+          Cerrando sesión
+        </>
+      ) : (
+        'Cerrar sesión'
+      )}
+    </Button>
   )
 }
