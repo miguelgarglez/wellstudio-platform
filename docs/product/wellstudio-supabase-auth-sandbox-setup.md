@@ -95,7 +95,7 @@ Runbook operativo relacionado:
 - login válido de member
 - error por credenciales inválidas
 - acceso a `/app` tras login
-- logout y pérdida de acceso protegido, con regresión real mantenida en `MIG-51` hasta cerrar la invalidación SSR
+- logout y pérdida de acceso protegido
 
 ## Limitación actual
 

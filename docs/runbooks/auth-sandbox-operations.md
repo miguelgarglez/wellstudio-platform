@@ -112,8 +112,8 @@ Este comando prepara el dominio sandbox para QA visual y futura validación E2E 
 
 - login válido de member
 - error por credenciales inválidas
-- logout real con bug SSR actualmente reproducido por la suite
-- pérdida de acceso a `/app` tras logout todavía pendiente de cierre en `MIG-51`
+- logout real con invalidación SSR correcta
+- pérdida de acceso a `/app` tras logout
 - lectura real de identidad local provisionada en `/app`
 
 ## Limitación conocida sobre registro
