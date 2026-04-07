@@ -30,3 +30,10 @@ Cuando un documento deje de ser vigente:
 
 - no borrarlo sin mas
 - dejar claro que fue reemplazado o superado
+
+## Runbooks recomendados
+
+- `runbooks/auth-sandbox-operations.md`
+- `runbooks/supabase-postgres-prisma-workflow.md`
+- `runbooks/vercel-preview-and-production.md`
+- `runbooks/agentation-local-isolation.md`
