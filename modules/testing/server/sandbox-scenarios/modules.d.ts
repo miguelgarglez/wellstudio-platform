@@ -29,4 +29,16 @@ declare module '@/modules/testing/server/sandbox-scenarios/member-reservations-f
       endsAt: Date
     }
   >
+  export function buildMemberReservationsFlowSessionBlueprints(now?: Date): Record<
+    string,
+    {
+      startsAt: Date
+      endsAt: Date
+      reservedCount: number
+      locationLabel: string
+      classTypeKey: 'reservable' | 'full'
+      status: 'PUBLISHED' | 'COMPLETED'
+      waitlistEnabled: boolean
+    }
+  >
 }

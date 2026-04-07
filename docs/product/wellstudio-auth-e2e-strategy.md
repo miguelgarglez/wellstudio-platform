@@ -135,6 +135,27 @@ Estado actual:
 - logout cubierto
 - acceso posterior a ruta protegida cubierto
 - provisión local explícita todavía pendiente
+- la base de escenarios sandbox poblados ya existe para suites de portal privado
+
+## Fase 2.5: Portal privado sandbox
+
+Reutiliza auth sandbox + escenarios de dominio reconciliados.
+
+Debe validar:
+
+- `/app` con home poblada
+- `/app/reservations` con datos reales
+- reservar sesión disponible
+- cancelar reserva dentro de ventana
+- entrar y salir de waitlist
+
+Regla operativa:
+
+- sigue siendo `opt-in`
+- no entra en `smoke`
+- prepara el escenario automáticamente al arrancar la suite y lo reconcilia otra vez antes de cada test mutante
+- no duplica fixtures dentro de Playwright; reutiliza `pnpm sandbox:scenario member-reservations-flow`
+- por ahora el setup sandbox está pensado para una sola spec y un solo proyecto Playwright por ejecución
 
 ## Fase 3: Registro real
 
@@ -195,6 +216,7 @@ Usar tags en títulos de test:
 
 - `@smoke`
 - `@auth`
+- `@reservations`
 - `@sandbox`
 - `@critical`
 
@@ -203,6 +225,7 @@ Ejemplos:
 - `@smoke @auth login page renders`
 - `@smoke @auth protected member route redirects to login`
 - `@sandbox @auth member can log in with valid credentials`
+- `@sandbox @critical @reservations member can reserve an available session`
 
 ## Gates recomendados para auth
 

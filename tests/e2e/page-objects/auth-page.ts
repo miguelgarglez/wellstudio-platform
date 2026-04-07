@@ -41,22 +41,23 @@ export class AuthPage {
   }
 
   async expectConfirmedLoginFallback(email: string) {
+    const activatingHeading = this.page.getByRole('heading', {
+      name: 'Activando tu sesión',
+    })
+    const fallbackCopy = this.page.getByText(
+      'Tu correo ya está confirmado. Si no te hemos abierto la sesión automáticamente, entra con tu contraseña y continúa.',
+    )
+
     await expect
       .poll(() => this.page.url())
       .toMatch(/\/(auth\/callback|login\?redirectTo=%2Fapp&authStatus=confirmed)/)
 
-    if (this.page.url().includes('/auth/callback')) {
-      await expect(
-        this.page.getByRole('heading', { name: 'Activando tu sesión' }),
-      ).toBeVisible()
+    if (await activatingHeading.isVisible()) {
+      await expect(activatingHeading).toBeVisible()
       return
     }
 
-    await expect(
-      this.page.getByText(
-        'Tu correo ya está confirmado. Si no te hemos abierto la sesión automáticamente, entra con tu contraseña y continúa.',
-      ),
-    ).toBeVisible()
+    await expect(fallbackCopy).toBeVisible()
     await expect(this.page.getByLabel('Email')).toHaveValue(email)
   }
 
@@ -185,10 +186,14 @@ export class AuthPage {
       this.page.getByRole('heading', { name: 'Bienvenido de nuevo' }),
     ).toBeVisible()
     await expect(
-      this.page.getByLabel('Navegación privada').getByRole('link', { name: 'Reservas' }),
+      this.page
+        .getByLabel('Navegación privada', { exact: true })
+        .getByRole('link', { name: 'Reservas' }),
     ).toBeVisible()
     await expect(
-      this.page.getByLabel('Navegación privada').getByRole('link', { name: 'Cuenta' }),
+      this.page
+        .getByLabel('Navegación privada', { exact: true })
+        .getByRole('link', { name: 'Cuenta' }),
     ).toBeVisible()
     await expect(
       this.page.getByText('MEMBER', { exact: true }),

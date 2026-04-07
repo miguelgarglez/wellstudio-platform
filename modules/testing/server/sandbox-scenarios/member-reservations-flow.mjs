@@ -57,6 +57,15 @@ const MANAGED_CLASS_TYPES = {
   },
 }
 
+const MANAGED_SESSION_RESERVED_COUNTS = {
+  available: 0,
+  cancelable: 1,
+  fullWaitlist: 1,
+  attended: 1,
+  canceled: 0,
+  noShow: 1,
+}
+
 export function buildMemberReservationsFlowTimeline(now = new Date()) {
   return {
     available: buildSlot(now, 1, 18, 0, MANAGED_CLASS_TYPES.reservable.durationMinutes),
@@ -68,6 +77,61 @@ export function buildMemberReservationsFlowTimeline(now = new Date()) {
   }
 }
 
+export function buildMemberReservationsFlowSessionBlueprints(now = new Date()) {
+  const timeline = buildMemberReservationsFlowTimeline(now)
+
+  return {
+    available: {
+      ...timeline.available,
+      reservedCount: MANAGED_SESSION_RESERVED_COUNTS.available,
+      locationLabel: MEMBER_RESERVATIONS_FLOW_SESSION_KEYS.available,
+      classTypeKey: 'reservable',
+      status: 'PUBLISHED',
+      waitlistEnabled: true,
+    },
+    cancelable: {
+      ...timeline.cancelable,
+      reservedCount: MANAGED_SESSION_RESERVED_COUNTS.cancelable,
+      locationLabel: MEMBER_RESERVATIONS_FLOW_SESSION_KEYS.cancelable,
+      classTypeKey: 'reservable',
+      status: 'PUBLISHED',
+      waitlistEnabled: true,
+    },
+    fullWaitlist: {
+      ...timeline.fullWaitlist,
+      reservedCount: MANAGED_SESSION_RESERVED_COUNTS.fullWaitlist,
+      locationLabel: MEMBER_RESERVATIONS_FLOW_SESSION_KEYS.fullWaitlist,
+      classTypeKey: 'full',
+      status: 'PUBLISHED',
+      waitlistEnabled: true,
+    },
+    attended: {
+      ...timeline.attended,
+      reservedCount: MANAGED_SESSION_RESERVED_COUNTS.attended,
+      locationLabel: MEMBER_RESERVATIONS_FLOW_SESSION_KEYS.attended,
+      classTypeKey: 'reservable',
+      status: 'COMPLETED',
+      waitlistEnabled: false,
+    },
+    canceled: {
+      ...timeline.canceled,
+      reservedCount: MANAGED_SESSION_RESERVED_COUNTS.canceled,
+      locationLabel: MEMBER_RESERVATIONS_FLOW_SESSION_KEYS.canceled,
+      classTypeKey: 'reservable',
+      status: 'COMPLETED',
+      waitlistEnabled: false,
+    },
+    noShow: {
+      ...timeline.noShow,
+      reservedCount: MANAGED_SESSION_RESERVED_COUNTS.noShow,
+      locationLabel: MEMBER_RESERVATIONS_FLOW_SESSION_KEYS.noShow,
+      classTypeKey: 'reservable',
+      status: 'COMPLETED',
+      waitlistEnabled: false,
+    },
+  }
+}
+
 export async function ensureMemberReservationsFlowScenario({
   prisma,
   authUser,
@@ -75,169 +139,172 @@ export async function ensureMemberReservationsFlowScenario({
   now = new Date(),
 }) {
   const timeline = buildMemberReservationsFlowTimeline(now)
+  const sessionBlueprints = buildMemberReservationsFlowSessionBlueprints(now)
 
-  return prisma.$transaction(async (tx) => {
-    await tx.$executeRaw`SELECT pg_advisory_xact_lock(${BigInt(8015780)})`
+  return runScenarioTransactionWithRetry(async () =>
+    prisma.$transaction(async (tx) => {
+      await tx.$executeRaw`SELECT pg_advisory_xact_lock(${BigInt(8015780)})`
 
-    const memberIdentity = await ensureManagedMemberIdentity(tx, {
-      authUserId: authUser.id,
-      email,
-      profile: MANAGED_MEMBER,
-      now,
-    })
+      const memberIdentity = await ensureManagedMemberIdentity(tx, {
+        authUserId: authUser.id,
+        email,
+        profile: MANAGED_MEMBER,
+        now,
+      })
 
-    const fillerIdentity = await ensureLocalOnlyMemberIdentity(tx, {
-      email: FILLER_MEMBER_EMAIL,
-      profile: FILLER_MEMBER,
-      now,
-    })
+      const fillerIdentity = await ensureLocalOnlyMemberIdentity(tx, {
+        email: FILLER_MEMBER_EMAIL,
+        profile: FILLER_MEMBER,
+        now,
+      })
 
-    const coach = await ensureCoach(tx)
-    const membershipPlan = await ensureMembershipPlan(tx)
-    const reservableClassType = await ensureClassType(tx, MANAGED_CLASS_TYPES.reservable)
-    const fullClassType = await ensureClassType(tx, MANAGED_CLASS_TYPES.full)
+      const coach = await ensureCoach(tx)
+      const membershipPlan = await ensureMembershipPlan(tx)
+      const reservableClassType = await ensureClassType(tx, MANAGED_CLASS_TYPES.reservable)
+      const fullClassType = await ensureClassType(tx, MANAGED_CLASS_TYPES.full)
 
-    await reconcileEligibilityRules(tx, {
-      membershipPlanId: membershipPlan.id,
-      classTypeIds: [reservableClassType.id, fullClassType.id],
-    })
+      await reconcileEligibilityRules(tx, {
+        membershipPlanId: membershipPlan.id,
+        classTypeIds: [reservableClassType.id, fullClassType.id],
+      })
 
-    await tx.classSession.deleteMany({
-      where: {
-        locationLabel: {
-          startsWith: MEMBER_RESERVATIONS_FLOW_PREFIX,
+      await tx.classSession.deleteMany({
+        where: {
+          locationLabel: {
+            startsWith: MEMBER_RESERVATIONS_FLOW_PREFIX,
+          },
         },
-      },
-    })
+      })
 
-    await tx.memberMembership.deleteMany({
-      where: {
+      await tx.memberMembership.deleteMany({
+        where: {
+          memberId: memberIdentity.member.id,
+          membershipPlanId: membershipPlan.id,
+        },
+      })
+
+      const memberMembership = await tx.memberMembership.create({
+        data: {
+          memberId: memberIdentity.member.id,
+          membershipPlanId: membershipPlan.id,
+          status: 'ACTIVE',
+          startsAt: shiftDays(now, -14),
+          endsAt: shiftDays(now, 45),
+          autoRenews: true,
+        },
+      })
+
+      const fillerMembership = await tx.memberMembership.create({
+        data: {
+          memberId: fillerIdentity.member.id,
+          membershipPlanId: membershipPlan.id,
+          status: 'ACTIVE',
+          startsAt: shiftDays(now, -14),
+          endsAt: shiftDays(now, 45),
+          autoRenews: false,
+        },
+      })
+
+      const sessions = await createManagedSessions(tx, {
+        coachId: coach.id,
+        reservableClassTypeId: reservableClassType.id,
+        fullClassTypeId: fullClassType.id,
+        sessionBlueprints,
+        now,
+      })
+
+      const cancelableReservation = await createMembershipReservation(tx, {
         memberId: memberIdentity.member.id,
-        membershipPlanId: membershipPlan.id,
-      },
-    })
+        classSessionId: sessions.cancelable.id,
+        memberMembershipId: memberMembership.id,
+        status: 'BOOKED',
+        bookedAt: shiftMinutes(timeline.cancelable.startsAt, -60 * 24),
+        attendanceStatus: 'PENDING',
+        canceledAt: null,
+        cancellationReason: null,
+        now,
+      })
 
-    const memberMembership = await tx.memberMembership.create({
-      data: {
-        memberId: memberIdentity.member.id,
-        membershipPlanId: membershipPlan.id,
-        status: 'ACTIVE',
-        startsAt: shiftDays(now, -14),
-        endsAt: shiftDays(now, 45),
-        autoRenews: true,
-      },
-    })
-
-    const fillerMembership = await tx.memberMembership.create({
-      data: {
+      await createMembershipReservation(tx, {
         memberId: fillerIdentity.member.id,
-        membershipPlanId: membershipPlan.id,
-        status: 'ACTIVE',
-        startsAt: shiftDays(now, -14),
-        endsAt: shiftDays(now, 45),
-        autoRenews: false,
-      },
-    })
-
-    const sessions = await createManagedSessions(tx, {
-      coachId: coach.id,
-      reservableClassTypeId: reservableClassType.id,
-      fullClassTypeId: fullClassType.id,
-      timeline,
-      now,
-    })
-
-    const cancelableReservation = await createMembershipReservation(tx, {
-      memberId: memberIdentity.member.id,
-      classSessionId: sessions.cancelable.id,
-      memberMembershipId: memberMembership.id,
-      status: 'BOOKED',
-      bookedAt: shiftMinutes(timeline.cancelable.startsAt, -60 * 24),
-      attendanceStatus: 'PENDING',
-      canceledAt: null,
-      cancellationReason: null,
-      now,
-    })
-
-    await createMembershipReservation(tx, {
-      memberId: fillerIdentity.member.id,
-      classSessionId: sessions.fullWaitlist.id,
-      memberMembershipId: fillerMembership.id,
-      status: 'BOOKED',
-      bookedAt: shiftMinutes(timeline.fullWaitlist.startsAt, -60 * 24),
-      attendanceStatus: 'PENDING',
-      canceledAt: null,
-      cancellationReason: null,
-      now,
-    })
-
-    const waitlistEntry = await tx.waitlistEntry.create({
-      data: {
-        memberId: memberIdentity.member.id,
         classSessionId: sessions.fullWaitlist.id,
-        position: 1,
-        status: 'WAITING',
-        joinedAt: shiftMinutes(timeline.fullWaitlist.startsAt, -180),
-      },
-    })
+        memberMembershipId: fillerMembership.id,
+        status: 'BOOKED',
+        bookedAt: shiftMinutes(timeline.fullWaitlist.startsAt, -60 * 24),
+        attendanceStatus: 'PENDING',
+        canceledAt: null,
+        cancellationReason: null,
+        now,
+      })
 
-    await createMembershipReservation(tx, {
-      memberId: memberIdentity.member.id,
-      classSessionId: sessions.attended.id,
-      memberMembershipId: memberMembership.id,
-      status: 'ATTENDED',
-      bookedAt: shiftMinutes(timeline.attended.startsAt, -60 * 24 * 2),
-      attendanceStatus: 'ATTENDED',
-      canceledAt: null,
-      cancellationReason: null,
-      now,
-    })
+      const waitlistEntry = await tx.waitlistEntry.create({
+        data: {
+          memberId: memberIdentity.member.id,
+          classSessionId: sessions.fullWaitlist.id,
+          position: 1,
+          status: 'WAITING',
+          joinedAt: shiftMinutes(timeline.fullWaitlist.startsAt, -180),
+        },
+      })
 
-    await createMembershipReservation(tx, {
-      memberId: memberIdentity.member.id,
-      classSessionId: sessions.canceled.id,
-      memberMembershipId: memberMembership.id,
-      status: 'CANCELED',
-      bookedAt: shiftMinutes(timeline.canceled.startsAt, -60 * 24 * 3),
-      attendanceStatus: 'PENDING',
-      canceledAt: shiftMinutes(timeline.canceled.startsAt, -180),
-      cancellationReason: 'Scenario reconciliation generated cancellation history',
-      now,
-    })
+      await createMembershipReservation(tx, {
+        memberId: memberIdentity.member.id,
+        classSessionId: sessions.attended.id,
+        memberMembershipId: memberMembership.id,
+        status: 'ATTENDED',
+        bookedAt: shiftMinutes(timeline.attended.startsAt, -60 * 24 * 2),
+        attendanceStatus: 'ATTENDED',
+        canceledAt: null,
+        cancellationReason: null,
+        now,
+      })
 
-    await createMembershipReservation(tx, {
-      memberId: memberIdentity.member.id,
-      classSessionId: sessions.noShow.id,
-      memberMembershipId: memberMembership.id,
-      status: 'NO_SHOW',
-      bookedAt: shiftMinutes(timeline.noShow.startsAt, -60 * 24 * 3),
-      attendanceStatus: 'NO_SHOW',
-      canceledAt: null,
-      cancellationReason: null,
-      now,
-    })
+      await createMembershipReservation(tx, {
+        memberId: memberIdentity.member.id,
+        classSessionId: sessions.canceled.id,
+        memberMembershipId: memberMembership.id,
+        status: 'CANCELED',
+        bookedAt: shiftMinutes(timeline.canceled.startsAt, -60 * 24 * 3),
+        attendanceStatus: 'PENDING',
+        canceledAt: shiftMinutes(timeline.canceled.startsAt, -180),
+        cancellationReason: 'Scenario reconciliation generated cancellation history',
+        now,
+      })
 
-    await syncReservedCounts(tx, Object.values(sessions).map((session) => session.id))
+      await createMembershipReservation(tx, {
+        memberId: memberIdentity.member.id,
+        classSessionId: sessions.noShow.id,
+        memberMembershipId: memberMembership.id,
+        status: 'NO_SHOW',
+        bookedAt: shiftMinutes(timeline.noShow.startsAt, -60 * 24 * 3),
+        attendanceStatus: 'NO_SHOW',
+        canceledAt: null,
+        cancellationReason: null,
+        now,
+      })
 
-    return {
-      scenario: MEMBER_RESERVATIONS_FLOW_SCENARIO,
-      memberEmail: email,
-      memberId: memberIdentity.member.id,
-      localUserId: memberIdentity.user.id,
-      planSlug: membershipPlan.slug,
-      classTypeSlugs: [reservableClassType.slug, fullClassType.slug],
-      waitlistEntryId: waitlistEntry.id,
-      cancelableReservationId: cancelableReservation.id,
-      sessions: Object.entries(sessions).map(([key, session]) => ({
-        key,
-        id: session.id,
-        locationLabel: session.locationLabel,
-        startsAt: session.startsAt,
-      })),
-    }
-  }, {
-    isolationLevel: Prisma.TransactionIsolationLevel.Serializable,
-  })
+      return {
+        scenario: MEMBER_RESERVATIONS_FLOW_SCENARIO,
+        memberEmail: email,
+        memberId: memberIdentity.member.id,
+        localUserId: memberIdentity.user.id,
+        planSlug: membershipPlan.slug,
+        classTypeSlugs: [reservableClassType.slug, fullClassType.slug],
+        waitlistEntryId: waitlistEntry.id,
+        cancelableReservationId: cancelableReservation.id,
+        sessions: Object.entries(sessions).map(([key, session]) => ({
+          key,
+          id: session.id,
+          locationLabel: session.locationLabel,
+          startsAt: session.startsAt,
+        })),
+      }
+    }, {
+      isolationLevel: Prisma.TransactionIsolationLevel.Serializable,
+      timeout: 15_000,
+      maxWait: 5_000,
+    }),
+  )
 }
 
 async function ensureManagedMemberIdentity(tx, { authUserId, email, profile, now }) {
@@ -516,91 +583,96 @@ async function reconcileEligibilityRules(tx, { membershipPlanId, classTypeIds })
 
 async function createManagedSessions(
   tx,
-  { coachId, reservableClassTypeId, fullClassTypeId, timeline, now },
+  { coachId, reservableClassTypeId, fullClassTypeId, sessionBlueprints, now },
 ) {
+  const classTypeIds = {
+    reservable: reservableClassTypeId,
+    full: fullClassTypeId,
+  }
+
   return {
     available: await tx.classSession.create({
       data: {
-        classTypeId: reservableClassTypeId,
+        classTypeId: classTypeIds[sessionBlueprints.available.classTypeKey],
         coachId,
-        startsAt: timeline.available.startsAt,
-        endsAt: timeline.available.endsAt,
+        startsAt: sessionBlueprints.available.startsAt,
+        endsAt: sessionBlueprints.available.endsAt,
         capacity: MANAGED_CLASS_TYPES.reservable.capacityDefault,
-        reservedCount: 0,
-        waitlistEnabled: true,
-        locationLabel: MEMBER_RESERVATIONS_FLOW_SESSION_KEYS.available,
-        status: 'PUBLISHED',
+        reservedCount: sessionBlueprints.available.reservedCount,
+        waitlistEnabled: sessionBlueprints.available.waitlistEnabled,
+        locationLabel: sessionBlueprints.available.locationLabel,
+        status: sessionBlueprints.available.status,
         publishedAt: shiftMinutes(now, -30),
       },
     }),
     cancelable: await tx.classSession.create({
       data: {
-        classTypeId: reservableClassTypeId,
+        classTypeId: classTypeIds[sessionBlueprints.cancelable.classTypeKey],
         coachId,
-        startsAt: timeline.cancelable.startsAt,
-        endsAt: timeline.cancelable.endsAt,
+        startsAt: sessionBlueprints.cancelable.startsAt,
+        endsAt: sessionBlueprints.cancelable.endsAt,
         capacity: MANAGED_CLASS_TYPES.reservable.capacityDefault,
-        reservedCount: 0,
-        waitlistEnabled: true,
-        locationLabel: MEMBER_RESERVATIONS_FLOW_SESSION_KEYS.cancelable,
-        status: 'PUBLISHED',
+        reservedCount: sessionBlueprints.cancelable.reservedCount,
+        waitlistEnabled: sessionBlueprints.cancelable.waitlistEnabled,
+        locationLabel: sessionBlueprints.cancelable.locationLabel,
+        status: sessionBlueprints.cancelable.status,
         publishedAt: shiftMinutes(now, -30),
       },
     }),
     fullWaitlist: await tx.classSession.create({
       data: {
-        classTypeId: fullClassTypeId,
+        classTypeId: classTypeIds[sessionBlueprints.fullWaitlist.classTypeKey],
         coachId,
-        startsAt: timeline.fullWaitlist.startsAt,
-        endsAt: timeline.fullWaitlist.endsAt,
+        startsAt: sessionBlueprints.fullWaitlist.startsAt,
+        endsAt: sessionBlueprints.fullWaitlist.endsAt,
         capacity: MANAGED_CLASS_TYPES.full.capacityDefault,
-        reservedCount: 0,
-        waitlistEnabled: true,
-        locationLabel: MEMBER_RESERVATIONS_FLOW_SESSION_KEYS.fullWaitlist,
-        status: 'PUBLISHED',
+        reservedCount: sessionBlueprints.fullWaitlist.reservedCount,
+        waitlistEnabled: sessionBlueprints.fullWaitlist.waitlistEnabled,
+        locationLabel: sessionBlueprints.fullWaitlist.locationLabel,
+        status: sessionBlueprints.fullWaitlist.status,
         publishedAt: shiftMinutes(now, -30),
       },
     }),
     attended: await tx.classSession.create({
       data: {
-        classTypeId: reservableClassTypeId,
+        classTypeId: classTypeIds[sessionBlueprints.attended.classTypeKey],
         coachId,
-        startsAt: timeline.attended.startsAt,
-        endsAt: timeline.attended.endsAt,
+        startsAt: sessionBlueprints.attended.startsAt,
+        endsAt: sessionBlueprints.attended.endsAt,
         capacity: MANAGED_CLASS_TYPES.reservable.capacityDefault,
-        reservedCount: 0,
-        waitlistEnabled: false,
-        locationLabel: MEMBER_RESERVATIONS_FLOW_SESSION_KEYS.attended,
-        status: 'COMPLETED',
-        publishedAt: shiftMinutes(timeline.attended.startsAt, -120),
+        reservedCount: sessionBlueprints.attended.reservedCount,
+        waitlistEnabled: sessionBlueprints.attended.waitlistEnabled,
+        locationLabel: sessionBlueprints.attended.locationLabel,
+        status: sessionBlueprints.attended.status,
+        publishedAt: shiftMinutes(sessionBlueprints.attended.startsAt, -120),
       },
     }),
     canceled: await tx.classSession.create({
       data: {
-        classTypeId: reservableClassTypeId,
+        classTypeId: classTypeIds[sessionBlueprints.canceled.classTypeKey],
         coachId,
-        startsAt: timeline.canceled.startsAt,
-        endsAt: timeline.canceled.endsAt,
+        startsAt: sessionBlueprints.canceled.startsAt,
+        endsAt: sessionBlueprints.canceled.endsAt,
         capacity: MANAGED_CLASS_TYPES.reservable.capacityDefault,
-        reservedCount: 0,
-        waitlistEnabled: false,
-        locationLabel: MEMBER_RESERVATIONS_FLOW_SESSION_KEYS.canceled,
-        status: 'COMPLETED',
-        publishedAt: shiftMinutes(timeline.canceled.startsAt, -120),
+        reservedCount: sessionBlueprints.canceled.reservedCount,
+        waitlistEnabled: sessionBlueprints.canceled.waitlistEnabled,
+        locationLabel: sessionBlueprints.canceled.locationLabel,
+        status: sessionBlueprints.canceled.status,
+        publishedAt: shiftMinutes(sessionBlueprints.canceled.startsAt, -120),
       },
     }),
     noShow: await tx.classSession.create({
       data: {
-        classTypeId: reservableClassTypeId,
+        classTypeId: classTypeIds[sessionBlueprints.noShow.classTypeKey],
         coachId,
-        startsAt: timeline.noShow.startsAt,
-        endsAt: timeline.noShow.endsAt,
+        startsAt: sessionBlueprints.noShow.startsAt,
+        endsAt: sessionBlueprints.noShow.endsAt,
         capacity: MANAGED_CLASS_TYPES.reservable.capacityDefault,
-        reservedCount: 0,
-        waitlistEnabled: false,
-        locationLabel: MEMBER_RESERVATIONS_FLOW_SESSION_KEYS.noShow,
-        status: 'COMPLETED',
-        publishedAt: shiftMinutes(timeline.noShow.startsAt, -120),
+        reservedCount: sessionBlueprints.noShow.reservedCount,
+        waitlistEnabled: sessionBlueprints.noShow.waitlistEnabled,
+        locationLabel: sessionBlueprints.noShow.locationLabel,
+        status: sessionBlueprints.noShow.status,
+        publishedAt: shiftMinutes(sessionBlueprints.noShow.startsAt, -120),
       },
     }),
   }
@@ -646,28 +718,6 @@ async function createMembershipReservation(
   return reservation
 }
 
-async function syncReservedCounts(tx, classSessionIds) {
-  for (const classSessionId of classSessionIds) {
-    const activeReservationCount = await tx.reservation.count({
-      where: {
-        classSessionId,
-        status: {
-          in: ['BOOKED', 'ATTENDED', 'NO_SHOW'],
-        },
-      },
-    })
-
-    await tx.classSession.update({
-      where: {
-        id: classSessionId,
-      },
-      data: {
-        reservedCount: activeReservationCount,
-      },
-    })
-  }
-}
-
 function buildSlot(now, dayOffset, hour, minute, durationMinutes) {
   const startsAt = new Date(now)
   startsAt.setHours(0, 0, 0, 0)
@@ -688,4 +738,42 @@ function shiftDays(date, dayOffset) {
 
 function shiftMinutes(date, minutes) {
   return new Date(date.getTime() + minutes * 60 * 1000)
+}
+
+async function runScenarioTransactionWithRetry(runTransaction, attempts = 3) {
+  for (let attempt = 1; attempt <= attempts; attempt += 1) {
+    try {
+      return await runTransaction()
+    } catch (error) {
+      if (!isRetryableTransactionError(error) || attempt === attempts) {
+        throw error
+      }
+
+      await sleep(150 * attempt)
+    }
+  }
+
+  throw new Error('Scenario transaction exhausted without returning a result.')
+}
+
+function isRetryableTransactionError(error) {
+  if (error instanceof Prisma.PrismaClientKnownRequestError) {
+    return error.code === 'P2034'
+  }
+
+  if (!(error instanceof Error)) {
+    return false
+  }
+
+  const message = error.message.toLowerCase()
+
+  return (
+    message.includes('write conflict') ||
+    message.includes('deadlock') ||
+    message.includes('could not serialize access')
+  )
+}
+
+function sleep(milliseconds) {
+  return new Promise((resolve) => setTimeout(resolve, milliseconds))
 }

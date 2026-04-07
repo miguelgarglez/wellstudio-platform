@@ -292,7 +292,10 @@ function UpcomingReservationCard({
   cancelAction: ReservationServerAction
 }) {
   return (
-    <div className="rounded-[1.55rem] border border-[color:color-mix(in_srgb,var(--border)_74%,white)] bg-white px-5 py-5">
+    <div
+      data-testid="upcoming-reservation-card"
+      className="rounded-[1.55rem] border border-[color:color-mix(in_srgb,var(--border)_74%,white)] bg-white px-5 py-5"
+    >
       <div className="flex flex-col gap-4 lg:flex-row lg:items-start lg:justify-between">
         <div className="space-y-2">
           <p className="text-xs uppercase tracking-[0.22em] text-[var(--wellstudio-blue-deep)]">
@@ -386,7 +389,10 @@ function WaitlistCard({
   leaveWaitlistAction: ReservationServerAction
 }) {
   return (
-    <div className="rounded-[1.5rem] border border-[color:color-mix(in_srgb,var(--border)_74%,white)] bg-white px-5 py-5">
+    <div
+      data-testid="waitlist-card"
+      className="rounded-[1.5rem] border border-[color:color-mix(in_srgb,var(--border)_74%,white)] bg-white px-5 py-5"
+    >
       <div className="flex flex-col gap-4">
         <div className="flex flex-wrap items-start justify-between gap-3">
           <div className="space-y-2">
@@ -444,7 +450,10 @@ function ScheduleSessionCard({
   joinWaitlistAction: ReservationServerAction
 }) {
   return (
-    <div className="rounded-[1.55rem] border border-[color:color-mix(in_srgb,var(--border)_74%,white)] bg-white px-5 py-5">
+    <div
+      data-testid="schedule-session-card"
+      className="rounded-[1.55rem] border border-[color:color-mix(in_srgb,var(--border)_74%,white)] bg-white px-5 py-5"
+    >
       <div className="flex flex-col gap-3 lg:flex-row lg:items-start lg:justify-between">
         <div className="space-y-1.5">
           <p className="text-lg font-medium text-[var(--wellstudio-ink)]">

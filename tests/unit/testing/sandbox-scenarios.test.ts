@@ -1,6 +1,7 @@
 import { describe, expect, it } from 'vitest'
 
 import {
+  buildMemberReservationsFlowSessionBlueprints,
   buildMemberReservationsFlowTimeline,
   MEMBER_RESERVATIONS_FLOW_PREFIX,
   MEMBER_RESERVATIONS_FLOW_SESSION_KEYS,
@@ -57,5 +58,25 @@ describe('sandbox scenario helpers', () => {
     for (const label of Object.values(MEMBER_RESERVATIONS_FLOW_SESSION_KEYS) as string[]) {
       expect(label.startsWith(MEMBER_RESERVATIONS_FLOW_PREFIX)).toBe(true)
     }
+  })
+
+  it('builds deterministic session blueprints with final reserved counts', () => {
+    const blueprints = buildMemberReservationsFlowSessionBlueprints(
+      new Date('2026-04-03T10:00:00.000Z'),
+    )
+
+    expect(blueprints.available.reservedCount).toBe(0)
+    expect(blueprints.cancelable.reservedCount).toBe(1)
+    expect(blueprints.fullWaitlist.reservedCount).toBe(1)
+    expect(blueprints.attended.reservedCount).toBe(1)
+    expect(blueprints.canceled.reservedCount).toBe(0)
+    expect(blueprints.noShow.reservedCount).toBe(1)
+
+    expect(blueprints.available.status).toBe('PUBLISHED')
+    expect(blueprints.fullWaitlist.waitlistEnabled).toBe(true)
+    expect(blueprints.attended.status).toBe('COMPLETED')
+    expect(blueprints.canceled.locationLabel).toBe(
+      MEMBER_RESERVATIONS_FLOW_SESSION_KEYS.canceled,
+    )
   })
 })

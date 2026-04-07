@@ -107,6 +107,29 @@ agent-browser --session-name wellstudio-sandbox \
 - waitlist activa
 - agenda con sesión reservable
 
+## Uso desde Playwright
+
+La suite sandbox de reservas prepara este escenario al arrancar la suite y lo vuelve a reconciliar antes de cada test mutante.
+
+Comandos:
+
+```bash
+pnpm test:e2e:reservations:sandbox
+```
+
+Cuándo usar cada camino:
+
+- `pnpm sandbox:scenario member-reservations-flow`
+  - cuando quieras QA manual, `agent-browser` o inspección previa del estado
+- `pnpm test:e2e:reservations:sandbox`
+  - cuando quieras que Playwright reconcilie el escenario y ejecute los flujos reales del portal
+
+Nota:
+
+- la suite Playwright sigue siendo `opt-in`
+- no forma parte del smoke rápido ni de los gates frecuentes
+- el setup actual está pensado para una sola spec sandbox y un solo proyecto Playwright por ejecución
+
 ## Convenciones E2E
 
 - entidades del escenario usan prefijos `E2E` o `E2E Sandbox Flow`
