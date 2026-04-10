@@ -1,3 +1,4 @@
+import type { ReactNode } from 'react'
 import Link from 'next/link'
 import { CalendarDays, CreditCard, type LucideIcon, MoveUpRight, ShieldAlert, ShieldCheck, Ticket } from 'lucide-react'
 
@@ -20,86 +21,123 @@ type MemberHomeDashboardProps = {
 export function MemberHomeDashboard({ overview }: MemberHomeDashboardProps) {
   return (
     <div className="grid gap-4 lg:grid-cols-[minmax(0,1.32fr)_minmax(320px,0.88fr)] lg:gap-5">
-      <Card className="order-1 overflow-visible rounded-[2rem] border border-[color:color-mix(in_srgb,var(--wellstudio-blue)_12%,white)] bg-white py-0 shadow-none">
-          <CardContent className="px-6 py-7 sm:px-8 sm:py-8">
-            <div className="flex flex-col gap-5">
-              <div className="flex flex-col gap-3">
-                <p className="text-xs uppercase tracking-[0.28em] text-[var(--wellstudio-blue-deep)]">
-                  Inicio
-                </p>
-                <div className="flex flex-col gap-3">
-                  <h1 className="font-display text-4xl uppercase tracking-[0.03em] text-[var(--wellstudio-ink)] sm:text-5xl xl:text-6xl">
-                    {overview.introTitle}
-                  </h1>
-                  <p className="max-w-3xl text-base leading-8 text-[color:color-mix(in_srgb,var(--foreground)_72%,white)] sm:text-lg">
-                    {overview.introDescription}
-                  </p>
-                </div>
-              </div>
+      <MemberHomeHeroCard
+        introTitle={overview.introTitle}
+        introDescription={overview.introDescription}
+        activitySummaryContent={
+          <>
+            <Pill>{overview.summary.memberStatusLabel}</Pill>
+            <Pill>{overview.activitySummaryLabel}</Pill>
+          </>
+        }
+        footerMetaContent={
+          <p className="text-sm text-[color:color-mix(in_srgb,var(--foreground)_74%,white)]">
+            {overview.summary.displayName} · {overview.summary.email}
+          </p>
+        }
+      />
+      <MemberHomeDashboardBody overview={overview} />
+    </div>
+  )
+}
 
-              <div className="flex flex-wrap gap-2">
-                <Pill>{overview.summary.memberStatusLabel}</Pill>
-                <Pill>{overview.activitySummaryLabel}</Pill>
-              </div>
+export const MEMBER_HOME_INTRO_TITLE = 'Bienvenido de nuevo'
+export const MEMBER_HOME_INTRO_DESCRIPTION =
+  'Tu home privada ya prioriza lo importante: próximas sesiones, waitlists activas y el estado comercial básico para que recuperes contexto rápido.'
 
-              <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
-                <Link
-                  href="/app/reservations"
-                  className={cn(buttonVariants({ variant: 'default' }), 'w-full sm:w-auto')}
-                >
-                  Ir a Reservas
-                  <MoveUpRight data-icon="inline-end" />
-                </Link>
-                <p className="text-sm text-[color:color-mix(in_srgb,var(--foreground)_74%,white)]">
-                  {overview.summary.displayName} · {overview.summary.email}
-                </p>
-              </div>
+export function MemberHomeHeroCard({
+  introTitle = MEMBER_HOME_INTRO_TITLE,
+  introDescription = MEMBER_HOME_INTRO_DESCRIPTION,
+  activitySummaryContent,
+  footerMetaContent,
+}: {
+  introTitle?: string
+  introDescription?: string
+  activitySummaryContent: ReactNode
+  footerMetaContent: ReactNode
+}) {
+  return (
+    <Card className="order-1 overflow-visible rounded-[2rem] border border-[color:color-mix(in_srgb,var(--wellstudio-blue)_12%,white)] bg-white py-0 shadow-none">
+      <CardContent className="px-6 py-7 sm:px-8 sm:py-8">
+        <div className="flex flex-col gap-5">
+          <div className="flex flex-col gap-3">
+            <p className="text-xs uppercase tracking-[0.28em] text-[var(--wellstudio-blue-deep)]">
+              Inicio
+            </p>
+            <div className="flex flex-col gap-3">
+              <h1 className="font-display text-4xl uppercase tracking-[0.03em] text-[var(--wellstudio-ink)] sm:text-5xl xl:text-6xl">
+                {introTitle}
+              </h1>
+              <p className="max-w-3xl text-base leading-8 text-[color:color-mix(in_srgb,var(--foreground)_72%,white)] sm:text-lg">
+                {introDescription}
+              </p>
             </div>
-          </CardContent>
-        </Card>
+          </div>
 
-        <Card className="order-3 overflow-visible rounded-[2rem] bg-white py-0 shadow-none lg:order-2">
-          <CardHeader className="px-7 pb-3 pt-7 sm:px-8">
-            <CardTitle className="text-lg text-[var(--wellstudio-ink)]">
-              Snapshot comercial
-            </CardTitle>
-          </CardHeader>
-          <CardContent className="flex flex-col gap-2 px-7 pb-7 pt-3 sm:px-8">
-            <SnapshotTile
-              icon={ShieldCheck}
-              eyebrow="Plan actual"
-              title={overview.commercial.currentPlanName ?? 'Sin plan activo'}
-              description={
-                overview.commercial.currentPlanWindowLabel ??
-                (overview.commercial.pendingPlanName
-                  ? `${overview.commercial.pendingPlanName} está pendiente de activación. En cuanto pase a activa, la verás aquí como plan principal.`
-                  : 'Todavía no detectamos una membresía activa en tu cuenta.')
-              }
-            />
-            <Separator className="bg-[color:color-mix(in_srgb,var(--border)_78%,white)]" />
-            <SnapshotTile
-              icon={Ticket}
-              eyebrow="Créditos"
-              title={overview.commercial.creditsLabel}
-              description={
-                overview.commercial.creditsPackNames.length > 0
-                  ? `Packs detectados: ${overview.commercial.creditsPackNames.join(', ')}`
-                  : 'Cuando actives bonos o packs, aparecerán aquí con su saldo disponible.'
-              }
-            />
-            <Separator className="bg-[color:color-mix(in_srgb,var(--border)_78%,white)]" />
-            <SnapshotTile
-              icon={CreditCard}
-              eyebrow="Tarjeta"
-              title={overview.commercial.linkedCardLabel}
-              description={
-                overview.commercial.hasLinkedCard
-                  ? 'Tu método de pago ya está enlazado al área privada.'
-                  : 'La vinculación de tarjeta se mostrará aquí cuando entre la capa comercial completa.'
-              }
-            />
-          </CardContent>
-        </Card>
+          <div className="flex flex-wrap gap-2">{activitySummaryContent}</div>
+
+          <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+            <Link
+              href="/app/reservations"
+              className={cn(buttonVariants({ variant: 'default' }), 'w-full sm:w-auto')}
+            >
+              Ir a Reservas
+              <MoveUpRight data-icon="inline-end" />
+            </Link>
+            {footerMetaContent}
+          </div>
+        </div>
+      </CardContent>
+    </Card>
+  )
+}
+
+export function MemberHomeDashboardBody({ overview }: MemberHomeDashboardProps) {
+  return (
+    <>
+      <Card className="order-3 overflow-visible rounded-[2rem] bg-white py-0 shadow-none lg:order-2">
+        <CardHeader className="px-7 pb-3 pt-7 sm:px-8">
+          <CardTitle className="text-lg text-[var(--wellstudio-ink)]">
+            Snapshot comercial
+          </CardTitle>
+        </CardHeader>
+        <CardContent className="flex flex-col gap-2 px-7 pb-7 pt-3 sm:px-8">
+          <SnapshotTile
+            icon={ShieldCheck}
+            eyebrow="Plan actual"
+            title={overview.commercial.currentPlanName ?? 'Sin plan activo'}
+            description={
+              overview.commercial.currentPlanWindowLabel ??
+              (overview.commercial.pendingPlanName
+                ? `${overview.commercial.pendingPlanName} está pendiente de activación. En cuanto pase a activa, la verás aquí como plan principal.`
+                : 'Todavía no detectamos una membresía activa en tu cuenta.')
+            }
+          />
+          <Separator className="bg-[color:color-mix(in_srgb,var(--border)_78%,white)]" />
+          <SnapshotTile
+            icon={Ticket}
+            eyebrow="Créditos"
+            title={overview.commercial.creditsLabel}
+            description={
+              overview.commercial.creditsPackNames.length > 0
+                ? `Packs detectados: ${overview.commercial.creditsPackNames.join(', ')}`
+                : 'Cuando actives bonos o packs, aparecerán aquí con su saldo disponible.'
+            }
+          />
+          <Separator className="bg-[color:color-mix(in_srgb,var(--border)_78%,white)]" />
+          <SnapshotTile
+            icon={CreditCard}
+            eyebrow="Tarjeta"
+            title={overview.commercial.linkedCardLabel}
+            description={
+              overview.commercial.hasLinkedCard
+                ? 'Tu método de pago ya está enlazado al área privada.'
+                : 'La vinculación de tarjeta se mostrará aquí cuando entre la capa comercial completa.'
+            }
+          />
+        </CardContent>
+      </Card>
+
       <Card className="order-2 overflow-visible rounded-[2rem] border border-[color:color-mix(in_srgb,var(--wellstudio-blue)_10%,white)] bg-white py-0 shadow-none lg:order-3">
         <CardHeader className="flex flex-col gap-4 border-b border-[color:color-mix(in_srgb,var(--border)_70%,white)] px-6 py-6 sm:flex-row sm:items-end sm:justify-between sm:px-7">
           <div className="flex flex-col gap-2">
@@ -201,7 +239,7 @@ export function MemberHomeDashboard({ overview }: MemberHomeDashboardProps) {
           )}
         </div>
       </section>
-    </div>
+    </>
   )
 }
 

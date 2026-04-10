@@ -9,47 +9,65 @@ export function MemberReservationsDashboardSkeleton() {
         <CardContent className="px-5 py-6 sm:px-8 sm:py-8">
           <div className="flex flex-col gap-4 sm:gap-6">
             <div className="flex flex-col gap-2.5 sm:gap-3">
-              <Skeleton className="h-3 w-24 rounded-full" />
+              <p className="text-xs uppercase tracking-[0.28em] text-[var(--wellstudio-blue-deep)]">
+                Reservas
+              </p>
               <div className="flex flex-col gap-2.5 sm:gap-3 xl:max-w-4xl">
-                <Skeleton className="h-10 w-full max-w-[24rem] rounded-[1rem] sm:h-14 sm:max-w-[29rem]" />
-                <Skeleton className="h-10 w-full max-w-[18rem] rounded-[1rem] sm:h-14 sm:max-w-[21rem]" />
-                <div className="space-y-2 pt-1">
-                  <Skeleton className="h-4 w-full max-w-3xl rounded-full" />
-                  <Skeleton className="h-4 w-full max-w-[40rem] rounded-full" />
-                  <Skeleton className="h-4 w-3/4 rounded-full" />
-                </div>
+                <h1 className="font-display text-[2.15rem] uppercase leading-[0.92] tracking-[0.03em] text-[var(--wellstudio-ink)] sm:text-5xl sm:leading-none lg:text-[3.4rem]">
+                  Centro operativo
+                </h1>
+                <p className="max-w-3xl text-[0.98rem] leading-7 text-[color:color-mix(in_srgb,var(--foreground)_72%,white)] sm:text-lg sm:leading-8">
+                  Aquí se concentra tu movimiento real dentro de la agenda: reservas confirmadas, waitlists activas, sesiones publicadas e historial reciente, todo ya preparado para actuar desde el portal.
+                </p>
               </div>
             </div>
-
-            <div className="flex flex-wrap gap-2">
-              <Skeleton className="h-9 w-28 rounded-full" />
-              <Skeleton className="h-9 w-32 rounded-full" />
-              <Skeleton className="hidden h-9 w-36 rounded-full sm:block" />
-            </div>
-
-            <div className="sm:hidden">
-              <Skeleton className="h-4 w-32 rounded-full" />
-            </div>
-
-            <div className="hidden sm:flex sm:flex-row sm:items-center sm:justify-between sm:gap-3">
-              <Skeleton className="h-4 w-full max-w-[32rem] rounded-full" />
-              <Skeleton className="h-11 w-40 rounded-full" />
-            </div>
-
-            <div className="hidden rounded-[1.6rem] border border-[color:color-mix(in_srgb,var(--wellstudio-blue)_18%,white)] bg-[color:color-mix(in_srgb,var(--wellstudio-blue)_8%,white)] px-5 py-4 sm:block sm:px-6">
-              <div className="flex items-start gap-3">
-                <Skeleton className="size-10 shrink-0 rounded-full bg-white/90" />
-                <div className="w-full space-y-2">
-                  <Skeleton className="h-4 w-52 rounded-full" />
-                  <Skeleton className="h-4 w-full rounded-full" />
-                  <Skeleton className="h-4 w-11/12 rounded-full" />
-                </div>
-              </div>
-            </div>
+            <MemberReservationsHeroMetaSkeleton />
           </div>
         </CardContent>
       </Card>
 
+      <MemberReservationsDashboardBodySkeleton />
+    </section>
+  )
+}
+
+export function MemberReservationsHeroMetaSkeleton() {
+  return (
+    <>
+      <MemberReservationsSummaryPillsSkeleton />
+      <MemberReservationsBookingStateSkeleton />
+    </>
+  )
+}
+
+export function MemberReservationsSummaryPillsSkeleton() {
+  return (
+    <div className="flex flex-wrap gap-2">
+      <Skeleton className="h-9 w-28 rounded-full" />
+      <Skeleton className="h-9 w-32 rounded-full" />
+      <Skeleton className="hidden h-9 w-36 rounded-full sm:block" />
+    </div>
+  )
+}
+
+export function MemberReservationsBookingStateSkeleton() {
+  return (
+    <div className="hidden rounded-[1.6rem] border border-[color:color-mix(in_srgb,var(--wellstudio-blue)_18%,white)] bg-[color:color-mix(in_srgb,var(--wellstudio-blue)_8%,white)] px-5 py-4 sm:block sm:px-6">
+      <div className="flex items-start gap-3">
+        <Skeleton className="size-10 shrink-0 rounded-full bg-white/90" />
+        <div className="w-full space-y-2">
+          <Skeleton className="h-4 w-52 rounded-full" />
+          <Skeleton className="h-4 w-full rounded-full" />
+          <Skeleton className="h-4 w-11/12 rounded-full" />
+        </div>
+      </div>
+    </div>
+  )
+}
+
+export function MemberReservationsDashboardBodySkeleton() {
+  return (
+    <>
       <div className="grid gap-4 xl:grid-cols-[minmax(0,1.28fr)_minmax(320px,0.92fr)] xl:gap-5">
         <Card className="overflow-visible rounded-[2rem] border border-[color:color-mix(in_srgb,var(--wellstudio-blue)_10%,white)] bg-white py-0 shadow-none">
           <CardHeader className="border-b border-[color:color-mix(in_srgb,var(--border)_72%,white)] px-6 py-6 sm:px-7">
@@ -121,7 +139,7 @@ export function MemberReservationsDashboardSkeleton() {
           </div>
         </CardContent>
       </Card>
-    </section>
+    </>
   )
 }
 

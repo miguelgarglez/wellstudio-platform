@@ -9,31 +9,56 @@ export function MemberHomeDashboardSkeleton() {
         <CardContent className="px-6 py-7 sm:px-8 sm:py-8">
           <div className="flex flex-col gap-5">
             <div className="flex flex-col gap-3">
-              <Skeleton className="h-3 w-16 rounded-full" />
+              <p className="text-xs uppercase tracking-[0.28em] text-[var(--wellstudio-blue-deep)]">
+                Inicio
+              </p>
               <div className="flex flex-col gap-3">
-                <Skeleton className="h-11 w-full max-w-[22rem] rounded-[1rem] sm:h-14 sm:max-w-[26rem]" />
-                <Skeleton className="h-11 w-full max-w-[18rem] rounded-[1rem] sm:h-14 sm:max-w-[20rem]" />
-                <div className="space-y-2 pt-1">
-                  <Skeleton className="h-4 w-full max-w-3xl rounded-full" />
-                  <Skeleton className="h-4 w-full max-w-[38rem] rounded-full" />
-                  <Skeleton className="h-4 w-3/4 max-w-[28rem] rounded-full" />
-                </div>
+                <h1 className="font-display text-4xl uppercase tracking-[0.03em] text-[var(--wellstudio-ink)] sm:text-5xl xl:text-6xl">
+                  Bienvenido de nuevo
+                </h1>
+                <p className="max-w-3xl text-base leading-8 text-[color:color-mix(in_srgb,var(--foreground)_72%,white)] sm:text-lg">
+                  Tu home privada ya prioriza lo importante: próximas sesiones, waitlists activas y el estado comercial básico para que recuperes contexto rápido.
+                </p>
               </div>
             </div>
 
-            <div className="flex flex-wrap gap-2">
-              <Skeleton className="h-9 w-28 rounded-full" />
-              <Skeleton className="h-9 w-40 rounded-full" />
-            </div>
-
-            <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
-              <Skeleton className="h-11 w-full rounded-full sm:w-40" />
-              <Skeleton className="h-4 w-full max-w-xs rounded-full" />
-            </div>
+            <MemberHomeHeroMetaSkeleton />
           </div>
         </CardContent>
       </Card>
 
+      <MemberHomeDashboardBodySkeleton />
+    </div>
+  )
+}
+
+export function MemberHomeHeroMetaSkeleton() {
+  return (
+    <>
+      <MemberHomeSummaryPillsSkeleton />
+      <MemberHomeFooterMetaSkeleton />
+    </>
+  )
+}
+
+export function MemberHomeSummaryPillsSkeleton() {
+  return (
+    <div className="flex flex-wrap gap-2">
+      <Skeleton className="h-9 w-28 rounded-full" />
+      <Skeleton className="h-9 w-40 rounded-full" />
+    </div>
+  )
+}
+
+export function MemberHomeFooterMetaSkeleton() {
+  return (
+    <Skeleton className="h-4 w-full max-w-xs rounded-full" />
+  )
+}
+
+export function MemberHomeDashboardBodySkeleton() {
+  return (
+    <>
       <Card className="order-3 overflow-visible rounded-[2rem] bg-white py-0 shadow-none lg:order-2">
         <CardHeader className="px-7 pb-3 pt-7 sm:px-8">
           <Skeleton className="h-7 w-40 rounded-full" />
@@ -83,7 +108,7 @@ export function MemberHomeDashboardSkeleton() {
           <AlertSkeleton />
         </div>
       </section>
-    </div>
+    </>
   )
 }
 

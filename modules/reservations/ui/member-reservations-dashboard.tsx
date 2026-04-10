@@ -1,3 +1,4 @@
+import type { ReactNode } from 'react'
 import Link from 'next/link'
 import {
   BadgeAlert,
@@ -50,82 +51,121 @@ export function MemberReservationsDashboard({
 }: MemberReservationsDashboardProps) {
   return (
     <section className="space-y-5 lg:space-y-6">
-      <Card className="overflow-visible rounded-[2rem] border border-[color:color-mix(in_srgb,var(--wellstudio-blue)_12%,white)] bg-white py-0 shadow-none">
-        <CardContent className="px-5 py-6 sm:px-8 sm:py-8">
-          <div className="flex flex-col gap-4 sm:gap-6">
-            <div className="flex flex-col gap-2.5 sm:gap-3">
-              <p className="text-xs uppercase tracking-[0.28em] text-[var(--wellstudio-blue-deep)]">
-                Reservas
-              </p>
-              <div className="flex flex-col gap-2.5 sm:gap-3 xl:max-w-4xl">
-                <h1 className="font-display text-[2.15rem] uppercase leading-[0.92] tracking-[0.03em] text-[var(--wellstudio-ink)] sm:text-5xl sm:leading-none lg:text-[3.4rem]">
-                  {overview.introTitle}
-                </h1>
-                <p className="max-w-3xl text-[0.98rem] leading-7 text-[color:color-mix(in_srgb,var(--foreground)_72%,white)] sm:text-lg sm:leading-8">
-                  {overview.introDescription}
-                </p>
-              </div>
-            </div>
-
-            <div className="flex flex-wrap gap-2">
-              {overview.summaryLabels.map((label, index) => (
-                <InfoPill
-                  key={label}
-                  className={cn(index > 0 ? 'hidden sm:inline-flex' : undefined)}
-                >
-                  {label}
-                </InfoPill>
-              ))}
-            </div>
-
-            <div className="sm:hidden">
-              <Link
-                href="#agenda-futura"
-                className="inline-flex items-center gap-2 text-sm font-medium text-[var(--wellstudio-blue-deep)] underline-offset-4 hover:underline focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--ring)]"
+      <MemberReservationsHeroCard
+        introTitle={overview.introTitle}
+        introDescription={overview.introDescription}
+        summaryContent={
+          <>
+            {overview.summaryLabels.map((label, index) => (
+              <InfoPill
+                key={label}
+                className={cn(index > 0 ? 'hidden sm:inline-flex' : undefined)}
               >
-                Ver agenda futura
-                <MoveUpRight className="size-4" aria-hidden="true" />
-              </Link>
-            </div>
-
-            <div className="hidden sm:flex sm:flex-row sm:items-center sm:justify-between sm:gap-3">
-              <p className="text-sm text-[color:color-mix(in_srgb,var(--foreground)_74%,white)]">
-                Desde esta pantalla ya puedes reservar, cancelar dentro de ventana y
-                gestionar tu waitlist sin salir del portal privado.
-              </p>
-              <Link
-                href="#agenda-futura"
-                className={cn(
-                  buttonVariants({ variant: 'outline' }),
-                  'w-full sm:w-auto',
-                )}
-              >
-                Ver agenda futura
-                <MoveUpRight data-icon="inline-end" />
-              </Link>
-            </div>
-
-            {!overview.bookingState.canBook ? (
-              <div className="hidden rounded-[1.6rem] border border-[color:color-mix(in_srgb,var(--wellstudio-blue)_18%,white)] bg-[color:color-mix(in_srgb,var(--wellstudio-blue)_8%,white)] px-5 py-4 sm:block sm:px-6">
-                <div className="flex items-start gap-3">
-                  <span className="inline-flex size-10 shrink-0 items-center justify-center rounded-full bg-white text-[var(--wellstudio-blue-deep)]">
-                    <CircleAlert className="size-4" aria-hidden="true" />
-                  </span>
-                  <div className="space-y-1.5">
-                    <p className="text-sm font-medium text-[var(--wellstudio-ink)]">
-                      {overview.bookingState.advisoryLabel}
-                    </p>
-                    <p className="text-sm leading-7 text-[color:color-mix(in_srgb,var(--foreground)_74%,white)]">
-                      {overview.bookingState.description}
-                    </p>
-                  </div>
+                {label}
+              </InfoPill>
+            ))}
+          </>
+        }
+        advisoryContent={
+          !overview.bookingState.canBook ? (
+            <div className="hidden rounded-[1.6rem] border border-[color:color-mix(in_srgb,var(--wellstudio-blue)_18%,white)] bg-[color:color-mix(in_srgb,var(--wellstudio-blue)_8%,white)] px-5 py-4 sm:block sm:px-6">
+              <div className="flex items-start gap-3">
+                <span className="inline-flex size-10 shrink-0 items-center justify-center rounded-full bg-white text-[var(--wellstudio-blue-deep)]">
+                  <CircleAlert className="size-4" aria-hidden="true" />
+                </span>
+                <div className="space-y-1.5">
+                  <p className="text-sm font-medium text-[var(--wellstudio-ink)]">
+                    {overview.bookingState.advisoryLabel}
+                  </p>
+                  <p className="text-sm leading-7 text-[color:color-mix(in_srgb,var(--foreground)_74%,white)]">
+                    {overview.bookingState.description}
+                  </p>
                 </div>
               </div>
-            ) : null}
-          </div>
-        </CardContent>
-      </Card>
+            </div>
+          ) : null
+        }
+      />
+      <MemberReservationsDashboardBody overview={overview} actions={actions} />
+    </section>
+  )
+}
 
+export const MEMBER_RESERVATIONS_INTRO_TITLE = 'Centro operativo'
+export const MEMBER_RESERVATIONS_INTRO_DESCRIPTION =
+  'Aquí se concentra tu movimiento real dentro de la agenda: reservas confirmadas, waitlists activas, sesiones publicadas e historial reciente, todo ya preparado para actuar desde el portal.'
+
+export function MemberReservationsHeroCard({
+  introTitle = MEMBER_RESERVATIONS_INTRO_TITLE,
+  introDescription = MEMBER_RESERVATIONS_INTRO_DESCRIPTION,
+  summaryContent,
+  advisoryContent,
+}: {
+  introTitle?: string
+  introDescription?: string
+  summaryContent: ReactNode
+  advisoryContent?: ReactNode
+}) {
+  return (
+    <Card className="overflow-visible rounded-[2rem] border border-[color:color-mix(in_srgb,var(--wellstudio-blue)_12%,white)] bg-white py-0 shadow-none">
+      <CardContent className="px-5 py-6 sm:px-8 sm:py-8">
+        <div className="flex flex-col gap-4 sm:gap-6">
+          <div className="flex flex-col gap-2.5 sm:gap-3">
+            <p className="text-xs uppercase tracking-[0.28em] text-[var(--wellstudio-blue-deep)]">
+              Reservas
+            </p>
+            <div className="flex flex-col gap-2.5 sm:gap-3 xl:max-w-4xl">
+              <h1 className="font-display text-[2.15rem] uppercase leading-[0.92] tracking-[0.03em] text-[var(--wellstudio-ink)] sm:text-5xl sm:leading-none lg:text-[3.4rem]">
+                {introTitle}
+              </h1>
+              <p className="max-w-3xl text-[0.98rem] leading-7 text-[color:color-mix(in_srgb,var(--foreground)_72%,white)] sm:text-lg sm:leading-8">
+                {introDescription}
+              </p>
+            </div>
+          </div>
+
+          <div className="flex flex-wrap gap-2">{summaryContent}</div>
+
+          <div className="sm:hidden">
+            <Link
+              href="#agenda-futura"
+              className="inline-flex items-center gap-2 text-sm font-medium text-[var(--wellstudio-blue-deep)] underline-offset-4 hover:underline focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--ring)]"
+            >
+              Ver agenda futura
+              <MoveUpRight className="size-4" aria-hidden="true" />
+            </Link>
+          </div>
+
+          <div className="hidden sm:flex sm:flex-row sm:items-center sm:justify-between sm:gap-3">
+            <p className="text-sm text-[color:color-mix(in_srgb,var(--foreground)_74%,white)]">
+              Desde esta pantalla ya puedes reservar, cancelar dentro de ventana y
+              gestionar tu waitlist sin salir del portal privado.
+            </p>
+            <Link
+              href="#agenda-futura"
+              className={cn(
+                buttonVariants({ variant: 'outline' }),
+                'w-full sm:w-auto',
+              )}
+            >
+              Ver agenda futura
+              <MoveUpRight data-icon="inline-end" />
+            </Link>
+          </div>
+
+          {advisoryContent}
+        </div>
+      </CardContent>
+    </Card>
+  )
+}
+
+export function MemberReservationsDashboardBody({
+  overview,
+  actions,
+}: MemberReservationsDashboardProps) {
+  return (
+    <>
       <div className="grid gap-4 xl:grid-cols-[minmax(0,1.28fr)_minmax(320px,0.92fr)] xl:gap-5">
         <Card className="overflow-visible rounded-[2rem] border border-[color:color-mix(in_srgb,var(--wellstudio-blue)_10%,white)] bg-white py-0 shadow-none">
           <CardHeader className="border-b border-[color:color-mix(in_srgb,var(--border)_72%,white)] px-6 py-6 sm:px-7">
@@ -280,7 +320,7 @@ export function MemberReservationsDashboard({
           )}
         </CardContent>
       </Card>
-    </section>
+    </>
   )
 }
 
