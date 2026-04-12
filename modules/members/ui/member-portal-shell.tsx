@@ -36,7 +36,7 @@ export function MemberPortalShell({
   const contentDirection =
     pendingTransition.pathname === pathname
       ? pendingTransition.direction
-      : 'neutral'
+      : 'hold'
 
   function handlePortalNavigation(targetPathname: string) {
     setPendingTransition({

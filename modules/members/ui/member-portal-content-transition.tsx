@@ -17,14 +17,14 @@ import type { MemberPortalTransitionDirection } from '@/modules/members/ui/membe
  * ───────────────────────────────────────────────────────── */
 
 const TIMING = {
-  duration: 180,
-  distance: 14,
+  duration: 240,
+  distance: 22,
 }
 
 type MemberPortalContentTransitionProps = {
   children: ReactNode
   className?: string
-  direction: MemberPortalTransitionDirection
+  direction: MemberPortalTransitionDirection | 'hold'
   pathname: string
 }
 
