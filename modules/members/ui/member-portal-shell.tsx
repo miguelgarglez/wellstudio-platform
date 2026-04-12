@@ -3,12 +3,15 @@
 import type { ReactNode } from 'react'
 import Link from 'next/link'
 import { usePathname } from 'next/navigation'
+import { useState } from 'react'
 
 import { WellstudioLogoMark } from '@/components/brand/wellstudio-logo-mark'
 import { cn } from '@/lib/utils'
 import { LogoutButton } from '@/modules/auth/ui/logout-button'
 import type { MemberShellSummary } from '@/modules/members/server/member-shell-summary'
+import { MemberPortalContentTransition } from '@/modules/members/ui/member-portal-content-transition'
 import {
+  getMemberPortalTransitionDirection,
   isMemberPortalItemActive,
   memberPortalNavItems,
 } from '@/modules/members/ui/member-portal-navigation'
@@ -23,6 +26,24 @@ export function MemberPortalShell({
   summary,
 }: MemberPortalShellProps) {
   const pathname = usePathname()
+  const [pendingTransition, setPendingTransition] = useState<{
+    pathname: string
+    direction: 'forward' | 'backward' | 'neutral'
+  }>({
+    pathname,
+    direction: 'neutral',
+  })
+  const contentDirection =
+    pendingTransition.pathname === pathname
+      ? pendingTransition.direction
+      : 'neutral'
+
+  function handlePortalNavigation(targetPathname: string) {
+    setPendingTransition({
+      pathname: targetPathname,
+      direction: getMemberPortalTransitionDirection(pathname, targetPathname),
+    })
+  }
 
   return (
     <div className="min-h-screen bg-transparent text-[var(--foreground)]">
@@ -34,6 +55,7 @@ export function MemberPortalShell({
                 <div className="flex flex-1 flex-col gap-6">
                   <Link
                     href="/app"
+                    onClick={() => handlePortalNavigation('/app')}
                     className="flex items-center gap-3 rounded-[1.5rem] border border-white/10 bg-white/4 px-3 py-3 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white/50"
                   >
                     <WellstudioLogoMark className="size-12 rounded-[1.1rem] shadow-none" />
@@ -73,6 +95,7 @@ export function MemberPortalShell({
                         <Link
                           key={item.href}
                           href={item.href}
+                          onClick={() => handlePortalNavigation(item.href)}
                           aria-current={isActive ? 'page' : undefined}
                           className={cn(
                             'flex items-center gap-3 rounded-[1.4rem] px-4 py-3 text-sm font-medium transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white/50',
@@ -120,7 +143,12 @@ export function MemberPortalShell({
               </div>
 
               <main id="main-content" className="pb-4 lg:px-2 lg:py-6">
-                {children}
+                <MemberPortalContentTransition
+                  direction={contentDirection}
+                  pathname={pathname}
+                >
+                  {children}
+                </MemberPortalContentTransition>
               </main>
             </div>
           </div>
@@ -140,6 +168,7 @@ export function MemberPortalShell({
               <Link
                 key={item.href}
                 href={item.href}
+                onClick={() => handlePortalNavigation(item.href)}
                 aria-current={isActive ? 'page' : undefined}
                 className={cn(
                   'flex min-w-0 flex-col items-center gap-1 rounded-[1.25rem] px-2 py-2 text-center text-xs font-medium transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--ring)]',

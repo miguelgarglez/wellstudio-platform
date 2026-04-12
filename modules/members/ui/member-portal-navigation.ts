@@ -13,6 +13,11 @@ export type MemberPortalNavItem = {
   matchMode: 'exact' | 'prefix'
 }
 
+export type MemberPortalTransitionDirection =
+  | 'forward'
+  | 'backward'
+  | 'neutral'
+
 export const memberPortalNavItems: readonly MemberPortalNavItem[] = [
   {
     href: '/app',
@@ -49,4 +54,26 @@ export function isMemberPortalItemActive(
   }
 
   return pathname === item.href || pathname.startsWith(`${item.href}/`)
+}
+
+export function getMemberPortalItemIndex(pathname: string) {
+  const index = memberPortalNavItems.findIndex((item) =>
+    isMemberPortalItemActive(pathname, item),
+  )
+
+  return index === -1 ? 0 : index
+}
+
+export function getMemberPortalTransitionDirection(
+  fromPathname: string,
+  toPathname: string,
+): MemberPortalTransitionDirection {
+  const fromIndex = getMemberPortalItemIndex(fromPathname)
+  const toIndex = getMemberPortalItemIndex(toPathname)
+
+  if (fromIndex === toIndex) {
+    return 'neutral'
+  }
+
+  return toIndex > fromIndex ? 'forward' : 'backward'
 }
