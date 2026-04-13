@@ -1,9 +1,9 @@
-'use client'
+"use client";
 
-import type { CSSProperties, ReactNode } from 'react'
+import type { CSSProperties, ReactNode } from "react";
 
-import { cn } from '@/lib/utils'
-import type { MemberPortalTransitionDirection } from '@/modules/members/ui/member-portal-navigation'
+import { cn } from "@/lib/utils";
+import type { MemberPortalTransitionDirection } from "@/modules/members/ui/member-portal-navigation";
 
 /* ─────────────────────────────────────────────────────────
  * MEMBER PORTAL TRANSITION STORYBOARD
@@ -17,16 +17,16 @@ import type { MemberPortalTransitionDirection } from '@/modules/members/ui/membe
  * ───────────────────────────────────────────────────────── */
 
 const TIMING = {
-  duration: 240,
-  distance: 22,
-}
+  duration: 300,
+  distance: 25,
+};
 
 type MemberPortalContentTransitionProps = {
-  children: ReactNode
-  className?: string
-  direction: MemberPortalTransitionDirection | 'hold'
-  pathname: string
-}
+  children: ReactNode;
+  className?: string;
+  direction: MemberPortalTransitionDirection | "hold";
+  pathname: string;
+};
 
 export function MemberPortalContentTransition({
   children,
@@ -35,19 +35,19 @@ export function MemberPortalContentTransition({
   pathname,
 }: MemberPortalContentTransitionProps) {
   const animationStyle = {
-    '--member-portal-panel-duration': `${TIMING.duration}ms`,
-    '--member-portal-panel-distance': `${TIMING.distance}px`,
-  } as CSSProperties
+    "--member-portal-panel-duration": `${TIMING.duration}ms`,
+    "--member-portal-panel-distance": `${TIMING.distance}px`,
+  } as CSSProperties;
 
   return (
     <div
       key={pathname}
       data-slot="member-portal-content"
       data-direction={direction}
-      className={cn('wellstudio-member-portal-animate', className)}
+      className={cn("wellstudio-member-portal-animate", className)}
       style={animationStyle}
     >
       {children}
     </div>
-  )
+  );
 }

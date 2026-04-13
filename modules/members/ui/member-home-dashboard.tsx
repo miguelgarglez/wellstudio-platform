@@ -79,6 +79,7 @@ export function MemberHomeHeroCard({
           <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
             <Link
               href="/app/reservations"
+              prefetch={false}
               className={cn(buttonVariants({ variant: 'default' }), 'w-full sm:w-auto')}
             >
               Ir a Reservas
@@ -151,6 +152,7 @@ export function MemberHomeDashboardBody({ overview }: MemberHomeDashboardProps) 
           {overview.upcomingReservations.length > 0 ? (
             <Link
               href="/app/reservations"
+              prefetch={false}
               className={cn(buttonVariants({ variant: 'outline' }), 'w-full sm:w-auto')}
             >
               Ver Reservas

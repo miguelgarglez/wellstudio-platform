@@ -118,7 +118,7 @@ export const getMemberHomeOverview = cache(async (): Promise<MemberHomeOverview>
   const now = new Date()
 
   const [upcomingReservations, waitlists, memberships, creditAccounts, cards] =
-    await Promise.all([
+    await prisma.$transaction([
       prisma.reservation.findMany({
         where: {
           memberId,

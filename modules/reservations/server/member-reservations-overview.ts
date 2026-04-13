@@ -196,7 +196,7 @@ export const getMemberReservationsOverview = cache(
       publishedSessions,
       memberships,
       creditAccounts,
-    ] = await Promise.all([
+    ] = await prisma.$transaction([
       prisma.reservation.findMany({
         where: {
           memberId,

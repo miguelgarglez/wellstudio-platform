@@ -55,6 +55,7 @@ export function MemberPortalShell({
                 <div className="flex flex-1 flex-col gap-6">
                   <Link
                     href="/app"
+                    prefetch={false}
                     onClick={() => handlePortalNavigation('/app')}
                     className="flex items-center gap-3 rounded-[1.5rem] border border-white/10 bg-white/4 px-3 py-3 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white/50"
                   >
@@ -95,6 +96,7 @@ export function MemberPortalShell({
                         <Link
                           key={item.href}
                           href={item.href}
+                          prefetch={false}
                           onClick={() => handlePortalNavigation(item.href)}
                           aria-current={isActive ? 'page' : undefined}
                           className={cn(
@@ -168,6 +170,7 @@ export function MemberPortalShell({
               <Link
                 key={item.href}
                 href={item.href}
+                prefetch={false}
                 onClick={() => handlePortalNavigation(item.href)}
                 aria-current={isActive ? 'page' : undefined}
                 className={cn(
