@@ -213,6 +213,22 @@ a {
   }
 }
 
+@keyframes wellstudio-member-portal-nav-progress {
+  from {
+    transform: translate3d(-130%, 0, 0);
+    opacity: 0;
+  }
+
+  18% {
+    opacity: 1;
+  }
+
+  to {
+    transform: translate3d(280%, 0, 0);
+    opacity: 1;
+  }
+}
+
 @media (prefers-reduced-motion: no-preference) {
   .wellstudio-auth-animate [data-slot="auth-brand-rail"] {
     animation: wellstudio-auth-rise 720ms cubic-bezier(0.2, 0.8, 0.2, 1) both;
@@ -238,6 +254,26 @@ a {
     will-change: transform, opacity;
   }
 
+  .wellstudio-member-portal-animate[data-pending="true"] [data-slot="member-portal-content-inner"] {
+    opacity: 0.82;
+    transform: translate3d(0, 0, 0) scale(0.992);
+    transition:
+      opacity 150ms ease,
+      filter 180ms ease,
+      transform 180ms ease;
+    filter: saturate(0.9) contrast(0.985);
+  }
+
+  .wellstudio-member-portal-animate[data-pending="false"] [data-slot="member-portal-content-inner"] {
+    opacity: 1;
+    transform: translate3d(0, 0, 0) scale(1);
+    transition:
+      opacity 160ms ease,
+      filter 180ms ease,
+      transform 180ms ease;
+    filter: none;
+  }
+
   .wellstudio-member-portal-animate[data-direction="forward"] {
     animation: wellstudio-member-portal-enter-forward var(--member-portal-panel-duration, 240ms) cubic-bezier(0.2, 0.8, 0.2, 1) both;
   }
@@ -252,6 +288,10 @@ a {
 
   .wellstudio-member-portal-animate[data-direction="hold"] {
     animation: none;
+  }
+
+  [data-slot="member-portal-nav-progress"] > span {
+    animation: wellstudio-member-portal-nav-progress 980ms cubic-bezier(0.2, 0.8, 0.2, 1) infinite;
   }
 }
 

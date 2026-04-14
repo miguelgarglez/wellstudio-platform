@@ -25,6 +25,7 @@ type MemberPortalContentTransitionProps = {
   children: ReactNode;
   className?: string;
   direction: MemberPortalTransitionDirection | "hold";
+  isPending: boolean;
   pathname: string;
 };
 
@@ -32,6 +33,7 @@ export function MemberPortalContentTransition({
   children,
   className,
   direction,
+  isPending,
   pathname,
 }: MemberPortalContentTransitionProps) {
   const animationStyle = {
@@ -44,10 +46,11 @@ export function MemberPortalContentTransition({
       key={pathname}
       data-slot="member-portal-content"
       data-direction={direction}
-      className={cn("wellstudio-member-portal-animate", className)}
+      data-pending={isPending ? "true" : "false"}
+      className={cn("wellstudio-member-portal-animate relative", className)}
       style={animationStyle}
     >
-      {children}
+      <div data-slot="member-portal-content-inner">{children}</div>
     </div>
   );
 }

@@ -37,8 +37,13 @@ export function MemberPortalShell({
     pendingTransition.pathname === pathname
       ? pendingTransition.direction
       : 'hold'
+  const isNavigationPending = pendingTransition.pathname !== pathname
 
   function handlePortalNavigation(targetPathname: string) {
+    if (targetPathname === pathname) {
+      return
+    }
+
     setPendingTransition({
       pathname: targetPathname,
       direction: getMemberPortalTransitionDirection(pathname, targetPathname),
@@ -90,6 +95,8 @@ export function MemberPortalShell({
                   <nav aria-label="Navegación privada" className="flex flex-col gap-1">
                     {memberPortalNavItems.map((item) => {
                       const isActive = isMemberPortalItemActive(pathname, item)
+                      const isPendingTarget =
+                        isNavigationPending && pendingTransition.pathname === item.href
                       const Icon = item.icon
 
                       return (
@@ -100,13 +107,28 @@ export function MemberPortalShell({
                           onClick={() => handlePortalNavigation(item.href)}
                           aria-current={isActive ? 'page' : undefined}
                           className={cn(
-                            'flex items-center gap-3 rounded-[1.4rem] px-4 py-3 text-sm font-medium transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white/50',
+                            'relative flex items-center gap-3 overflow-hidden rounded-[1.4rem] px-4 py-3 text-sm font-medium transition-[background-color,color,transform,box-shadow] duration-200 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white/50',
                             isActive
                               ? 'bg-[color:color-mix(in_srgb,var(--wellstudio-blue)_26%,white_4%)] text-white'
                               : 'text-white/72 hover:bg-white/6 hover:text-white',
+                            isPendingTarget
+                              ? 'bg-[color:color-mix(in_srgb,var(--wellstudio-blue)_32%,white_10%)] text-white shadow-[inset_0_0_0_1px_rgba(255,255,255,0.1),0_10px_24px_rgba(20,24,30,0.2)]'
+                              : undefined,
                           )}
                         >
-                          <Icon className="size-4" aria-hidden="true" />
+                          {isPendingTarget ? (
+                            <span
+                              aria-hidden="true"
+                              data-slot="member-portal-nav-progress"
+                              className="pointer-events-none absolute inset-x-4 bottom-1.5 h-[2px] rounded-full bg-[color:color-mix(in_srgb,var(--wellstudio-blue-soft)_30%,transparent)]"
+                            >
+                              <span className="block h-full w-16 rounded-full bg-[linear-gradient(90deg,color-mix(in_srgb,var(--wellstudio-blue)_84%,white),color-mix(in_srgb,var(--wellstudio-blue-soft)_100%,white))]" />
+                            </span>
+                          ) : null}
+                          {isPendingTarget ? (
+                            <span className="sr-only">Cargando</span>
+                          ) : null}
+                          <Icon className="relative z-[1] size-4" aria-hidden="true" />
                           <span>{item.label}</span>
                         </Link>
                       )
@@ -147,6 +169,7 @@ export function MemberPortalShell({
               <main id="main-content" className="pb-4 lg:px-2 lg:py-6">
                 <MemberPortalContentTransition
                   direction={contentDirection}
+                  isPending={isNavigationPending}
                   pathname={pathname}
                 >
                   {children}
@@ -164,6 +187,8 @@ export function MemberPortalShell({
         <div className="mx-auto grid max-w-xl grid-cols-4 gap-2">
           {memberPortalNavItems.map((item) => {
             const isActive = isMemberPortalItemActive(pathname, item)
+            const isPendingTarget =
+              isNavigationPending && pendingTransition.pathname === item.href
             const Icon = item.icon
 
             return (
@@ -174,13 +199,28 @@ export function MemberPortalShell({
                 onClick={() => handlePortalNavigation(item.href)}
                 aria-current={isActive ? 'page' : undefined}
                 className={cn(
-                  'flex min-w-0 flex-col items-center gap-1 rounded-[1.25rem] px-2 py-2 text-center text-xs font-medium transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--ring)]',
+                  'relative flex min-w-0 flex-col items-center gap-1 overflow-hidden rounded-[1.25rem] px-2 py-2 text-center text-xs font-medium transition-[background-color,color,transform,box-shadow] duration-200 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--ring)]',
                   isActive
                     ? 'bg-[color:color-mix(in_srgb,var(--wellstudio-blue)_18%,white)] text-[var(--wellstudio-ink)]'
                     : 'text-[color:color-mix(in_srgb,var(--foreground)_70%,white)]',
+                  isPendingTarget
+                    ? 'bg-[color:color-mix(in_srgb,var(--wellstudio-blue)_24%,white)] text-[var(--wellstudio-ink)] shadow-[0_8px_20px_rgba(20,24,30,0.08)]'
+                    : undefined,
                 )}
               >
-                <Icon className="size-4" aria-hidden="true" />
+                {isPendingTarget ? (
+                  <span
+                    aria-hidden="true"
+                    data-slot="member-portal-nav-progress"
+                    className="pointer-events-none absolute inset-x-2 bottom-1 h-[2px] rounded-full bg-[color:color-mix(in_srgb,var(--wellstudio-blue)_14%,white)]"
+                  >
+                    <span className="block h-full w-10 rounded-full bg-[linear-gradient(90deg,color-mix(in_srgb,var(--wellstudio-blue)_84%,white),color-mix(in_srgb,var(--wellstudio-blue-soft)_100%,white))]" />
+                  </span>
+                ) : null}
+                {isPendingTarget ? (
+                  <span className="sr-only">Cargando</span>
+                ) : null}
+                <Icon className="relative z-[1] size-4" aria-hidden="true" />
                 <span className="truncate">{item.label}</span>
               </Link>
             )
