@@ -21,6 +21,12 @@ declare module '@/modules/testing/server/sandbox-scenarios/member-reservations-f
   export const MEMBER_RESERVATIONS_FLOW_SCENARIO: string
   export const MEMBER_RESERVATIONS_FLOW_PREFIX: string
   export const MEMBER_RESERVATIONS_FLOW_SESSION_KEYS: Record<string, string>
+  export const MEMBER_RESERVATIONS_FLOW_OPERATIONS: {
+    full: string
+    waitlistState: string
+    availableSessionState: string
+    cancelableReservationState: string
+  }
 
   export function buildMemberReservationsFlowTimeline(now?: Date): Record<
     string,
@@ -41,4 +47,40 @@ declare module '@/modules/testing/server/sandbox-scenarios/member-reservations-f
       waitlistEnabled: boolean
     }
   >
+  export function ensureMemberReservationsFlowScenario(input: {
+    prisma: unknown
+    authUser: {
+      id: string
+      email: string
+    }
+    email: string
+    now?: Date
+  }): Promise<unknown>
+  export function ensureMemberReservationsFlowWaitlistState(input: {
+    prisma: unknown
+    authUser: {
+      id: string
+      email: string
+    }
+    email: string
+    now?: Date
+  }): Promise<unknown>
+  export function ensureMemberReservationsFlowAvailableSessionState(input: {
+    prisma: unknown
+    authUser: {
+      id: string
+      email: string
+    }
+    email: string
+    now?: Date
+  }): Promise<unknown>
+  export function ensureMemberReservationsFlowCancelableReservationState(input: {
+    prisma: unknown
+    authUser: {
+      id: string
+      email: string
+    }
+    email: string
+    now?: Date
+  }): Promise<unknown>
 }

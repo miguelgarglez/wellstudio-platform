@@ -4,6 +4,12 @@ import { getMissingSandboxAuthEnv, loadE2EEnvFiles } from './env'
 
 const PROJECT_ROOT = process.cwd()
 const MEMBER_RESERVATIONS_FLOW_SCENARIO = 'member-reservations-flow'
+const MEMBER_RESERVATIONS_FLOW_OPERATIONS = {
+  full: 'full',
+  waitlistState: 'waitlist-state',
+  availableSessionState: 'available-session-state',
+  cancelableReservationState: 'cancelable-reservation-state',
+} as const
 
 let scenarioPreparationPromise: Promise<void> | null = null
 
@@ -27,7 +33,9 @@ export async function ensureSandboxReservationScenarioReady() {
   }
 
   if (!scenarioPreparationPromise) {
-    scenarioPreparationPromise = runSandboxReservationScenario()
+    scenarioPreparationPromise = runSandboxReservationScenario(
+      MEMBER_RESERVATIONS_FLOW_OPERATIONS.full,
+    )
   }
 
   await scenarioPreparationPromise
@@ -40,25 +48,59 @@ export async function resetSandboxReservationScenarioForTest() {
     throw new Error(setupIssue)
   }
 
-  await runSandboxReservationScenario()
+  await runSandboxReservationScenario(MEMBER_RESERVATIONS_FLOW_OPERATIONS.full)
 }
 
-function runSandboxReservationScenario() {
+export async function resetSandboxWaitlistState() {
+  const setupIssue = getSandboxReservationsSetupIssue()
+
+  if (setupIssue) {
+    throw new Error(setupIssue)
+  }
+
+  await runSandboxReservationScenario(MEMBER_RESERVATIONS_FLOW_OPERATIONS.waitlistState)
+}
+
+export async function resetSandboxReservableSessionState() {
+  const setupIssue = getSandboxReservationsSetupIssue()
+
+  if (setupIssue) {
+    throw new Error(setupIssue)
+  }
+
+  await runSandboxReservationScenario(MEMBER_RESERVATIONS_FLOW_OPERATIONS.availableSessionState)
+}
+
+export async function resetSandboxCancelableReservationState() {
+  const setupIssue = getSandboxReservationsSetupIssue()
+
+  if (setupIssue) {
+    throw new Error(setupIssue)
+  }
+
+  await runSandboxReservationScenario(
+    MEMBER_RESERVATIONS_FLOW_OPERATIONS.cancelableReservationState,
+  )
+}
+
+function runSandboxReservationScenario(operation: string) {
   return Promise.resolve().then(() => {
     try {
-      execFileSync(
-        'pnpm',
-        ['sandbox:scenario', MEMBER_RESERVATIONS_FLOW_SCENARIO],
-        {
-          cwd: PROJECT_ROOT,
-          stdio: 'pipe',
-          encoding: 'utf8',
-        },
-      )
+      const args = ['sandbox:scenario', MEMBER_RESERVATIONS_FLOW_SCENARIO]
+
+      if (operation && operation !== MEMBER_RESERVATIONS_FLOW_OPERATIONS.full) {
+        args.push(operation)
+      }
+
+      execFileSync('pnpm', args, {
+        cwd: PROJECT_ROOT,
+        stdio: 'pipe',
+        encoding: 'utf8',
+      })
     } catch (error) {
       const message = extractCommandFailure(error)
       throw new Error(
-        `Failed to prepare sandbox reservations scenario "${MEMBER_RESERVATIONS_FLOW_SCENARIO}". ${message}`,
+        `Failed to prepare sandbox reservations scenario "${MEMBER_RESERVATIONS_FLOW_SCENARIO}" (${operation}). ${message}`,
       )
     }
   })

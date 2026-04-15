@@ -3,6 +3,7 @@ import { describe, expect, it } from 'vitest'
 import {
   buildMemberReservationsFlowSessionBlueprints,
   buildMemberReservationsFlowTimeline,
+  MEMBER_RESERVATIONS_FLOW_OPERATIONS,
   MEMBER_RESERVATIONS_FLOW_PREFIX,
   MEMBER_RESERVATIONS_FLOW_SESSION_KEYS,
 } from '@/modules/testing/server/sandbox-scenarios/member-reservations-flow.mjs'
@@ -77,6 +78,17 @@ describe('sandbox scenario helpers', () => {
     expect(blueprints.attended.status).toBe('COMPLETED')
     expect(blueprints.canceled.locationLabel).toBe(
       MEMBER_RESERVATIONS_FLOW_SESSION_KEYS.canceled,
+    )
+  })
+
+  it('exposes supported reset operations for the sandbox suite', () => {
+    expect(MEMBER_RESERVATIONS_FLOW_OPERATIONS.full).toBe('full')
+    expect(MEMBER_RESERVATIONS_FLOW_OPERATIONS.waitlistState).toBe('waitlist-state')
+    expect(MEMBER_RESERVATIONS_FLOW_OPERATIONS.availableSessionState).toBe(
+      'available-session-state',
+    )
+    expect(MEMBER_RESERVATIONS_FLOW_OPERATIONS.cancelableReservationState).toBe(
+      'cancelable-reservation-state',
     )
   })
 })

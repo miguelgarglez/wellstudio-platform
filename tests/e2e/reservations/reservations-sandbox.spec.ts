@@ -6,7 +6,9 @@ import { loginAsSandboxMember } from '../support/auth'
 import {
   ensureSandboxReservationScenarioReady,
   getSandboxReservationsSetupIssue,
-  resetSandboxReservationScenarioForTest,
+  resetSandboxCancelableReservationState,
+  resetSandboxReservableSessionState,
+  resetSandboxWaitlistState,
 } from '../support/sandbox'
 
 test.describe('Member reservations sandbox @sandbox @critical @reservations', () => {
@@ -42,7 +44,7 @@ test.describe('Member reservations sandbox @sandbox @critical @reservations', ()
   test('member can leave an active waitlist', async ({ page }) => {
     const reservationsPage = new ReservationsPage(page)
 
-    await resetSandboxReservationScenarioForTest()
+    await resetSandboxWaitlistState()
     await reservationsPage.goto()
     await reservationsPage.leaveActiveWaitlist()
     await reservationsPage.expectWaitlistRemoved()
@@ -51,7 +53,7 @@ test.describe('Member reservations sandbox @sandbox @critical @reservations', ()
   test('member can join waitlist again after leaving', async ({ page }) => {
     const reservationsPage = new ReservationsPage(page)
 
-    await resetSandboxReservationScenarioForTest()
+    await resetSandboxWaitlistState()
     await reservationsPage.goto()
     await reservationsPage.leaveActiveWaitlist()
     await reservationsPage.expectWaitlistRemoved()
@@ -62,7 +64,7 @@ test.describe('Member reservations sandbox @sandbox @critical @reservations', ()
   test('member can reserve an available session', async ({ page }) => {
     const reservationsPage = new ReservationsPage(page)
 
-    await resetSandboxReservationScenarioForTest()
+    await resetSandboxReservableSessionState()
     await reservationsPage.goto()
     await reservationsPage.reserveAvailableSession()
     await reservationsPage.expectAvailableSessionReserved()
@@ -71,7 +73,7 @@ test.describe('Member reservations sandbox @sandbox @critical @reservations', ()
   test('member can cancel a future reservation within window', async ({ page }) => {
     const reservationsPage = new ReservationsPage(page)
 
-    await resetSandboxReservationScenarioForTest()
+    await resetSandboxCancelableReservationState()
     await reservationsPage.goto()
     await reservationsPage.cancelCancelableReservation()
     await reservationsPage.expectCancelableReservationCanceled()

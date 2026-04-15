@@ -15,23 +15,44 @@ import {
   SCENARIO_CONFIRMATION_FLAG,
 } from '../../modules/testing/server/sandbox-scenarios/shared.mjs'
 import {
+  ensureMemberReservationsFlowAvailableSessionState,
+  ensureMemberReservationsFlowCancelableReservationState,
   ensureMemberReservationsFlowScenario,
+  ensureMemberReservationsFlowWaitlistState,
+  MEMBER_RESERVATIONS_FLOW_OPERATIONS,
   MEMBER_RESERVATIONS_FLOW_SCENARIO,
 } from '../../modules/testing/server/sandbox-scenarios/member-reservations-flow.mjs'
 
 const ROOT = process.cwd()
 const SCENARIOS = {
-  [MEMBER_RESERVATIONS_FLOW_SCENARIO]: ensureMemberReservationsFlowScenario,
+  [MEMBER_RESERVATIONS_FLOW_SCENARIO]: {
+    [MEMBER_RESERVATIONS_FLOW_OPERATIONS.full]: ensureMemberReservationsFlowScenario,
+    [MEMBER_RESERVATIONS_FLOW_OPERATIONS.waitlistState]:
+      ensureMemberReservationsFlowWaitlistState,
+    [MEMBER_RESERVATIONS_FLOW_OPERATIONS.availableSessionState]:
+      ensureMemberReservationsFlowAvailableSessionState,
+    [MEMBER_RESERVATIONS_FLOW_OPERATIONS.cancelableReservationState]:
+      ensureMemberReservationsFlowCancelableReservationState,
+  },
 }
 
 loadEnvFiles(ROOT)
 
 const args = process.argv.slice(2)
-const scenarioName = args.find((arg) => !arg.startsWith('--'))
+const positionalArgs = args.filter((arg) => !arg.startsWith('--'))
+const scenarioName = positionalArgs[0]
+const scenarioOperationName =
+  positionalArgs[1] ?? MEMBER_RESERVATIONS_FLOW_OPERATIONS.full
 
 if (!scenarioName || !SCENARIOS[scenarioName]) {
   exitWithHelp(
     `Unknown or missing sandbox scenario "${scenarioName ?? ''}". Available scenarios: ${Object.keys(SCENARIOS).join(', ')}`,
+  )
+}
+
+if (!SCENARIOS[scenarioName][scenarioOperationName]) {
+  exitWithHelp(
+    `Unknown operation "${scenarioOperationName}" for scenario "${scenarioName}". Available operations: ${Object.keys(SCENARIOS[scenarioName]).join(', ')}`,
   )
 }
 
@@ -85,7 +106,7 @@ const prisma = new PrismaClient({
 })
 
 try {
-  const scenario = await SCENARIOS[scenarioName]({
+  const scenario = await SCENARIOS[scenarioName][scenarioOperationName]({
     prisma,
     authUser: {
       id: authUser.id,
@@ -98,6 +119,7 @@ try {
   printSummary({
     scenario,
     currentProjectRef,
+    scenarioOperationName,
   })
 } catch (error) {
   console.error('Failed to reconcile sandbox scenario.')
@@ -134,9 +156,9 @@ async function findAuthUserByEmail(client, email) {
   return null
 }
 
-function printSummary({ scenario, currentProjectRef }) {
+function printSummary({ scenario, currentProjectRef, scenarioOperationName }) {
   console.log(
-    `Reconciled sandbox scenario "${scenario.scenario}" for ${scenario.memberEmail} in project ${currentProjectRef}.`,
+    `Reconciled sandbox scenario "${scenario.scenario}" (${scenarioOperationName}) for ${scenario.memberEmail} in project ${currentProjectRef}.`,
   )
   console.log(`Local member id: ${scenario.memberId}`)
   console.log(`Local user id: ${scenario.localUserId}`)
@@ -193,6 +215,9 @@ function exitWithHelp(message) {
   console.error('Example:')
   console.error(
     `  node scripts/sandbox/ensure-member-scenario.mjs ${MEMBER_RESERVATIONS_FLOW_SCENARIO} ${SCENARIO_CONFIRMATION_FLAG}`,
+  )
+  console.error(
+    `  node scripts/sandbox/ensure-member-scenario.mjs ${MEMBER_RESERVATIONS_FLOW_SCENARIO} ${MEMBER_RESERVATIONS_FLOW_OPERATIONS.waitlistState} ${SCENARIO_CONFIRMATION_FLAG}`,
   )
   process.exit(1)
 }
