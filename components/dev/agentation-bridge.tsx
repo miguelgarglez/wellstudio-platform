@@ -33,23 +33,35 @@ export function AgentationBridge({ endpoint }: AgentationBridgeProps) {
       return
     }
 
-    try {
-      const isolatedSessionId = ensureAgentationProjectIsolation(
-        window.localStorage,
-        pathname,
-        window.location.origin,
-      )
+    let canceled = false
+    const frame = window.requestAnimationFrame(() => {
+      if (canceled) {
+        return
+      }
 
-      setState({
-        readyPathname: pathname,
-        sessionId: isolatedSessionId ?? undefined,
-      })
-    } catch (error) {
-      console.warn('[Agentation] Failed to initialize project isolation', error)
-      setState({
-        readyPathname: pathname,
-        sessionId: undefined,
-      })
+      try {
+        const isolatedSessionId = ensureAgentationProjectIsolation(
+          window.localStorage,
+          pathname,
+          window.location.origin,
+        )
+
+        setState({
+          readyPathname: pathname,
+          sessionId: isolatedSessionId ?? undefined,
+        })
+      } catch (error) {
+        console.warn('[Agentation] Failed to initialize project isolation', error)
+        setState({
+          readyPathname: pathname,
+          sessionId: undefined,
+        })
+      }
+    })
+
+    return () => {
+      canceled = true
+      window.cancelAnimationFrame(frame)
     }
   }, [pathname])
 
