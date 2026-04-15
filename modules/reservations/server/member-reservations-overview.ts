@@ -15,6 +15,11 @@ import {
   type MembershipEligibilitySnapshot,
   type ReservationSchedulePrimaryAction,
 } from '@/modules/reservations/server/reservation-eligibility'
+import {
+  calculateCreditsRemaining,
+  selectCurrentMembership,
+  selectPendingMembership,
+} from '@/modules/members/server/member-commercial'
 
 type ReservationWithSession = Reservation & {
   classSession: {
@@ -476,39 +481,6 @@ export function buildMemberReservationsOverview({
     recentHistory: historyRows,
     schedulePreview: scheduleDays,
   }
-}
-
-export function selectCurrentMembership(
-  memberships: Array<
-    Pick<MemberMembership, 'status'> & {
-      membershipPlan: {
-        name: string
-      }
-    }
-  >,
-) {
-  return memberships.find((membership) => membership.status === 'ACTIVE') ?? null
-}
-
-export function selectPendingMembership(
-  memberships: Array<
-    Pick<MemberMembership, 'status'> & {
-      membershipPlan: {
-        name: string
-      }
-    }
-  >,
-) {
-  return memberships.find((membership) => membership.status === 'PENDING_ACTIVATION') ?? null
-}
-
-export function calculateCreditsRemaining(
-  creditAccounts: CreditAccountEligibilitySnapshot[],
-) {
-  return creditAccounts.reduce((total, account) => {
-    const latestBalance = account.ledgerEntries[0]?.balanceAfter
-    return total + (latestBalance ?? account.creditPack.creditsTotal)
-  }, 0)
 }
 
 export function buildMemberBookingState({

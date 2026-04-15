@@ -6,51 +6,9 @@ import {
   buildMemberBookingState,
   buildMemberReservationsOverview,
   buildScheduleAvailability,
-  calculateCreditsRemaining,
-  selectCurrentMembership,
-  selectPendingMembership,
 } from '@/modules/reservations/server/member-reservations-overview'
 
 describe('member reservations overview helpers', () => {
-  it('selects current and pending memberships correctly', () => {
-    const memberships: Parameters<typeof selectCurrentMembership>[0] = [
-      {
-        status: 'PENDING_ACTIVATION',
-        membershipPlan: { name: 'Premium' },
-      },
-      {
-        status: 'ACTIVE',
-        membershipPlan: { name: 'Fuerza Base' },
-      },
-    ]
-
-    expect(selectCurrentMembership(memberships)?.membershipPlan.name).toBe('Fuerza Base')
-    expect(selectPendingMembership(memberships)?.membershipPlan.name).toBe('Premium')
-  })
-
-  it('calculates remaining credits using latest balance or pack total fallback', () => {
-    expect(
-      calculateCreditsRemaining([
-        {
-          id: 'credit-1',
-          status: 'ACTIVE',
-          openedAt: new Date('2026-03-01T08:00:00.000Z'),
-          expiresAt: null,
-          creditPack: { creditsTotal: 10 },
-          ledgerEntries: [{ balanceAfter: 4 }],
-        },
-        {
-          id: 'credit-2',
-          status: 'ACTIVE',
-          openedAt: new Date('2026-03-02T08:00:00.000Z'),
-          expiresAt: null,
-          creditPack: { creditsTotal: 6 },
-          ledgerEntries: [],
-        },
-      ]),
-    ).toBe(10)
-  })
-
   it('builds booking state for ready, pending and blocked scenarios', () => {
     expect(
       buildMemberBookingState({

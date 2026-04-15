@@ -1,7 +1,5 @@
 import type { ReactNode } from 'react'
 
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
-
 type MemberPortalSectionShellProps = {
   eyebrow: string
   title: string
@@ -22,27 +20,15 @@ export function MemberPortalSectionShell({
           {eyebrow}
         </p>
         <div className="space-y-3">
-          <h1 className="font-display text-4xl uppercase tracking-[0.03em] text-[var(--wellstudio-ink)] sm:text-5xl lg:text-[3.65rem]">
+          <h1 className="text-pretty font-display text-4xl uppercase tracking-[0.03em] text-[var(--wellstudio-ink)] sm:text-5xl lg:text-[3.65rem]">
             {title}
           </h1>
-          <p className="max-w-3xl text-base leading-8 text-[color:color-mix(in_srgb,var(--foreground)_72%,white)] sm:text-lg">
+          <p className="max-w-3xl text-pretty text-base leading-8 text-[color:color-mix(in_srgb,var(--foreground)_72%,white)] sm:text-lg">
             {description}
           </p>
         </div>
       </header>
-
-      <Card className="overflow-visible rounded-[2rem] border border-[color:color-mix(in_srgb,var(--wellstudio-blue-deep)_10%,white)] bg-[color:color-mix(in_srgb,var(--card)_82%,white)] py-0 shadow-none">
-        <CardHeader className="border-b border-[color:color-mix(in_srgb,var(--border)_72%,white)] px-6 py-6 sm:px-8">
-          <CardTitle className="text-lg text-[var(--wellstudio-ink)]">
-            Espacio en preparación
-          </CardTitle>
-          <CardDescription className="max-w-2xl text-sm leading-7 text-[color:color-mix(in_srgb,var(--foreground)_66%,white)]">
-            Esta sección ya está integrada en la shell privada y preparada para recibir
-            comportamiento real en los siguientes tickets.
-          </CardDescription>
-        </CardHeader>
-        <CardContent className="px-6 py-6 sm:px-8 sm:py-8">{children}</CardContent>
-      </Card>
+      {children}
     </section>
   )
 }

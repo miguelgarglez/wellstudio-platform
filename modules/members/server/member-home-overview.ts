@@ -12,6 +12,14 @@ import {
   buildMemberShellSummary,
   type MemberShellSummary,
 } from '@/modules/members/server/member-shell-summary'
+import {
+  buildPlanWindowLabel,
+  calculateCreditsRemaining,
+  formatCardLabel,
+  selectCurrentMembership,
+  selectPendingMembership,
+  selectPrimaryCard,
+} from '@/modules/members/server/member-commercial'
 
 type ReservationWithSession = Reservation & {
   classSession: {
@@ -325,63 +333,6 @@ export function buildMemberHomeOverview({
   }
 }
 
-export function selectCurrentMembership(
-  memberships: Array<
-    Pick<MemberMembership, 'status' | 'startsAt' | 'endsAt'> & {
-      membershipPlan: {
-        name: string
-      }
-    }
-  >,
-) {
-  return memberships.find((membership) => membership.status === 'ACTIVE') ?? null
-}
-
-export function selectPendingMembership(
-  memberships: Array<
-    Pick<MemberMembership, 'status' | 'startsAt' | 'endsAt'> & {
-      membershipPlan: {
-        name: string
-      }
-    }
-  >,
-) {
-  return memberships.find((membership) => membership.status === 'PENDING_ACTIVATION') ?? null
-}
-
-export function calculateCreditsRemaining(
-  creditAccounts: Array<
-    Pick<MemberCreditAccount, 'status'> & {
-      creditPack: {
-        name: string
-        creditsTotal: number
-      }
-      ledgerEntries: Array<{
-        balanceAfter: number
-      }>
-    }
-  >,
-) {
-  return creditAccounts.reduce((total, account) => {
-    const latestBalance = account.ledgerEntries[0]?.balanceAfter
-    return total + (latestBalance ?? account.creditPack.creditsTotal)
-  }, 0)
-}
-
-export function selectPrimaryCard(cards: Array<Pick<Card, 'brand' | 'last4' | 'isDefault' | 'updatedAt'>>) {
-  if (cards.length === 0) {
-    return null
-  }
-
-  return [...cards].sort((left, right) => {
-    if (left.isDefault !== right.isDefault) {
-      return Number(right.isDefault) - Number(left.isDefault)
-    }
-
-    return right.updatedAt.getTime() - left.updatedAt.getTime()
-  })[0]
-}
-
 export function buildMemberHomeAlerts({
   hasActiveEntitlement,
   hasActiveWaitlist,
@@ -506,40 +457,4 @@ function buildRelativeDateLabel(
 function buildAvailabilityLabel(capacity: number, reservedCount: number) {
   const remaining = Math.max(capacity - reservedCount, 0)
   return `${remaining} plazas disponibles`
-}
-
-function buildPlanWindowLabel(
-  membership: Pick<MemberMembership, 'startsAt' | 'endsAt'> & {
-    membershipPlan: {
-      name: string
-    }
-  },
-  now: Date,
-) {
-  const formatter = new Intl.DateTimeFormat('es-ES', {
-    day: 'numeric',
-    month: 'short',
-  })
-
-  if (!membership.endsAt) {
-    return `Activa desde ${formatter.format(membership.startsAt)}`
-  }
-
-  if (membership.endsAt < now) {
-    return `Venció el ${formatter.format(membership.endsAt)}`
-  }
-
-  return `${formatter.format(membership.startsAt)} – ${formatter.format(membership.endsAt)}`
-}
-
-function formatCardLabel(card: Pick<Card, 'brand' | 'last4'>) {
-  if (card.brand && card.last4) {
-    return `${card.brand} terminada en ${card.last4}`
-  }
-
-  if (card.last4) {
-    return `Tarjeta terminada en ${card.last4}`
-  }
-
-  return 'Tarjeta vinculada'
 }

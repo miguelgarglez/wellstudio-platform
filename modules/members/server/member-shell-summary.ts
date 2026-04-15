@@ -38,14 +38,14 @@ export function buildMemberShellSummary(
 
 function formatMemberStatusLabel(status: string) {
   switch (status) {
+    case 'LEAD_CONVERTED':
+      return 'Perfil pendiente de activación'
     case 'ACTIVE':
       return 'Socio activo'
-    case 'PENDING':
-      return 'Perfil pendiente'
     case 'INACTIVE':
       return 'Socio inactivo'
-    case 'SUSPENDED':
-      return 'Socio suspendido'
+    case 'BLOCKED':
+      return 'Socio bloqueado'
     default:
       return 'Estado de socio'
   }

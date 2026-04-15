@@ -3,10 +3,6 @@ import { describe, expect, it } from 'vitest'
 import {
   buildMemberHomeAlerts,
   buildMemberHomeOverview,
-  calculateCreditsRemaining,
-  selectCurrentMembership,
-  selectPendingMembership,
-  selectPrimaryCard,
 } from '@/modules/members/server/member-home-overview'
 import type { AuthContext } from '@/modules/auth/server/identity'
 
@@ -34,80 +30,6 @@ function buildAuthenticatedContext(): Extract<AuthContext, { isAuthenticated: tr
 }
 
 describe('member home overview helpers', () => {
-  it('selects the active membership over pending activation', () => {
-    const membership = selectCurrentMembership([
-      {
-        status: 'PENDING_ACTIVATION',
-        startsAt: new Date('2026-03-28T09:00:00.000Z'),
-        endsAt: new Date('2026-04-28T09:00:00.000Z'),
-        membershipPlan: { name: 'Premium' },
-      },
-      {
-        status: 'ACTIVE',
-        startsAt: new Date('2026-03-01T09:00:00.000Z'),
-        endsAt: new Date('2026-04-01T09:00:00.000Z'),
-        membershipPlan: { name: 'Fuerza Base' },
-      },
-    ])
-
-    expect(membership?.membershipPlan.name).toBe('Fuerza Base')
-  })
-
-  it('selects a pending membership when activation is not active yet', () => {
-    const membership = selectPendingMembership([
-      {
-        status: 'PENDING_ACTIVATION',
-        startsAt: new Date('2026-03-28T09:00:00.000Z'),
-        endsAt: new Date('2026-04-28T09:00:00.000Z'),
-        membershipPlan: { name: 'Premium' },
-      },
-    ])
-
-    expect(membership?.membershipPlan.name).toBe('Premium')
-  })
-
-  it('calculates credits remaining using the latest ledger balance when available', () => {
-    const creditsRemaining = calculateCreditsRemaining([
-      {
-        status: 'ACTIVE',
-        creditPack: {
-          name: 'Pack 10',
-          creditsTotal: 10,
-        },
-        ledgerEntries: [{ balanceAfter: 4 }],
-      },
-      {
-        status: 'ACTIVE',
-        creditPack: {
-          name: 'Pack 4',
-          creditsTotal: 4,
-        },
-        ledgerEntries: [],
-      },
-    ])
-
-    expect(creditsRemaining).toBe(8)
-  })
-
-  it('selects the default card before newer non-default cards', () => {
-    const card = selectPrimaryCard([
-      {
-        brand: 'visa',
-        last4: '1111',
-        isDefault: false,
-        updatedAt: new Date('2026-03-22T09:00:00.000Z'),
-      },
-      {
-        brand: 'mastercard',
-        last4: '2222',
-        isDefault: true,
-        updatedAt: new Date('2026-03-21T09:00:00.000Z'),
-      },
-    ])
-
-    expect(card?.last4).toBe('2222')
-  })
-
   it('builds alerts for no entitlement, waitlist activity and missing card', () => {
     expect(
       buildMemberHomeAlerts({
