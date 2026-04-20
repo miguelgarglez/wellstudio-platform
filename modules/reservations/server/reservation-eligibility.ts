@@ -1,17 +1,55 @@
 import type {
+  ClassSession,
   ClassTypeEligibilityRule,
   MemberCreditAccount,
   MemberMembership,
+  MemberMembershipBookingOverride,
+  MembershipBookingPolicy,
+  Reservation,
+  ReservationEntitlementUsage,
 } from '@prisma/client'
 
 export const MEMBER_CANCELLATION_WINDOW_MINUTES = 120
+export const WELLSTUDIO_BUSINESS_TIME_ZONE = 'Europe/Madrid'
+
+const WEEKDAY_TO_MONDAY_INDEX: Record<string, number> = {
+  Mon: 0,
+  Tue: 1,
+  Wed: 2,
+  Thu: 3,
+  Fri: 4,
+  Sat: 5,
+  Sun: 6,
+}
+
+const BUSINESS_DATE_PARTS_FORMATTER = new Intl.DateTimeFormat('en-US', {
+  timeZone: WELLSTUDIO_BUSINESS_TIME_ZONE,
+  weekday: 'short',
+  year: 'numeric',
+  month: '2-digit',
+  day: '2-digit',
+})
+
+const BUSINESS_DATE_TIME_PARTS_FORMATTER = new Intl.DateTimeFormat('en-US', {
+  timeZone: WELLSTUDIO_BUSINESS_TIME_ZONE,
+  hour12: false,
+  year: 'numeric',
+  month: '2-digit',
+  day: '2-digit',
+  hour: '2-digit',
+  minute: '2-digit',
+  second: '2-digit',
+})
 
 export type SupportedEligibilityRuleType = 'MEMBERSHIP_PLAN' | 'CREDIT'
+export type SupportedMembershipBookingPolicyType = 'UNLIMITED' | 'PERIODIC_ALLOWANCE'
+export type SupportedMembershipBookingPeriodType = 'CALENDAR_WEEK' | 'CALENDAR_MONTH'
 
 export type ReservationEligibilityCode =
   | 'ELIGIBLE'
   | 'NO_ACTIVE_RULE'
   | 'NO_ELIGIBLE_ENTITLEMENT'
+  | 'MEMBERSHIP_ALLOWANCE_EXHAUSTED'
 
 export type ReservationScheduleActionKind =
   | 'book'
@@ -25,10 +63,36 @@ export type EligibilityRuleSnapshot = Pick<
   'id' | 'ruleType' | 'membershipPlanId' | 'creditCost' | 'priority' | 'createdAt' | 'isActive'
 >
 
+export type MembershipBookingPolicySnapshot = Pick<
+  MembershipBookingPolicy,
+  'policyType' | 'periodType' | 'allowanceCount'
+>
+
+export type MembershipBookingOverrideSnapshot = Pick<
+  MemberMembershipBookingOverride,
+  'id' | 'overrideType' | 'classSessionId' | 'extraBookings' | 'startsAt' | 'expiresAt' | 'revokedAt'
+>
+
+export type MembershipUsageSnapshot = Pick<
+  ReservationEntitlementUsage,
+  'usageType' | 'bookingOverrideId'
+> & {
+  reservation: Pick<Reservation, 'status'> & {
+    classSession: Pick<ClassSession, 'id' | 'startsAt'>
+  }
+}
+
 export type MembershipEligibilitySnapshot = Pick<
   MemberMembership,
   'id' | 'membershipPlanId' | 'status' | 'startsAt' | 'endsAt'
->
+> & {
+  membershipPlan: {
+    bookingPolicyType: string | null
+    bookingPolicy: MembershipBookingPolicySnapshot | null
+  }
+  bookingOverrides: MembershipBookingOverrideSnapshot[]
+  usages: MembershipUsageSnapshot[]
+}
 
 export type CreditAccountEligibilitySnapshot = Pick<
   MemberCreditAccount,
@@ -49,6 +113,16 @@ export type ReservationEligibilityUsage =
       ruleType: 'MEMBERSHIP_PLAN'
       memberMembershipId: string
       memberCreditAccountId: null
+      bookingOverrideId: null
+      creditsUsed: null
+    }
+  | {
+      usageType: 'MANUAL_OVERRIDE'
+      ruleId: string
+      ruleType: 'MEMBERSHIP_PLAN'
+      memberMembershipId: string
+      memberCreditAccountId: null
+      bookingOverrideId: string
       creditsUsed: null
     }
   | {
@@ -57,6 +131,7 @@ export type ReservationEligibilityUsage =
       ruleType: 'CREDIT'
       memberMembershipId: null
       memberCreditAccountId: string
+      bookingOverrideId: null
       creditsUsed: number
     }
 
@@ -76,6 +151,18 @@ export type ReservationSchedulePrimaryAction = {
   label: string
   description?: string
 }
+
+type NormalizedMembershipBookingPolicy =
+  | {
+      policyType: 'UNLIMITED'
+      periodType: null
+      allowanceCount: null
+    }
+  | {
+      policyType: 'PERIODIC_ALLOWANCE'
+      periodType: SupportedMembershipBookingPeriodType
+      allowanceCount: number
+    }
 
 export function normalizeEligibilityRuleType(
   ruleType: string,
@@ -124,12 +211,105 @@ export function calculateCreditAccountBalance(
   return account.ledgerEntries[0]?.balanceAfter ?? account.creditPack.creditsTotal
 }
 
-export function selectEligibleMembershipForRule(
+export function buildMembershipPolicyUsageSearchWindow(input: {
+  earliestSessionStartsAt: Date
+  latestSessionStartsAt: Date
+}) {
+  const earliestWindow = buildBusinessPeriodWindow(
+    input.earliestSessionStartsAt,
+    'CALENDAR_MONTH',
+  )
+  const latestWindow = buildBusinessPeriodWindow(
+    input.latestSessionStartsAt,
+    'CALENDAR_MONTH',
+  )
+
+  return {
+    startsAtGte: earliestWindow.startsAt,
+    startsAtLte: latestWindow.endsAt,
+  }
+}
+
+export function buildMembershipBookingPeriodKey(
+  date: Date,
+  periodType: SupportedMembershipBookingPeriodType,
+) {
+  const businessDate = getBusinessDateParts(date)
+
+  if (periodType === 'CALENDAR_MONTH') {
+    return `${businessDate.year}-${padTwoDigits(businessDate.month)}`
+  }
+
+  const mondayDate = getBusinessWeekMondayDate(date)
+
+  return `${mondayDate.getUTCFullYear()}-${padTwoDigits(mondayDate.getUTCMonth() + 1)}-${padTwoDigits(
+    mondayDate.getUTCDate(),
+  )}`
+}
+
+export function buildBusinessPeriodWindow(
+  date: Date,
+  periodType: SupportedMembershipBookingPeriodType,
+) {
+  const businessDate = getBusinessDateParts(date)
+
+  if (periodType === 'CALENDAR_MONTH') {
+    const startsAt = buildBusinessDateTime(
+      businessDate.year,
+      businessDate.month,
+      1,
+      0,
+      0,
+      0,
+    )
+    const nextMonthStartsAt = buildBusinessDateTime(
+      businessDate.month === 12 ? businessDate.year + 1 : businessDate.year,
+      businessDate.month === 12 ? 1 : businessDate.month + 1,
+      1,
+      0,
+      0,
+      0,
+    )
+
+    return {
+      startsAt,
+      endsAt: new Date(nextMonthStartsAt.getTime() - 1),
+    }
+  }
+
+  const mondayDate = getBusinessWeekMondayDate(date)
+  const nextMondayDate = new Date(mondayDate)
+  nextMondayDate.setUTCDate(mondayDate.getUTCDate() + 7)
+
+  const startsAt = buildBusinessDateTime(
+    mondayDate.getUTCFullYear(),
+    mondayDate.getUTCMonth() + 1,
+    mondayDate.getUTCDate(),
+    0,
+    0,
+    0,
+  )
+  const nextWeekStartsAt = buildBusinessDateTime(
+    nextMondayDate.getUTCFullYear(),
+    nextMondayDate.getUTCMonth() + 1,
+    nextMondayDate.getUTCDate(),
+    0,
+    0,
+    0,
+  )
+
+  return {
+    startsAt,
+    endsAt: new Date(nextWeekStartsAt.getTime() - 1),
+  }
+}
+
+export function selectEligibleMembershipsForRule(
   memberships: MembershipEligibilitySnapshot[],
   rule: EligibilityRuleSnapshot,
   sessionStartsAt: Date,
 ) {
-  return memberships.find((membership) => {
+  return memberships.filter((membership) => {
     if (membership.status !== 'ACTIVE') {
       return false
     }
@@ -190,11 +370,13 @@ export function evaluateReservationEligibilityFromSnapshots({
   memberships,
   creditAccounts,
   sessionStartsAt,
+  classSessionId,
 }: {
   rules: EligibilityRuleSnapshot[]
   memberships: MembershipEligibilitySnapshot[]
   creditAccounts: CreditAccountEligibilitySnapshot[]
   sessionStartsAt: Date
+  classSessionId: string
 }): ReservationEligibilityResult {
   const activeRules = sortEligibilityRules(rules.filter((rule) => rule.isActive))
 
@@ -205,28 +387,36 @@ export function evaluateReservationEligibilityFromSnapshots({
     }
   }
 
+  let sawMembershipAllowanceExhausted = false
+
   for (const rule of activeRules) {
     const normalizedRuleType = normalizeEligibilityRuleType(rule.ruleType)
 
     if (normalizedRuleType === 'MEMBERSHIP_PLAN') {
-      const membership = selectEligibleMembershipForRule(
+      const candidateMemberships = selectEligibleMembershipsForRule(
         memberships,
         rule,
         sessionStartsAt,
       )
 
-      if (membership) {
-        return {
-          eligible: true,
-          code: 'ELIGIBLE',
-          usage: {
-            usageType: 'MEMBERSHIP',
-            ruleId: rule.id,
-            ruleType: 'MEMBERSHIP_PLAN',
-            memberMembershipId: membership.id,
-            memberCreditAccountId: null,
-            creditsUsed: null,
-          },
+      for (const membership of candidateMemberships) {
+        const membershipUsage = resolveMembershipUsageForSession({
+          membership,
+          rule,
+          sessionStartsAt,
+          classSessionId,
+        })
+
+        if (membershipUsage) {
+          return {
+            eligible: true,
+            code: 'ELIGIBLE',
+            usage: membershipUsage,
+          }
+        }
+
+        if (hasPeriodicAllowancePolicy(membership)) {
+          sawMembershipAllowanceExhausted = true
         }
       }
 
@@ -250,6 +440,7 @@ export function evaluateReservationEligibilityFromSnapshots({
             ruleType: 'CREDIT',
             memberMembershipId: null,
             memberCreditAccountId: creditAccount.id,
+            bookingOverrideId: null,
             creditsUsed: Math.max(rule.creditCost ?? 0, 0),
           },
         }
@@ -259,7 +450,9 @@ export function evaluateReservationEligibilityFromSnapshots({
 
   return {
     eligible: false,
-    code: 'NO_ELIGIBLE_ENTITLEMENT',
+    code: sawMembershipAllowanceExhausted
+      ? 'MEMBERSHIP_ALLOWANCE_EXHAUSTED'
+      : 'NO_ELIGIBLE_ENTITLEMENT',
   }
 }
 
@@ -313,11 +506,15 @@ export function buildSchedulePrimaryAction({
       label:
         eligibility.code === 'NO_ACTIVE_RULE'
           ? 'Sin regla activa'
-          : 'No puedes reservar ahora',
+          : eligibility.code === 'MEMBERSHIP_ALLOWANCE_EXHAUSTED'
+            ? 'Cupo agotado'
+            : 'No puedes reservar ahora',
       description:
         eligibility.code === 'NO_ACTIVE_RULE'
           ? 'La clase todavía no tiene una regla de elegibilidad activa.'
-          : 'Necesitas una membresía válida o créditos suficientes para esta sesión.',
+          : eligibility.code === 'MEMBERSHIP_ALLOWANCE_EXHAUSTED'
+            ? 'Has agotado el cupo de tu membresía para este periodo.'
+            : 'Necesitas una membresía válida o créditos suficientes para esta sesión.',
     }
   }
 
@@ -342,4 +539,240 @@ export function buildSchedulePrimaryAction({
     label: 'Clase completa',
     description: 'No quedan plazas y esta sesión no admite waitlist.',
   }
+}
+
+function resolveMembershipUsageForSession({
+  membership,
+  rule,
+  sessionStartsAt,
+  classSessionId,
+}: {
+  membership: MembershipEligibilitySnapshot
+  rule: EligibilityRuleSnapshot
+  sessionStartsAt: Date
+  classSessionId: string
+}): ReservationEligibilityUsage | null {
+  const policy = resolveMembershipBookingPolicy(membership)
+
+  if (policy.policyType === 'UNLIMITED') {
+    return {
+      usageType: 'MEMBERSHIP',
+      ruleId: rule.id,
+      ruleType: 'MEMBERSHIP_PLAN',
+      memberMembershipId: membership.id,
+      memberCreditAccountId: null,
+      bookingOverrideId: null,
+      creditsUsed: null,
+    }
+  }
+
+  const periodKey = buildMembershipBookingPeriodKey(sessionStartsAt, policy.periodType)
+  const usedBookingsCount = membership.usages.filter((usage) => {
+    if (usage.usageType !== 'MEMBERSHIP') {
+      return false
+    }
+
+    if (!countsTowardMembershipAllowance(usage.reservation.status)) {
+      return false
+    }
+
+    return (
+      buildMembershipBookingPeriodKey(usage.reservation.classSession.startsAt, policy.periodType) ===
+      periodKey
+    )
+  }).length
+
+  const extraAllowance = membership.bookingOverrides.reduce((total, override) => {
+    if (override.overrideType !== 'EXTRA_ALLOWANCE') {
+      return total
+    }
+
+    if (!isActiveOverrideForSession(override, sessionStartsAt)) {
+      return total
+    }
+
+    return total + Math.max(override.extraBookings ?? 0, 0)
+  }, 0)
+
+  if (usedBookingsCount < policy.allowanceCount + extraAllowance) {
+    return {
+      usageType: 'MEMBERSHIP',
+      ruleId: rule.id,
+      ruleType: 'MEMBERSHIP_PLAN',
+      memberMembershipId: membership.id,
+      memberCreditAccountId: null,
+      bookingOverrideId: null,
+      creditsUsed: null,
+    }
+  }
+
+  const sessionOverride = membership.bookingOverrides.find((override) => {
+    return (
+      override.overrideType === 'SESSION_ACCESS' &&
+      override.classSessionId === classSessionId &&
+      isActiveOverrideForSession(override, sessionStartsAt)
+    )
+  })
+
+  if (!sessionOverride) {
+    return null
+  }
+
+  return {
+    usageType: 'MANUAL_OVERRIDE',
+    ruleId: rule.id,
+    ruleType: 'MEMBERSHIP_PLAN',
+    memberMembershipId: membership.id,
+    memberCreditAccountId: null,
+    bookingOverrideId: sessionOverride.id,
+    creditsUsed: null,
+  }
+}
+
+function hasPeriodicAllowancePolicy(membership: MembershipEligibilitySnapshot) {
+  return resolveMembershipBookingPolicy(membership).policyType === 'PERIODIC_ALLOWANCE'
+}
+
+function resolveMembershipBookingPolicy(
+  membership: MembershipEligibilitySnapshot,
+): NormalizedMembershipBookingPolicy {
+  const explicitPolicy = membership.membershipPlan.bookingPolicy
+
+  if (explicitPolicy?.policyType === 'PERIODIC_ALLOWANCE') {
+    const periodType = normalizeMembershipBookingPeriodType(explicitPolicy.periodType)
+    const allowanceCount = Math.max(explicitPolicy.allowanceCount ?? 0, 0)
+
+    if (periodType && allowanceCount > 0) {
+      return {
+        policyType: 'PERIODIC_ALLOWANCE',
+        periodType,
+        allowanceCount,
+      }
+    }
+  }
+
+  if (explicitPolicy?.policyType === 'UNLIMITED') {
+    return {
+      policyType: 'UNLIMITED',
+      periodType: null,
+      allowanceCount: null,
+    }
+  }
+
+  const legacyPolicyType = membership.membershipPlan.bookingPolicyType?.trim().toUpperCase()
+
+  if (!legacyPolicyType || legacyPolicyType === 'UNLIMITED' || legacyPolicyType === 'OPEN_MEMBERSHIP_ACCESS') {
+    return {
+      policyType: 'UNLIMITED',
+      periodType: null,
+      allowanceCount: null,
+    }
+  }
+
+  return {
+    policyType: 'UNLIMITED',
+    periodType: null,
+    allowanceCount: null,
+  }
+}
+
+function normalizeMembershipBookingPeriodType(periodType: string | null | undefined) {
+  const normalized = periodType?.trim().toUpperCase()
+
+  switch (normalized) {
+    case 'CALENDAR_WEEK':
+    case 'CALENDAR_MONTH':
+      return normalized
+    default:
+      return null
+  }
+}
+
+function countsTowardMembershipAllowance(status: Reservation['status']) {
+  return status === 'BOOKED' || status === 'ATTENDED' || status === 'NO_SHOW'
+}
+
+function isActiveOverrideForSession(
+  override: MembershipBookingOverrideSnapshot,
+  sessionStartsAt: Date,
+) {
+  if (override.revokedAt) {
+    return false
+  }
+
+  return (
+    override.startsAt.getTime() <= sessionStartsAt.getTime() &&
+    override.expiresAt.getTime() >= sessionStartsAt.getTime()
+  )
+}
+
+function getBusinessWeekMondayDate(date: Date) {
+  const businessDate = getBusinessDateParts(date)
+  const mondayDate = new Date(
+    Date.UTC(businessDate.year, businessDate.month - 1, businessDate.day, 12, 0, 0),
+  )
+  const mondayIndex = WEEKDAY_TO_MONDAY_INDEX[businessDate.weekday] ?? 0
+  mondayDate.setUTCDate(mondayDate.getUTCDate() - mondayIndex)
+  return mondayDate
+}
+
+function getBusinessDateParts(date: Date) {
+  const parts = mapParts(BUSINESS_DATE_PARTS_FORMATTER.formatToParts(date))
+
+  return {
+    year: Number(parts.year),
+    month: Number(parts.month),
+    day: Number(parts.day),
+    weekday: parts.weekday,
+  }
+}
+
+function buildBusinessDateTime(
+  year: number,
+  month: number,
+  day: number,
+  hour: number,
+  minute: number,
+  second: number,
+) {
+  const utcGuess = new Date(Date.UTC(year, month - 1, day, hour, minute, second, 0))
+  const firstOffset = getBusinessTimeZoneOffset(utcGuess)
+  let actualDate = new Date(utcGuess.getTime() - firstOffset)
+  const correctedOffset = getBusinessTimeZoneOffset(actualDate)
+
+  if (correctedOffset !== firstOffset) {
+    actualDate = new Date(utcGuess.getTime() - correctedOffset)
+  }
+
+  return actualDate
+}
+
+function getBusinessTimeZoneOffset(date: Date) {
+  const parts = mapParts(BUSINESS_DATE_TIME_PARTS_FORMATTER.formatToParts(date))
+
+  const asUtcTimestamp = Date.UTC(
+    Number(parts.year),
+    Number(parts.month) - 1,
+    Number(parts.day),
+    Number(parts.hour),
+    Number(parts.minute),
+    Number(parts.second),
+    0,
+  )
+
+  return asUtcTimestamp - date.getTime()
+}
+
+function mapParts(parts: Intl.DateTimeFormatPart[]) {
+  return parts.reduce<Record<string, string>>((result, part) => {
+    if (part.type !== 'literal') {
+      result[part.type] = part.value
+    }
+
+    return result
+  }, {})
+}
+
+function padTwoDigits(value: number) {
+  return String(value).padStart(2, '0')
 }

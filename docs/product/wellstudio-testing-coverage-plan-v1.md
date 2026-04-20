@@ -92,6 +92,9 @@ Esta es la primera zona realmente critica del negocio.
 ### Unit
 
 - elegibilidad con membresia activa
+- elegibilidad con quota periodica disponible
+- agotamiento de quota semanal o mensual
+- override admin por periodo y por sesion
 - elegibilidad sin entitlement
 - elegibilidad con creditos
 - devolucion dentro de ventana
@@ -102,8 +105,10 @@ Esta es la primera zona realmente critica del negocio.
 - crear reserva
 - impedir doble reserva
 - actualizar aforo
+- registrar `manual_override` cuando una reserva entra por override admin
 - cancelar reserva
 - devolver credito
+- dejar de contar allowance tras cancelacion valida
 - crear entrada en waitlist
 
 ### E2E

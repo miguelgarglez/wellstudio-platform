@@ -3,6 +3,7 @@ import { Prisma } from '@prisma/client'
 import { prisma } from '@/lib/db/prisma'
 import {
   buildCancellationWindow,
+  buildMembershipPolicyUsageSearchWindow,
   calculateCreditAccountBalance,
   evaluateReservationEligibilityFromSnapshots,
   type EligibilityRuleSnapshot,
@@ -25,6 +26,7 @@ export type ReservationMutationCode =
   | 'CANCELLATION_WINDOW_CLOSED'
   | 'NO_ELIGIBLE_ENTITLEMENT'
   | 'NO_ACTIVE_RULE'
+  | 'MEMBERSHIP_ALLOWANCE_EXHAUSTED'
   | 'SESSION_NOT_BOOKABLE'
   | 'RESERVATION_NOT_FOUND'
   | 'WAITLIST_NOT_FOUND'
@@ -483,6 +485,11 @@ export async function evaluateEligibilityInTx(
     session: MutationSessionSnapshot
   },
 ) {
+  const usageWindow = buildMembershipPolicyUsageSearchWindow({
+    earliestSessionStartsAt: input.session.startsAt,
+    latestSessionStartsAt: input.session.startsAt,
+  })
+
   const [memberships, creditAccounts] = await Promise.all([
     tx.memberMembership.findMany({
       where: {
@@ -495,6 +502,68 @@ export async function evaluateEligibilityInTx(
         status: true,
         startsAt: true,
         endsAt: true,
+        membershipPlan: {
+          select: {
+            bookingPolicyType: true,
+            bookingPolicy: {
+              select: {
+                policyType: true,
+                periodType: true,
+                allowanceCount: true,
+              },
+            },
+          },
+        },
+        bookingOverrides: {
+          where: {
+            revokedAt: null,
+            expiresAt: {
+              gte: usageWindow.startsAtGte,
+            },
+            startsAt: {
+              lte: usageWindow.startsAtLte,
+            },
+          },
+          select: {
+            id: true,
+            overrideType: true,
+            classSessionId: true,
+            extraBookings: true,
+            startsAt: true,
+            expiresAt: true,
+            revokedAt: true,
+          },
+        },
+        usages: {
+          where: {
+            usageType: {
+              in: ['MEMBERSHIP', 'MANUAL_OVERRIDE'],
+            },
+            reservation: {
+              classSession: {
+                startsAt: {
+                  gte: usageWindow.startsAtGte,
+                  lte: usageWindow.startsAtLte,
+                },
+              },
+            },
+          },
+          select: {
+            usageType: true,
+            bookingOverrideId: true,
+            reservation: {
+              select: {
+                status: true,
+                classSession: {
+                  select: {
+                    id: true,
+                    startsAt: true,
+                  },
+                },
+              },
+            },
+          },
+        },
       },
       orderBy: {
         startsAt: 'desc',
@@ -538,6 +607,7 @@ export async function evaluateEligibilityInTx(
     memberships,
     creditAccounts,
     sessionStartsAt: input.session.startsAt,
+    classSessionId: input.session.id,
   })
 }
 
@@ -677,6 +747,19 @@ export async function createBookedReservation(
         reservationId: reservation.id,
         usageType: 'MEMBERSHIP',
         memberMembershipId: input.usage.memberMembershipId,
+      },
+    })
+
+    return reservation
+  }
+
+  if (input.usage.usageType === 'MANUAL_OVERRIDE') {
+    await tx.reservationEntitlementUsage.create({
+      data: {
+        reservationId: reservation.id,
+        usageType: 'MANUAL_OVERRIDE',
+        memberMembershipId: input.usage.memberMembershipId,
+        bookingOverrideId: input.usage.bookingOverrideId,
       },
     })
 
@@ -964,6 +1047,13 @@ function buildEligibilityFailureResult(
     return buildMutationResult(
       'NO_ACTIVE_RULE',
       'La sesión todavía no tiene una regla de elegibilidad operativa.',
+    )
+  }
+
+  if (code === 'MEMBERSHIP_ALLOWANCE_EXHAUSTED') {
+    return buildMutationResult(
+      'MEMBERSHIP_ALLOWANCE_EXHAUSTED',
+      'Has agotado el cupo de tu membresía para este periodo.',
     )
   }
 

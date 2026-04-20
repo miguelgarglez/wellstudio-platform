@@ -98,6 +98,12 @@ describe('member reservation mutations', () => {
         status: 'ACTIVE',
         startsAt: new Date('2026-04-01T00:00:00.000Z'),
         endsAt: null,
+        membershipPlan: {
+          bookingPolicyType: 'OPEN_MEMBERSHIP_ACCESS',
+          bookingPolicy: null,
+        },
+        bookingOverrides: [],
+        usages: [],
       },
     ])
     tx.memberCreditAccount.findMany.mockResolvedValue([])
@@ -127,6 +133,102 @@ describe('member reservation mutations', () => {
     expect(tx.classSession.update).toHaveBeenCalledWith({
       where: { id: 'session-1' },
       data: { reservedCount: { increment: 1 } },
+    })
+  })
+
+  it('books a published session with manual override entitlement usage', async () => {
+    const tx = createTransactionMock()
+    withTransaction(tx)
+
+    tx.classSession.findUnique.mockResolvedValue({
+      id: 'session-1',
+      startsAt: new Date('2026-04-05T18:00:00.000Z'),
+      endsAt: new Date('2026-04-05T18:45:00.000Z'),
+      capacity: 10,
+      reservedCount: 6,
+      waitlistEnabled: true,
+      status: 'PUBLISHED',
+      classType: {
+        name: 'Grupo Premium',
+        eligibilityRules: [
+          {
+            id: 'rule-membership',
+            ruleType: 'MEMBERSHIP_PLAN',
+            membershipPlanId: 'plan-premium',
+            creditCost: null,
+            priority: 0,
+            createdAt: new Date('2026-03-01T00:00:00.000Z'),
+            isActive: true,
+          },
+        ],
+      },
+    })
+    tx.reservation.findFirst.mockResolvedValueOnce(null).mockResolvedValueOnce(null)
+    tx.memberMembership.findMany.mockResolvedValue([
+      {
+        id: 'membership-1',
+        membershipPlanId: 'plan-premium',
+        status: 'ACTIVE',
+        startsAt: new Date('2026-04-01T00:00:00.000Z'),
+        endsAt: null,
+        membershipPlan: {
+          bookingPolicyType: 'LIMITED_WEEKLY_BOOKINGS',
+          bookingPolicy: {
+            policyType: 'PERIODIC_ALLOWANCE',
+            periodType: 'CALENDAR_WEEK',
+            allowanceCount: 1,
+          },
+        },
+        bookingOverrides: [
+          {
+            id: 'override-session-1',
+            overrideType: 'SESSION_ACCESS',
+            classSessionId: 'session-1',
+            extraBookings: null,
+            startsAt: new Date('2026-04-01T00:00:00.000Z'),
+            expiresAt: new Date('2026-04-06T00:00:00.000Z'),
+            revokedAt: null,
+          },
+        ],
+        usages: [
+          {
+            usageType: 'MEMBERSHIP',
+            bookingOverrideId: null,
+            reservation: {
+              status: 'BOOKED',
+              classSession: {
+                id: 'session-used-1',
+                startsAt: new Date('2026-04-02T18:00:00.000Z'),
+              },
+            },
+          },
+        ],
+      },
+    ])
+    tx.memberCreditAccount.findMany.mockResolvedValue([])
+    tx.reservation.create.mockResolvedValue({ id: 'reservation-override-1' })
+    tx.reservationEntitlementUsage.create.mockResolvedValue({ id: 'usage-override-1' })
+    tx.classSession.update.mockResolvedValue({})
+
+    const result = await reservePublishedSession({
+      memberId: 'member-1',
+      userId: 'user-1',
+      classSessionId: 'session-1',
+      now: new Date('2026-04-03T10:00:00.000Z'),
+    })
+
+    expect(result).toMatchObject({
+      success: true,
+      code: 'BOOKED',
+      updatedEntityId: 'reservation-override-1',
+    })
+    expect(tx.reservationEntitlementUsage.create).toHaveBeenCalledWith({
+      data: {
+        reservationId: 'reservation-override-1',
+        usageType: 'MANUAL_OVERRIDE',
+        memberMembershipId: 'membership-1',
+        bookingOverrideId: 'override-session-1',
+      },
     })
   })
 
@@ -316,6 +418,12 @@ describe('member reservation mutations', () => {
         status: 'ACTIVE',
         startsAt: new Date('2026-04-01T00:00:00.000Z'),
         endsAt: null,
+        membershipPlan: {
+          bookingPolicyType: 'OPEN_MEMBERSHIP_ACCESS',
+          bookingPolicy: null,
+        },
+        bookingOverrides: [],
+        usages: [],
       },
     ])
     tx.memberCreditAccount.findMany.mockResolvedValue([])
@@ -483,6 +591,12 @@ describe('member reservation mutations', () => {
           status: 'ACTIVE',
           startsAt: new Date('2026-04-01T00:00:00.000Z'),
           endsAt: null,
+          membershipPlan: {
+            bookingPolicyType: 'OPEN_MEMBERSHIP_ACCESS',
+            bookingPolicy: null,
+          },
+          bookingOverrides: [],
+          usages: [],
         },
       ])
     tx.memberCreditAccount.findMany.mockResolvedValue([])

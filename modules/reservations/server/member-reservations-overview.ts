@@ -8,6 +8,7 @@ import type {
   WaitlistEntry,
 } from '@prisma/client'
 import {
+  buildMembershipPolicyUsageSearchWindow,
   buildCancellationWindow,
   buildSchedulePrimaryAction,
   evaluateReservationEligibilityFromSnapshots,
@@ -58,7 +59,15 @@ type WaitlistWithSession = WaitlistEntry & {
 type MembershipWithPlan = MemberMembership & {
   membershipPlan: {
     name: string
+    bookingPolicyType: string | null
+    bookingPolicy: {
+      policyType: 'UNLIMITED' | 'PERIODIC_ALLOWANCE'
+      periodType: 'CALENDAR_WEEK' | 'CALENDAR_MONTH' | null
+      allowanceCount: number | null
+    } | null
   }
+  bookingOverrides: MembershipEligibilitySnapshot['bookingOverrides']
+  usages: MembershipEligibilitySnapshot['usages']
 }
 
 type CreditAccountWithSnapshot = MemberCreditAccount & {
@@ -194,14 +203,8 @@ export const getMemberReservationsOverview = cache(
 
     const now = new Date()
 
-    const [
-      upcomingReservations,
-      activeWaitlists,
-      recentHistory,
-      publishedSessions,
-      memberships,
-      creditAccounts,
-    ] = await prisma.$transaction([
+    const [upcomingReservations, activeWaitlists, recentHistory, publishedSessions, creditAccounts] =
+      await prisma.$transaction([
       prisma.reservation.findMany({
         where: {
           memberId,
@@ -362,24 +365,6 @@ export const getMemberReservationsOverview = cache(
         },
         take: 8,
       }),
-      prisma.memberMembership.findMany({
-        where: {
-          memberId,
-          status: {
-            in: ['ACTIVE', 'PENDING_ACTIVATION'],
-          },
-        },
-        include: {
-          membershipPlan: {
-            select: {
-              name: true,
-            },
-          },
-        },
-        orderBy: {
-          startsAt: 'desc',
-        },
-      }),
       prisma.memberCreditAccount.findMany({
         where: {
           memberId,
@@ -407,6 +392,100 @@ export const getMemberReservationsOverview = cache(
         },
       }),
     ])
+
+    const membershipUsageWindow = buildMembershipPolicyUsageSearchWindow({
+      earliestSessionStartsAt: publishedSessions[0]?.startsAt ?? now,
+      latestSessionStartsAt:
+        publishedSessions[publishedSessions.length - 1]?.startsAt ?? now,
+    })
+
+    const memberships = await prisma.memberMembership.findMany({
+      where: {
+        memberId,
+        status: {
+          in: ['ACTIVE', 'PENDING_ACTIVATION'],
+        },
+      },
+      select: {
+        id: true,
+        memberId: true,
+        membershipPlanId: true,
+        status: true,
+        startsAt: true,
+        endsAt: true,
+        autoRenews: true,
+        providerSubscriptionId: true,
+        paymentId: true,
+        createdAt: true,
+        updatedAt: true,
+        membershipPlan: {
+          select: {
+            name: true,
+            bookingPolicyType: true,
+            bookingPolicy: {
+              select: {
+                policyType: true,
+                periodType: true,
+                allowanceCount: true,
+              },
+            },
+          },
+        },
+        bookingOverrides: {
+          where: {
+            revokedAt: null,
+            expiresAt: {
+              gte: membershipUsageWindow.startsAtGte,
+            },
+            startsAt: {
+              lte: membershipUsageWindow.startsAtLte,
+            },
+          },
+          select: {
+            id: true,
+            overrideType: true,
+            classSessionId: true,
+            extraBookings: true,
+            startsAt: true,
+            expiresAt: true,
+            revokedAt: true,
+          },
+        },
+        usages: {
+          where: {
+            usageType: {
+              in: ['MEMBERSHIP', 'MANUAL_OVERRIDE'],
+            },
+            reservation: {
+              classSession: {
+                startsAt: {
+                  gte: membershipUsageWindow.startsAtGte,
+                  lte: membershipUsageWindow.startsAtLte,
+                },
+              },
+            },
+          },
+          select: {
+            usageType: true,
+            bookingOverrideId: true,
+            reservation: {
+              select: {
+                status: true,
+                classSession: {
+                  select: {
+                    id: true,
+                    startsAt: true,
+                  },
+                },
+              },
+            },
+          },
+        },
+      },
+      orderBy: {
+        startsAt: 'desc',
+      },
+    })
 
     return buildMemberReservationsOverview({
       upcomingReservations,
@@ -756,6 +835,7 @@ function groupSchedulePreviewByDay(
       memberships: eligibilityContext.memberships,
       creditAccounts: eligibilityContext.creditAccounts,
       sessionStartsAt: session.startsAt,
+      classSessionId: session.id,
     })
     const primaryAction = buildSchedulePrimaryAction({
       isAlreadyBooked: eligibilityContext.bookedSessionIds.has(session.id),

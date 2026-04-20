@@ -51,10 +51,13 @@ Motivo:
 
 - la elegibilidad se calcula a partir de:
   - membresias activas
+  - politica de reserva asociada a la membresia
+  - overrides admin activos por periodo o por sesion
   - creditos activos
   - reglas por tipo de clase
 - la elegibilidad no se infiere desde pagos directamente
 - pagos activan productos; productos generan entitlements
+- el consumo de allowance de membresia se deriva desde reservas reales y usos auditados, no desde un contador mutable separado
 
 ## Creditos
 
@@ -392,6 +395,7 @@ Campos clave:
 - `reservation_id`
 - `usage_type`
 - `member_membership_id` nullable
+- `booking_override_id` nullable
 - `member_credit_account_id` nullable
 - `credit_ledger_entry_id` nullable
 - `credits_used`
@@ -407,6 +411,7 @@ Motivo:
 
 - permite auditar consumo
 - desacopla reserva de la implementacion concreta del saldo
+- deja trazabilidad explicita cuando una reserva entra por override manual
 
 ### waitlist_entries
 
@@ -469,6 +474,42 @@ Estados:
 - `active`
 - `archived`
 
+Notas:
+
+- `booking_policy_type` puede mantenerse como fallback legacy mientras todos los planes no tengan politica canonica propia
+
+### membership_booking_policies
+
+Responsabilidad:
+
+- definir la politica canonica de reserva asociada a un `membership_plan`
+
+Campos clave:
+
+- `id`
+- `membership_plan_id`
+- `policy_type`
+- `period_type` nullable
+- `allowance_count` nullable
+- `created_at`
+- `updated_at`
+
+Tipos iniciales:
+
+- `unlimited`
+- `periodic_allowance`
+
+Periodos iniciales:
+
+- `calendar_week`
+- `calendar_month`
+
+Notas:
+
+- relacion `1:1` con `membership_plans`
+- `period_type` y `allowance_count` solo aplican cuando `policy_type = periodic_allowance`
+- en V1 el calculo del periodo se hace en timezone de negocio `Europe/Madrid`
+
 ### member_memberships
 
 Responsabilidad:
@@ -496,6 +537,45 @@ Estados:
 - `paused`
 - `expired`
 - `canceled`
+
+Notas:
+
+- la membership activa sigue siendo el entitlement base
+- la politica concreta de reserva puede venir de `membership_booking_policies`
+- si un plan no tiene politica nueva, puede seguir comportandose como acceso abierto por compatibilidad
+
+### member_membership_booking_overrides
+
+Responsabilidad:
+
+- registrar excepciones admin auditables sobre la capacidad de reserva de una membership concreta
+
+Campos clave:
+
+- `id`
+- `member_membership_id`
+- `override_type`
+- `class_session_id` nullable
+- `extra_bookings` nullable
+- `starts_at`
+- `expires_at`
+- `reason`
+- `granted_by_user_id`
+- `revoked_at` nullable
+- `revoked_by_user_id` nullable
+- `created_at`
+
+Tipos iniciales:
+
+- `extra_allowance`
+- `session_access`
+
+Notas:
+
+- `extra_allowance` amplía el cupo disponible del periodo actual
+- `session_access` habilita una sesion concreta aunque el allowance periodico este agotado
+- los overrides no sustituyen la necesidad de tener una membership valida para la regla
+- la revocacion no borra el registro; deja trazabilidad completa
 
 ### credit_packs
 
@@ -795,6 +875,8 @@ Estas reglas deberian reflejarse en codigo, constraints o ambos.
 ### Membresias y creditos
 
 - una reserva debe poder explicar de donde salio su elegibilidad
+- una membership con quota periodica debe poder explicar su uso dentro de la semana o mes natural
+- un override manual debe quedar trazado tanto en el override como en `reservation_entitlement_usages`
 - toda devolucion de credito debe dejar rastro en ledger
 - expiracion de creditos debe quedar registrada como movimiento
 
@@ -842,6 +924,8 @@ Estas reglas deberian reflejarse en codigo, constraints o ambos.
 - `reservations.member_id + status`
 - `reservations.class_session_id + status`
 - `member_memberships.member_id + status`
+- `member_membership_booking_overrides.member_membership_id + starts_at/expires_at`
+- `reservation_entitlement_usages.member_membership_id + created_at`
 - `member_credit_accounts.member_id + status`
 - `payments.member_id + created_at`
 
@@ -857,7 +941,9 @@ Estas reglas deberian reflejarse en codigo, constraints o ambos.
 - `class_types`
 - `class_sessions`
 - `membership_plans`
+- `membership_booking_policies`
 - `member_memberships`
+- `member_membership_booking_overrides`
 - `credit_packs`
 - `member_credit_accounts`
 - `credit_ledger_entries`
@@ -885,6 +971,8 @@ Estas decisiones siguen impactando el schema final:
 - si V1 vende solo membresias, solo creditos o ambos
 - si el consumo de credito se hace al reservar o al asistir
 - si la cancelacion devuelve siempre credito o depende de ventana
+- si algun plan necesitara quotas rolling en vez de semana o mes natural
+- si en el futuro hara falta un override mas amplio de policy temporal y no solo `extra_allowance` o `session_access`
 - si coaches necesitan login propio desde el dia uno
 - si `leads` entra en MVP tecnico o queda posterior
 - si acuerdos y firma digital entran realmente en V1
