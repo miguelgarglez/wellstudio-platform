@@ -102,7 +102,8 @@ Piensa en esto como `la puerta de acceso para operaciones de esquema`.
 
 Sirve mejor para:
 
-- `prisma db push`
+- `prisma migrate status`
+- `prisma migrate deploy`
 - migraciones
 - operaciones administrativas sobre la estructura de la base
 
@@ -111,7 +112,7 @@ Regla simple:
 - `DATABASE_URL` para runtime
 - `DIRECT_URL` para cambios de schema
 
-## Flujo recomendado
+## Flujo recomendado para desarrollo actual
 
 ### 1. Confirmar `DATABASE_URL` y `DIRECT_URL`
 
@@ -131,8 +132,17 @@ En este proyecto:
 
 ### 2. Aplicar el schema actual
 
+Durante el bootstrap temprano se aceptaba:
+
 ```bash
 pnpm db:push
+```
+
+Desde que existen migraciones versionadas en `prisma/migrations`, el flujo normal para cambios de schema es:
+
+```bash
+pnpm db:migrate:status
+pnpm db:migrate:deploy
 ```
 
 Si quieres regenerar el cliente Prisma:
@@ -204,27 +214,43 @@ En la practica, la operacion de schema debe hacerse contra la conexion directa d
 
 ## Politica Prisma de WellStudio
 
-### Fase actual
+### Regla actual
 
-Mientras estamos cerrando bootstrap de entornos y primeras tablas:
+WellStudio ya tiene migraciones versionadas en `prisma/migrations`.
 
-- `db push` es aceptable para bases nuevas o casi vacias
-- se usa para alinear rapido `sandbox` o `production` con `schema.prisma`
+La regla operativa queda:
 
-### Fase siguiente recomendada
+- `db push` solo para bootstrap temprano de una base nueva o casi vacia
+- `migrate dev` para crear migraciones versionadas durante desarrollo
+- `migrate deploy` para aplicar migraciones versionadas en bases compartidas o remotas
+- `db execute` solo para baseline o break-glass documentado, nunca como camino normal
 
-Cuando el proyecto tenga ya cambios recurrentes de modelo:
+Flujo normal:
 
 1. cambiar `schema.prisma`
 2. ejecutar `pnpm prisma migrate dev` en local
 3. commitear la migracion generada
-4. aplicar en entornos remotos con `pnpm prisma migrate deploy`
+4. comprobar el estado con `pnpm db:migrate:status`
+5. aplicar en entornos remotos con `pnpm db:migrate:deploy`
 
-Regla simple:
+### Baseline de una DB existente
 
-- `db push` para bootstrap temprano
-- `migrate dev` para crear migraciones
-- `migrate deploy` para aplicar migraciones versionadas en remoto
+Si una DB ya tiene schema aplicado manualmente pero no tiene `_prisma_migrations`, no se debe ejecutar `migrate deploy` a ciegas.
+
+Procedimiento seguro:
+
+1. inspeccionar si `_prisma_migrations` existe
+2. comprobar que cada migracion pendiente coincide realmente con objetos existentes en la DB
+3. aplicar solo las migraciones que falten fisicamente y sean seguras
+4. marcar como aplicadas las migraciones ya representadas en el schema real con `prisma migrate resolve --applied <migration_name>`
+5. volver a ejecutar `pnpm db:migrate:status`
+
+No hacer:
+
+- `migrate reset`
+- borrar o recrear la DB compartida
+- marcar una migracion como aplicada si el schema real no coincide
+- repetir DDL manualmente sin comprobar duplicados y constraints
 
 ## Docker a partir de ahora
 
