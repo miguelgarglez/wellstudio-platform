@@ -4,10 +4,14 @@ import type {
   MemberCreditAccount,
   MemberMembership,
   MemberMembershipBookingOverride,
-  MembershipBookingPolicy,
   Reservation,
   ReservationEntitlementUsage,
 } from '@prisma/client'
+import {
+  resolveEffectiveMembershipBookingPolicy,
+  type MembershipBookingPolicySnapshot,
+  type SupportedMembershipBookingPeriodType,
+} from '@/modules/reservations/server/membership-booking-policy'
 
 export const MEMBER_CANCELLATION_WINDOW_MINUTES = 120
 export const WELLSTUDIO_BUSINESS_TIME_ZONE = 'Europe/Madrid'
@@ -42,9 +46,6 @@ const BUSINESS_DATE_TIME_PARTS_FORMATTER = new Intl.DateTimeFormat('en-US', {
 })
 
 export type SupportedEligibilityRuleType = 'MEMBERSHIP_PLAN' | 'CREDIT'
-export type SupportedMembershipBookingPolicyType = 'UNLIMITED' | 'PERIODIC_ALLOWANCE'
-export type SupportedMembershipBookingPeriodType = 'CALENDAR_WEEK' | 'CALENDAR_MONTH'
-
 export type ReservationEligibilityCode =
   | 'ELIGIBLE'
   | 'NO_ACTIVE_RULE'
@@ -61,11 +62,6 @@ export type ReservationScheduleActionKind =
 export type EligibilityRuleSnapshot = Pick<
   ClassTypeEligibilityRule,
   'id' | 'ruleType' | 'membershipPlanId' | 'creditCost' | 'priority' | 'createdAt' | 'isActive'
->
-
-export type MembershipBookingPolicySnapshot = Pick<
-  MembershipBookingPolicy,
-  'policyType' | 'periodType' | 'allowanceCount'
 >
 
 export type MembershipBookingOverrideSnapshot = Pick<
@@ -151,18 +147,6 @@ export type ReservationSchedulePrimaryAction = {
   label: string
   description?: string
 }
-
-type NormalizedMembershipBookingPolicy =
-  | {
-      policyType: 'UNLIMITED'
-      periodType: null
-      allowanceCount: null
-    }
-  | {
-      policyType: 'PERIODIC_ALLOWANCE'
-      periodType: SupportedMembershipBookingPeriodType
-      allowanceCount: number
-    }
 
 export function normalizeEligibilityRuleType(
   ruleType: string,
@@ -635,57 +619,11 @@ function hasPeriodicAllowancePolicy(membership: MembershipEligibilitySnapshot) {
 
 function resolveMembershipBookingPolicy(
   membership: MembershipEligibilitySnapshot,
-): NormalizedMembershipBookingPolicy {
-  const explicitPolicy = membership.membershipPlan.bookingPolicy
-
-  if (explicitPolicy?.policyType === 'PERIODIC_ALLOWANCE') {
-    const periodType = normalizeMembershipBookingPeriodType(explicitPolicy.periodType)
-    const allowanceCount = Math.max(explicitPolicy.allowanceCount ?? 0, 0)
-
-    if (periodType && allowanceCount > 0) {
-      return {
-        policyType: 'PERIODIC_ALLOWANCE',
-        periodType,
-        allowanceCount,
-      }
-    }
-  }
-
-  if (explicitPolicy?.policyType === 'UNLIMITED') {
-    return {
-      policyType: 'UNLIMITED',
-      periodType: null,
-      allowanceCount: null,
-    }
-  }
-
-  const legacyPolicyType = membership.membershipPlan.bookingPolicyType?.trim().toUpperCase()
-
-  if (!legacyPolicyType || legacyPolicyType === 'UNLIMITED' || legacyPolicyType === 'OPEN_MEMBERSHIP_ACCESS') {
-    return {
-      policyType: 'UNLIMITED',
-      periodType: null,
-      allowanceCount: null,
-    }
-  }
-
-  return {
-    policyType: 'UNLIMITED',
-    periodType: null,
-    allowanceCount: null,
-  }
-}
-
-function normalizeMembershipBookingPeriodType(periodType: string | null | undefined) {
-  const normalized = periodType?.trim().toUpperCase()
-
-  switch (normalized) {
-    case 'CALENDAR_WEEK':
-    case 'CALENDAR_MONTH':
-      return normalized
-    default:
-      return null
-  }
+){
+  return resolveEffectiveMembershipBookingPolicy({
+    explicitPolicy: membership.membershipPlan.bookingPolicy,
+    legacyPolicyType: membership.membershipPlan.bookingPolicyType,
+  })
 }
 
 function countsTowardMembershipAllowance(status: Reservation['status']) {

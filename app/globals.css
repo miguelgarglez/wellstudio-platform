@@ -165,6 +165,13 @@ a {
     linear-gradient(180deg, var(--wellstudio-sand) 0%, #f7f4ef 100%);
 }
 
+.wellstudio-admin-shell {
+  background:
+    radial-gradient(circle at top left, color-mix(in srgb, var(--wellstudio-blue) 10%, transparent), transparent 24%),
+    radial-gradient(circle at bottom right, color-mix(in srgb, var(--wellstudio-blue-soft) 10%, transparent), transparent 22%),
+    linear-gradient(180deg, #f6f2eb 0%, #f7f4ef 44%, #efe9df 100%);
+}
+
 @keyframes wellstudio-auth-rise {
   from {
     opacity: 0;
@@ -226,6 +233,18 @@ a {
   to {
     transform: translate3d(280%, 0, 0);
     opacity: 1;
+  }
+}
+
+@keyframes wellstudio-admin-panel-enter {
+  from {
+    opacity: 0;
+    transform: translate3d(14px, 0, 0);
+  }
+
+  to {
+    opacity: 1;
+    transform: translate3d(0, 0, 0);
   }
 }
 
@@ -292,6 +311,10 @@ a {
 
   [data-slot="member-portal-nav-progress"] > span {
     animation: wellstudio-member-portal-nav-progress 980ms cubic-bezier(0.2, 0.8, 0.2, 1) infinite;
+  }
+
+  .wellstudio-admin-panel-animate {
+    animation: wellstudio-admin-panel-enter 220ms cubic-bezier(0.22, 0.78, 0.22, 1) both;
   }
 }
 

@@ -212,6 +212,18 @@ export class AuthPage {
     ).toBeVisible()
   }
 
+  async expectAdminPoliciesVisible() {
+    await expect(
+      this.page.getByRole('heading', { name: 'Políticas de reserva' }),
+    ).toBeVisible()
+    await expect(
+      this.page.getByLabel('Navegación admin').getByRole('link', { name: 'Políticas' }),
+    ).toBeVisible()
+    await expect(
+      this.page.getByLabel('Planes de membresía').getByRole('link').first(),
+    ).toBeVisible()
+  }
+
   async expectRegisterConfirmationFeedback() {
     await expect(
       this.page.getByRole('heading', { name: 'Activa tu cuenta' }),

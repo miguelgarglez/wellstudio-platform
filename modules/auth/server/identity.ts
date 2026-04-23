@@ -1,6 +1,6 @@
 import { cache } from 'react'
 import { Prisma } from '@prisma/client'
-import type { Member, User, UserRole } from '@prisma/client'
+import type { Member, User, UserRole, UserRoleType } from '@prisma/client'
 import type { User as SupabaseUser } from '@supabase/supabase-js'
 
 import { prisma } from '@/lib/db/prisma'
@@ -62,6 +62,25 @@ export const requireAuthenticatedContext = cache(async (): Promise<Extract<AuthC
 
   if (!authContext.isAuthenticated) {
     throw new Error('Authenticated user required')
+  }
+
+  return authContext
+})
+
+export function hasAnyRole(
+  authContext: Extract<AuthContext, { isAuthenticated: true }>,
+  allowedRoles: UserRoleType[],
+) {
+  const roleSet = new Set(allowedRoles)
+
+  return authContext.roles.some((role) => roleSet.has(role.role))
+}
+
+export const requireAdminOrStaffContext = cache(async () => {
+  const authContext = await requireAuthenticatedContext()
+
+  if (!hasAnyRole(authContext, ['ADMIN', 'STAFF'])) {
+    return null
   }
 
   return authContext

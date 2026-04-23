@@ -1,0 +1,298 @@
+import type { ReactNode } from 'react'
+import Link from 'next/link'
+import { Layers3, ShieldCheck, Sparkles } from 'lucide-react'
+
+import { Skeleton } from '@/components/ui/skeleton'
+import type { AdminMembershipPolicyOverview } from '@/modules/admin/server/admin-membership-policy-overview'
+import { AdminMembershipPolicyForm } from '@/modules/admin/ui/admin-membership-policy-form'
+import { cn } from '@/lib/utils'
+
+type AdminMembershipPoliciesDashboardProps = {
+  overview: AdminMembershipPolicyOverview
+  isSaveSuccessVisible?: boolean
+}
+
+export function AdminMembershipPoliciesDashboard({
+  overview,
+  isSaveSuccessVisible = false,
+}: AdminMembershipPoliciesDashboardProps) {
+  return (
+    <div className="grid gap-4 lg:grid-cols-[minmax(290px,360px)_minmax(0,1fr)] xl:gap-5">
+      <section
+        aria-labelledby="admin-membership-plan-list"
+        className="rounded-[1.9rem] border border-[color:color-mix(in_srgb,var(--wellstudio-blue)_12%,white)] bg-[color:color-mix(in_srgb,var(--card)_86%,white)] p-3 shadow-[0_20px_45px_rgba(18,20,24,0.06)]"
+      >
+        <div className="border-b border-[color:color-mix(in_srgb,var(--border)_72%,white)] px-3 pb-4 pt-3">
+          <p className="text-xs uppercase tracking-[0.24em] text-[var(--wellstudio-blue-deep)]">
+            Membership plans
+          </p>
+          <div className="mt-2 flex items-start gap-3">
+            <span className="inline-flex size-10 shrink-0 items-center justify-center rounded-full bg-[color:color-mix(in_srgb,var(--wellstudio-blue)_10%,white)] text-[var(--wellstudio-blue-deep)]">
+              <Layers3 className="size-4" aria-hidden="true" />
+            </span>
+            <div className="min-w-0">
+              <h2 id="admin-membership-plan-list" className="text-lg font-medium text-[var(--wellstudio-ink)]">
+                Política efectiva por plan
+              </h2>
+              <p className="mt-1 text-sm leading-7 text-[color:color-mix(in_srgb,var(--foreground)_70%,white)]">
+                Selecciona un plan para editar la política explícita que usa el motor de reservas.
+              </p>
+            </div>
+          </div>
+        </div>
+
+        <nav aria-label="Planes de membresía" className="pt-3">
+          <ul className="space-y-2">
+            {overview.plans.map((plan) => {
+              const isSelected = overview.selectedPlanId === plan.id
+
+              return (
+                <li key={plan.id}>
+                  <Link
+                    href={`/admin?plan=${encodeURIComponent(plan.id)}`}
+                    className={cn(
+                      'block rounded-[1.4rem] border px-4 py-4 transition-[background-color,border-color,box-shadow,transform] duration-200 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--ring)]',
+                      isSelected
+                        ? 'border-[color:color-mix(in_srgb,var(--wellstudio-blue)_32%,white)] bg-[color:color-mix(in_srgb,var(--wellstudio-blue)_8%,white)] shadow-[0_12px_30px_rgba(20,24,30,0.08)]'
+                        : 'border-transparent bg-transparent hover:border-[color:color-mix(in_srgb,var(--wellstudio-blue)_16%,white)] hover:bg-white',
+                    )}
+                  >
+                    <div className="flex items-start justify-between gap-3">
+                      <div className="min-w-0 space-y-1">
+                        <p className="text-sm font-medium text-[var(--wellstudio-ink)]">{plan.name}</p>
+                        <p className="text-sm text-[color:color-mix(in_srgb,var(--foreground)_68%,white)]">
+                          {plan.policySummaryLabel}
+                        </p>
+                        <p className="text-xs uppercase tracking-[0.18em] text-[var(--wellstudio-blue-deep)]">
+                          {plan.billingSummary}
+                        </p>
+                      </div>
+                      <div className="shrink-0 space-y-2 text-right">
+                        <PolicySourceBadge tone={plan.policySourceTone}>
+                          {plan.policySourceLabel}
+                        </PolicySourceBadge>
+                        <p className="text-xs uppercase tracking-[0.18em] text-[color:color-mix(in_srgb,var(--foreground)_60%,white)]">
+                          {plan.statusLabel}
+                        </p>
+                      </div>
+                    </div>
+                  </Link>
+                </li>
+              )
+            })}
+          </ul>
+        </nav>
+      </section>
+
+      <section
+        aria-labelledby="admin-membership-plan-detail"
+        className="rounded-[1.9rem] border border-[color:color-mix(in_srgb,var(--wellstudio-blue)_12%,white)] bg-white p-5 shadow-[0_20px_45px_rgba(18,20,24,0.06)] sm:p-6"
+      >
+        <div key={overview.selectedPlan?.id ?? 'empty'} className="wellstudio-admin-panel-animate space-y-6">
+          {overview.selectedPlan ? (
+            <>
+              <header className="space-y-4 border-b border-[color:color-mix(in_srgb,var(--border)_72%,white)] pb-5">
+                <div className="flex flex-wrap items-start justify-between gap-3">
+                  <div className="min-w-0 space-y-2">
+                    <p className="text-xs uppercase tracking-[0.24em] text-[var(--wellstudio-blue-deep)]">
+                      Plan seleccionado
+                    </p>
+                    <div className="space-y-2">
+                      <h2 id="admin-membership-plan-detail" className="text-2xl font-medium text-[var(--wellstudio-ink)]">
+                        {overview.selectedPlan.name}
+                      </h2>
+                      <p className="text-sm leading-7 text-[color:color-mix(in_srgb,var(--foreground)_72%,white)]">
+                        {overview.selectedPlan.description || 'Sin descripción operativa registrada para este plan.'}
+                      </p>
+                    </div>
+                  </div>
+                  <PolicySourceBadge tone={overview.selectedPlan.policySourceTone}>
+                    {overview.selectedPlan.policySourceLabel}
+                  </PolicySourceBadge>
+                </div>
+
+                <div className="grid gap-3 sm:grid-cols-3">
+                  <DetailPill label="Facturación" value={overview.selectedPlan.billingSummary} />
+                  <DetailPill label="Estado" value={overview.selectedPlan.statusLabel} />
+                  <DetailPill label="Política efectiva" value={overview.selectedPlan.policySummaryLabel} />
+                </div>
+              </header>
+
+              <div className="rounded-[1.45rem] border border-[color:color-mix(in_srgb,var(--wellstudio-blue)_12%,white)] bg-[color:color-mix(in_srgb,var(--wellstudio-blue)_5%,white)] px-4 py-4">
+                <div className="flex items-start gap-3">
+                  <span className="inline-flex size-10 shrink-0 items-center justify-center rounded-full bg-white text-[var(--wellstudio-blue-deep)] shadow-[0_10px_22px_rgba(18,20,24,0.06)]">
+                    <ShieldCheck className="size-4" aria-hidden="true" />
+                  </span>
+                  <div className="min-w-0 space-y-1">
+                    <p className="text-sm font-medium text-[var(--wellstudio-ink)]">
+                      Escritura directa sobre `MembershipBookingPolicy`
+                    </p>
+                    <p className="text-sm leading-7 text-[color:color-mix(in_srgb,var(--foreground)_72%,white)]">
+                      Esta pantalla no toca el motor de elegibilidad. Solo persiste la política explícita que ese motor ya sabe interpretar.
+                    </p>
+                  </div>
+                </div>
+              </div>
+
+              <AdminMembershipPolicyForm
+                key={overview.selectedPlan.id}
+                plan={overview.selectedPlan}
+                isSuccessVisible={isSaveSuccessVisible}
+              />
+            </>
+          ) : (
+            <div className="flex min-h-[32rem] items-center justify-center rounded-[1.6rem] border border-dashed border-[color:color-mix(in_srgb,var(--border)_84%,white)] bg-[color:color-mix(in_srgb,var(--card)_72%,white)] px-6 py-10 text-center">
+              <div className="max-w-md space-y-4">
+                <span className="mx-auto inline-flex size-12 items-center justify-center rounded-full bg-[color:color-mix(in_srgb,var(--wellstudio-blue)_10%,white)] text-[var(--wellstudio-blue-deep)]">
+                  <Sparkles className="size-5" aria-hidden="true" />
+                </span>
+                <div className="space-y-2">
+                  <h2 id="admin-membership-plan-detail" className="text-xl font-medium text-[var(--wellstudio-ink)]">
+                    Selecciona un plan para editar
+                  </h2>
+                  <p className="text-sm leading-7 text-[color:color-mix(in_srgb,var(--foreground)_72%,white)]">
+                    El panel derecho mostrará el fallback efectivo, el contexto comercial del plan y el formulario para persistir una política explícita.
+                  </p>
+                </div>
+              </div>
+            </div>
+          )}
+        </div>
+      </section>
+    </div>
+  )
+}
+
+export function AdminMembershipPoliciesDashboardSkeleton() {
+  return (
+    <div className="grid gap-4 lg:grid-cols-[minmax(290px,360px)_minmax(0,1fr)] xl:gap-5">
+      <div className="rounded-[1.9rem] border border-[color:color-mix(in_srgb,var(--wellstudio-blue)_12%,white)] bg-[color:color-mix(in_srgb,var(--card)_86%,white)] p-3 shadow-[0_20px_45px_rgba(18,20,24,0.06)]">
+        <div className="border-b border-[color:color-mix(in_srgb,var(--border)_72%,white)] px-3 pb-4 pt-3">
+          <Skeleton className="h-3 w-28 rounded-full" />
+          <div className="mt-3 flex items-start gap-3">
+            <Skeleton className="size-10 rounded-full" />
+            <div className="min-w-0 flex-1 space-y-2">
+              <Skeleton className="h-5 w-40 rounded-full" />
+              <Skeleton className="h-4 w-full rounded-full" />
+              <Skeleton className="h-4 w-10/12 rounded-full" />
+            </div>
+          </div>
+        </div>
+        <div className="space-y-2 pt-3">
+          {Array.from({ length: 4 }).map((_, index) => (
+            <div
+              key={index}
+              className="rounded-[1.4rem] border border-transparent px-4 py-4"
+            >
+              <div className="flex items-start justify-between gap-3">
+                <div className="min-w-0 flex-1 space-y-2">
+                  <Skeleton className="h-4 w-28 rounded-full" />
+                  <Skeleton className="h-4 w-20 rounded-full" />
+                  <Skeleton className="h-3 w-24 rounded-full" />
+                </div>
+                <div className="space-y-2">
+                  <Skeleton className="h-6 w-28 rounded-full" />
+                  <Skeleton className="h-3 w-14 rounded-full" />
+                </div>
+              </div>
+            </div>
+          ))}
+        </div>
+      </div>
+
+      <div className="rounded-[1.9rem] border border-[color:color-mix(in_srgb,var(--wellstudio-blue)_12%,white)] bg-white p-5 shadow-[0_20px_45px_rgba(18,20,24,0.06)] sm:p-6">
+        <div className="space-y-6">
+          <div className="space-y-4 border-b border-[color:color-mix(in_srgb,var(--border)_72%,white)] pb-5">
+            <div className="flex items-start justify-between gap-3">
+              <div className="min-w-0 flex-1 space-y-2">
+                <Skeleton className="h-3 w-20 rounded-full" />
+                <Skeleton className="h-8 w-56 rounded-full" />
+                <Skeleton className="h-4 w-full rounded-full" />
+                <Skeleton className="h-4 w-10/12 rounded-full" />
+              </div>
+              <Skeleton className="h-6 w-28 rounded-full" />
+            </div>
+            <div className="grid gap-3 sm:grid-cols-3">
+              {Array.from({ length: 3 }).map((_, index) => (
+                <div key={index} className="rounded-[1.2rem] border border-[color:color-mix(in_srgb,var(--border)_76%,white)] px-4 py-4">
+                  <Skeleton className="h-3 w-16 rounded-full" />
+                  <Skeleton className="mt-2 h-5 w-24 rounded-full" />
+                </div>
+              ))}
+            </div>
+          </div>
+
+          <div className="rounded-[1.45rem] border border-[color:color-mix(in_srgb,var(--wellstudio-blue)_12%,white)] bg-[color:color-mix(in_srgb,var(--wellstudio-blue)_5%,white)] px-4 py-4">
+            <div className="flex items-start gap-3">
+              <Skeleton className="size-10 rounded-full bg-white" />
+              <div className="min-w-0 flex-1 space-y-2">
+                <Skeleton className="h-4 w-56 rounded-full" />
+                <Skeleton className="h-4 w-full rounded-full" />
+                <Skeleton className="h-4 w-11/12 rounded-full" />
+              </div>
+            </div>
+          </div>
+
+          <div className="space-y-3">
+            <Skeleton className="h-4 w-28 rounded-full" />
+            {Array.from({ length: 3 }).map((_, index) => (
+              <div
+                key={index}
+                className="rounded-[1.25rem] border border-[color:color-mix(in_srgb,var(--border)_76%,white)] px-4 py-4"
+              >
+                <div className="flex items-start gap-3">
+                  <Skeleton className="mt-0.5 size-4 rounded-full" />
+                  <div className="min-w-0 flex-1 space-y-2">
+                    <Skeleton className="h-4 w-32 rounded-full" />
+                    <Skeleton className="h-4 w-full rounded-full" />
+                    <Skeleton className="h-4 w-10/12 rounded-full" />
+                  </div>
+                </div>
+              </div>
+            ))}
+            <Skeleton className="h-4 w-44 rounded-full" />
+            <Skeleton className="h-12 w-40 rounded-full" />
+          </div>
+        </div>
+      </div>
+    </div>
+  )
+}
+
+function PolicySourceBadge({
+  children,
+  tone,
+}: {
+  children: ReactNode
+  tone: 'explicit' | 'legacy'
+}) {
+  return (
+    <span
+      className={cn(
+        'inline-flex rounded-full border px-2.5 py-1 text-[11px] uppercase tracking-[0.18em]',
+        tone === 'explicit'
+          ? 'border-[color:color-mix(in_srgb,var(--wellstudio-blue)_18%,white)] bg-[color:color-mix(in_srgb,var(--wellstudio-blue)_10%,white)] text-[var(--wellstudio-blue-deep)]'
+          : 'border-[color:color-mix(in_srgb,var(--border)_88%,white)] bg-[color:color-mix(in_srgb,var(--card)_76%,white)] text-[color:color-mix(in_srgb,var(--foreground)_70%,white)]',
+      )}
+    >
+      {children}
+    </span>
+  )
+}
+
+function DetailPill({
+  label,
+  value,
+}: {
+  label: string
+  value: string
+}) {
+  return (
+    <div className="rounded-[1.2rem] border border-[color:color-mix(in_srgb,var(--border)_76%,white)] bg-[color:color-mix(in_srgb,var(--card)_74%,white)] px-4 py-4">
+      <p className="text-[11px] uppercase tracking-[0.18em] text-[var(--wellstudio-blue-deep)]">
+        {label}
+      </p>
+      <p className="mt-2 text-sm font-medium text-[var(--wellstudio-ink)]">{value}</p>
+    </div>
+  )
+}

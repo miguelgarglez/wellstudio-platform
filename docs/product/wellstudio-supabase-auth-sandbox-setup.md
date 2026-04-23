@@ -43,7 +43,7 @@ Preparar al menos estas cuentas en `sandbox`:
 
 - email: `e2e.admin.sandbox@wellstudio.test`
 - rol local esperado: `ADMIN`
-- estado esperado: cuenta válida para login
+- estado esperado: cuenta válida para login y promoción local a `ADMIN` durante la validación E2E de backoffice
 
 ## Variables de entorno
 

@@ -62,6 +62,12 @@ export function hasSandboxCredentials() {
   return Boolean(email && password)
 }
 
+export function hasSandboxAdminCredentials() {
+  const { email, password } = getSandboxAdminCredentials()
+
+  return Boolean(email && password)
+}
+
 export function getSandboxCredentials() {
   return {
     email: process.env.E2E_MEMBER_EMAIL ?? '',

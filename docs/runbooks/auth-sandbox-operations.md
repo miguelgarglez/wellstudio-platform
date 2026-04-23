@@ -18,7 +18,6 @@ Este runbook cubre:
 
 No cubre todavía:
 
-- promoción de rol `ADMIN` en la base propia
 - password reset E2E
 - email verification E2E
 - configuración SMTP custom
@@ -33,8 +32,8 @@ No cubre todavía:
 ### Admin
 
 - `e2e.admin.sandbox@wellstudio.test`
-- uso previsto: futuro flujo de backoffice
-- nota: crear el usuario en Supabase no basta; el rol `ADMIN` local sigue pendiente de seed/promoción
+- uso: acceso al primer backoffice de políticas de membership
+- nota: el helper E2E de admin promueve el rol `ADMIN` local bajo demanda tras el primer login real
 
 ## Variables necesarias
 
@@ -192,6 +191,5 @@ Revisar:
 
 1. decidir si compensa preparar inbox de test o custom SMTP para sandbox
 2. automatizar verificación de email
-3. promover `ADMIN` local mediante seed o script controlado
-4. añadir `password reset`
-5. añadir `email verification`
+3. añadir `password reset`
+4. añadir `email verification`
