@@ -23,31 +23,31 @@ export function AdminMemberOverridesDashboard({
   updatedState,
 }: AdminMemberOverridesDashboardProps) {
   return (
-    <div className="grid gap-4 lg:grid-cols-[minmax(290px,360px)_minmax(0,1fr)] xl:gap-5">
+    <div className="grid gap-4 lg:grid-cols-[minmax(280px,320px)_minmax(0,1fr)] 2xl:grid-cols-[minmax(280px,320px)_minmax(0,1fr)_minmax(340px,390px)]">
       <section
         aria-labelledby="admin-member-search"
-        className="rounded-[1.9rem] border border-[color:color-mix(in_srgb,var(--wellstudio-blue)_12%,white)] bg-[color:color-mix(in_srgb,var(--card)_86%,white)] p-3 shadow-[0_20px_45px_rgba(18,20,24,0.06)]"
+        className="rounded-[1.55rem] border border-[color:color-mix(in_srgb,var(--wellstudio-blue)_12%,white)] bg-[color:color-mix(in_srgb,var(--card)_86%,white)] p-3 shadow-[0_16px_36px_rgba(18,20,24,0.055)] xl:sticky xl:top-4 xl:max-h-[calc(100vh-8.4rem)] xl:overflow-y-auto"
       >
-        <div className="border-b border-[color:color-mix(in_srgb,var(--border)_72%,white)] px-3 pb-4 pt-3">
+        <div className="border-b border-[color:color-mix(in_srgb,var(--border)_72%,white)] px-2 pb-3 pt-2">
           <p className="text-xs uppercase tracking-[0.24em] text-[var(--wellstudio-blue-deep)]">
-            Members
+            Socios
           </p>
-          <div className="mt-2 flex items-start gap-3">
-            <span className="inline-flex size-10 shrink-0 items-center justify-center rounded-full bg-[color:color-mix(in_srgb,var(--wellstudio-blue)_10%,white)] text-[var(--wellstudio-blue-deep)]">
+          <div className="mt-2 flex items-start gap-2.5">
+            <span className="inline-flex size-9 shrink-0 items-center justify-center rounded-full bg-[color:color-mix(in_srgb,var(--wellstudio-blue)_10%,white)] text-[var(--wellstudio-blue-deep)]">
               <Search className="size-4" aria-hidden="true" />
             </span>
             <div className="min-w-0">
               <h2 id="admin-member-search" className="text-lg font-medium text-[var(--wellstudio-ink)]">
                 Buscar socio
               </h2>
-              <p className="mt-1 text-sm leading-7 text-[color:color-mix(in_srgb,var(--foreground)_70%,white)]">
-                Localiza un socio por nombre o email y opera sobre sus memberships activas.
+              <p className="mt-1 text-sm leading-6 text-[color:color-mix(in_srgb,var(--foreground)_70%,white)]">
+                Busca, selecciona y conserva el contexto visible mientras operas.
               </p>
             </div>
           </div>
         </div>
 
-        <form action="/admin/overrides" className="px-3 pb-2 pt-4">
+        <form action="/admin/overrides" className="px-2 pb-2 pt-3">
           <div className="space-y-3">
             <Input
               name="q"
@@ -77,7 +77,7 @@ export function AdminMemberOverridesDashboard({
             />
           ) : (
             <nav aria-label="Resultados de búsqueda de socios">
-              <ul className="space-y-2 px-1">
+              <ul className="space-y-1.5 px-0.5">
                 {overview.searchResults.map((member) => {
                   const isSelected = overview.selectedMemberId === member.id
 
@@ -89,7 +89,7 @@ export function AdminMemberOverridesDashboard({
                           memberId: member.id,
                         })}
                         className={cn(
-                          'block rounded-[1.35rem] border px-4 py-4 transition-[background-color,border-color,box-shadow] duration-200 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--ring)]',
+                          'block rounded-[1.05rem] border px-3 py-3 transition-[background-color,border-color,box-shadow] duration-200 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--ring)]',
                           isSelected
                             ? 'border-[color:color-mix(in_srgb,var(--wellstudio-blue)_28%,white)] bg-[color:color-mix(in_srgb,var(--wellstudio-blue)_8%,white)] shadow-[0_12px_30px_rgba(20,24,30,0.08)]'
                             : 'border-transparent bg-transparent hover:border-[color:color-mix(in_srgb,var(--wellstudio-blue)_16%,white)] hover:bg-white',
@@ -100,7 +100,7 @@ export function AdminMemberOverridesDashboard({
                             <p className="text-sm font-medium text-[var(--wellstudio-ink)]">
                               {member.displayName}
                             </p>
-                            <p className="text-sm text-[color:color-mix(in_srgb,var(--foreground)_68%,white)]" translate="no">
+                            <p className="truncate text-xs text-[color:color-mix(in_srgb,var(--foreground)_68%,white)]" translate="no">
                               {member.email}
                             </p>
                           </div>
@@ -127,15 +127,15 @@ export function AdminMemberOverridesDashboard({
 
       <section
         aria-labelledby="admin-member-override-detail"
-        className="rounded-[1.9rem] border border-[color:color-mix(in_srgb,var(--wellstudio-blue)_12%,white)] bg-white p-5 shadow-[0_20px_45px_rgba(18,20,24,0.06)] sm:p-6"
+        className="min-w-0 rounded-[1.55rem] border border-[color:color-mix(in_srgb,var(--wellstudio-blue)_12%,white)] bg-white p-4 shadow-[0_16px_36px_rgba(18,20,24,0.055)] sm:p-5"
       >
         <div
           key={overview.selectedMember?.id ?? 'empty'}
-          className="wellstudio-admin-panel-animate space-y-6"
+          className="wellstudio-admin-panel-animate space-y-4"
         >
           {overview.selectedMember ? (
             <>
-              <header className="space-y-4 border-b border-[color:color-mix(in_srgb,var(--border)_72%,white)] pb-5">
+              <header className="space-y-4 border-b border-[color:color-mix(in_srgb,var(--border)_72%,white)] pb-4">
                 <div className="flex flex-wrap items-start justify-between gap-3">
                   <div className="min-w-0 space-y-2">
                     <p className="text-xs uppercase tracking-[0.24em] text-[var(--wellstudio-blue-deep)]">
@@ -145,7 +145,7 @@ export function AdminMemberOverridesDashboard({
                       <h2 id="admin-member-override-detail" className="text-2xl font-medium text-[var(--wellstudio-ink)]">
                         {overview.selectedMember.displayName}
                       </h2>
-                      <p className="text-sm leading-7 text-[color:color-mix(in_srgb,var(--foreground)_72%,white)]" translate="no">
+                      <p className="truncate text-sm leading-6 text-[color:color-mix(in_srgb,var(--foreground)_72%,white)]" translate="no">
                         {overview.selectedMember.email}
                       </p>
                     </div>
@@ -183,94 +183,82 @@ export function AdminMemberOverridesDashboard({
                 </div>
               </header>
 
-              <div className="grid gap-5 xl:grid-cols-[minmax(0,1fr)_360px]">
-                <div className="space-y-5">
-                  <section className="space-y-3">
-                    <div className="flex items-start gap-3">
-                      <span className="inline-flex size-10 shrink-0 items-center justify-center rounded-full bg-[color:color-mix(in_srgb,var(--wellstudio-blue)_10%,white)] text-[var(--wellstudio-blue-deep)]">
+              <div className="space-y-4">
+                <section className="space-y-3">
+                  <div className="flex items-start gap-3">
+                    <span className="inline-flex size-9 shrink-0 items-center justify-center rounded-full bg-[color:color-mix(in_srgb,var(--wellstudio-blue)_10%,white)] text-[var(--wellstudio-blue-deep)]">
                         <ShieldPlus className="size-4" aria-hidden="true" />
-                      </span>
-                      <div className="min-w-0">
-                        <h3 className="text-lg font-medium text-[var(--wellstudio-ink)]">
-                          Memberships activas
-                        </h3>
-                        <p className="mt-1 text-sm leading-7 text-[color:color-mix(in_srgb,var(--foreground)_72%,white)]">
-                          Selecciona la membership sobre la que quieres operar. El dominio seguirá validando compatibilidad y vigencia.
-                        </p>
-                      </div>
+                    </span>
+                    <div className="min-w-0">
+                      <h3 className="text-lg font-medium text-[var(--wellstudio-ink)]">
+                        Memberships activas
+                      </h3>
+                      <p className="mt-1 text-sm leading-6 text-[color:color-mix(in_srgb,var(--foreground)_72%,white)]">
+                        Selecciona la membership operable. El inspector derecho ejecuta las acciones.
+                      </p>
                     </div>
+                  </div>
 
-                    {overview.selectedMember.activeMemberships.length > 0 ? (
-                      <div className="grid gap-3">
-                        {overview.selectedMember.activeMemberships.map((membership) => (
-                          <MembershipLinkCard
-                            key={membership.id}
-                            query={overview.query}
-                            memberId={overview.selectedMemberId!}
-                            membership={membership}
-                            selectedMembershipId={overview.selectedMembershipId}
-                            selectedSessionId={overview.selectedSessionId}
-                          />
-                        ))}
-                      </div>
-                    ) : (
-                      <EmptyInset
-                        title="Sin memberships activas"
-                        description="Este socio no tiene memberships activas operables. Puedes consultar el historial, pero no conceder overrides nuevos."
-                      />
-                    )}
-                  </section>
+                  {overview.selectedMember.activeMemberships.length > 0 ? (
+                    <div className="grid gap-2">
+                      {overview.selectedMember.activeMemberships.map((membership) => (
+                        <MembershipLinkCard
+                          key={membership.id}
+                          query={overview.query}
+                          memberId={overview.selectedMemberId!}
+                          membership={membership}
+                          selectedMembershipId={overview.selectedMembershipId}
+                          selectedSessionId={overview.selectedSessionId}
+                        />
+                      ))}
+                    </div>
+                  ) : (
+                    <EmptyInset
+                      title="Sin memberships activas"
+                      description="Este socio no tiene memberships activas operables. Puedes consultar el historial, pero no conceder overrides nuevos."
+                    />
+                  )}
+                </section>
 
-                  <section className="space-y-3">
-                    <div className="flex items-start gap-3">
-                      <span className="inline-flex size-10 shrink-0 items-center justify-center rounded-full bg-[color:color-mix(in_srgb,var(--wellstudio-blue)_10%,white)] text-[var(--wellstudio-blue-deep)]">
+                <section className="space-y-3">
+                  <div className="flex items-start gap-3">
+                    <span className="inline-flex size-9 shrink-0 items-center justify-center rounded-full bg-[color:color-mix(in_srgb,var(--wellstudio-blue)_10%,white)] text-[var(--wellstudio-blue-deep)]">
                         <AlertTriangle className="size-4" aria-hidden="true" />
-                      </span>
-                      <div className="min-w-0">
-                        <h3 className="text-lg font-medium text-[var(--wellstudio-ink)]">
-                          Historial de overrides
-                        </h3>
-                        <p className="mt-1 text-sm leading-7 text-[color:color-mix(in_srgb,var(--foreground)_72%,white)]">
-                          La vista conserva vigencia, actor, razón y revocación. V1 no edita overrides existentes: concede y revoca.
-                        </p>
-                      </div>
+                    </span>
+                    <div className="min-w-0">
+                      <h3 className="text-lg font-medium text-[var(--wellstudio-ink)]">
+                        Historial de overrides
+                      </h3>
+                      <p className="mt-1 text-sm leading-6 text-[color:color-mix(in_srgb,var(--foreground)_72%,white)]">
+                        Vigencia, actor, razón y revocación. V1 concede y revoca, no edita.
+                      </p>
                     </div>
+                  </div>
 
-                    {overview.selectedMember.overrides.length > 0 ? (
-                      <div className="space-y-3">
-                        {overview.selectedMember.overrides.map((override) => (
-                          <OverrideHistoryCard
-                            key={override.id}
-                            item={override}
-                            query={overview.query}
-                            memberId={overview.selectedMemberId!}
-                            membershipId={overview.selectedMembershipId}
-                            sessionId={overview.selectedSessionId}
-                          />
-                        ))}
-                      </div>
-                    ) : (
-                      <EmptyInset
-                        title="Sin overrides previos"
-                        description="Todavía no hay concesiones ni revocaciones registradas para las memberships activas de este socio."
-                      />
-                    )}
-                  </section>
-                </div>
-
-                <AdminMemberOverrideActions
-                  query={overview.query}
-                  memberId={overview.selectedMember.id}
-                  memberships={overview.selectedMember.activeMemberships}
-                  selectedMembershipId={overview.selectedMembershipId}
-                  selectedSessionId={overview.selectedSessionId}
-                  sessionCandidates={overview.selectedMember.sessionCandidates}
-                  updatedState={updatedState}
-                />
+                  {overview.selectedMember.overrides.length > 0 ? (
+                    <div className="space-y-2">
+                      {overview.selectedMember.overrides.map((override) => (
+                        <OverrideHistoryCard
+                          key={override.id}
+                          item={override}
+                          query={overview.query}
+                          memberId={overview.selectedMemberId!}
+                          membershipId={overview.selectedMembershipId}
+                          sessionId={overview.selectedSessionId}
+                        />
+                      ))}
+                    </div>
+                  ) : (
+                    <EmptyInset
+                      title="Sin overrides previos"
+                      description="Todavía no hay concesiones ni revocaciones registradas para las memberships activas de este socio."
+                    />
+                  )}
+                </section>
               </div>
             </>
           ) : (
-            <div className="flex min-h-[32rem] items-center justify-center rounded-[1.6rem] border border-dashed border-[color:color-mix(in_srgb,var(--border)_84%,white)] bg-[color:color-mix(in_srgb,var(--card)_72%,white)] px-6 py-10 text-center">
+            <div className="flex min-h-[28rem] items-center justify-center rounded-[1.35rem] border border-dashed border-[color:color-mix(in_srgb,var(--border)_84%,white)] bg-[color:color-mix(in_srgb,var(--card)_72%,white)] px-6 py-10 text-center">
               <div className="max-w-md space-y-4">
                 <span className="mx-auto inline-flex size-12 items-center justify-center rounded-full bg-[color:color-mix(in_srgb,var(--wellstudio-blue)_10%,white)] text-[var(--wellstudio-blue-deep)]">
                   <Sparkles className="size-5" aria-hidden="true" />
@@ -288,32 +276,60 @@ export function AdminMemberOverridesDashboard({
           )}
         </div>
       </section>
+
+      <aside
+        aria-label="Acciones de override"
+        className="min-w-0 lg:col-start-2 2xl:col-auto 2xl:sticky 2xl:top-4 2xl:max-h-[calc(100vh-8.4rem)] 2xl:overflow-y-auto"
+      >
+        {overview.selectedMember ? (
+          overview.selectedMember.activeMemberships.length > 0 ? (
+            <AdminMemberOverrideActions
+              query={overview.query}
+              memberId={overview.selectedMember.id}
+              memberships={overview.selectedMember.activeMemberships}
+              selectedMembershipId={overview.selectedMembershipId}
+              selectedSessionId={overview.selectedSessionId}
+              sessionCandidates={overview.selectedMember.sessionCandidates}
+              updatedState={updatedState}
+            />
+          ) : (
+            <ActionRailEmpty
+              title="Sin acciones disponibles"
+              description="Solo se pueden conceder overrides sobre memberships activas. Mantén el historial visible, pero no muestres formularios que no se pueden ejecutar."
+            />
+          )
+        ) : (
+          <ActionRailEmpty
+            title="Inspector de acciones"
+            description="Selecciona un socio para ver acciones de allowance extra, session access y revocación."
+          />
+        )}
+      </aside>
     </div>
   )
 }
 
 export function AdminMemberOverridesDashboardSkeleton() {
   return (
-    <div className="grid gap-4 lg:grid-cols-[minmax(290px,360px)_minmax(0,1fr)] xl:gap-5">
-      <div className="rounded-[1.9rem] border border-[color:color-mix(in_srgb,var(--wellstudio-blue)_12%,white)] bg-[color:color-mix(in_srgb,var(--card)_86%,white)] p-3 shadow-[0_20px_45px_rgba(18,20,24,0.06)]">
-        <div className="border-b border-[color:color-mix(in_srgb,var(--border)_72%,white)] px-3 pb-4 pt-3">
+    <div className="grid gap-4 lg:grid-cols-[minmax(280px,320px)_minmax(0,1fr)] 2xl:grid-cols-[minmax(280px,320px)_minmax(0,1fr)_minmax(340px,390px)]">
+      <div className="rounded-[1.55rem] border border-[color:color-mix(in_srgb,var(--wellstudio-blue)_12%,white)] bg-[color:color-mix(in_srgb,var(--card)_86%,white)] p-3 shadow-[0_16px_36px_rgba(18,20,24,0.055)]">
+        <div className="border-b border-[color:color-mix(in_srgb,var(--border)_72%,white)] px-2 pb-3 pt-2">
           <Skeleton className="h-3 w-20 rounded-full" />
           <div className="mt-3 flex items-start gap-3">
-            <Skeleton className="size-10 rounded-full" />
+            <Skeleton className="size-9 rounded-full" />
             <div className="min-w-0 flex-1 space-y-2">
               <Skeleton className="h-5 w-36 rounded-full" />
               <Skeleton className="h-4 w-full rounded-full" />
-              <Skeleton className="h-4 w-10/12 rounded-full" />
             </div>
           </div>
         </div>
-        <div className="space-y-3 px-3 pb-2 pt-4">
+        <div className="space-y-3 px-2 pb-2 pt-3">
           <Skeleton className="h-11 w-full rounded-full" />
           <Skeleton className="h-11 w-full rounded-full" />
         </div>
-        <div className="space-y-2 px-1 pt-2">
-          {Array.from({ length: 4 }).map((_, index) => (
-            <div key={index} className="rounded-[1.35rem] px-4 py-4">
+        <div className="space-y-1.5 px-0.5 pt-2">
+          {Array.from({ length: 6 }).map((_, index) => (
+            <div key={index} className="rounded-[1.05rem] px-3 py-3">
               <div className="flex items-start justify-between gap-3">
                 <div className="min-w-0 flex-1 space-y-2">
                   <Skeleton className="h-4 w-32 rounded-full" />
@@ -329,9 +345,9 @@ export function AdminMemberOverridesDashboardSkeleton() {
         </div>
       </div>
 
-      <div className="rounded-[1.9rem] border border-[color:color-mix(in_srgb,var(--wellstudio-blue)_12%,white)] bg-white p-5 shadow-[0_20px_45px_rgba(18,20,24,0.06)] sm:p-6">
-        <div className="space-y-6">
-          <div className="space-y-4 border-b border-[color:color-mix(in_srgb,var(--border)_72%,white)] pb-5">
+      <div className="rounded-[1.55rem] border border-[color:color-mix(in_srgb,var(--wellstudio-blue)_12%,white)] bg-white p-4 shadow-[0_16px_36px_rgba(18,20,24,0.055)] sm:p-5">
+        <div className="space-y-4">
+          <div className="space-y-4 border-b border-[color:color-mix(in_srgb,var(--border)_72%,white)] pb-4">
             <div className="flex items-start justify-between gap-3">
               <div className="min-w-0 flex-1 space-y-2">
                 <Skeleton className="h-3 w-24 rounded-full" />
@@ -350,49 +366,48 @@ export function AdminMemberOverridesDashboardSkeleton() {
             </div>
           </div>
 
-          <div className="grid gap-5 xl:grid-cols-[minmax(0,1fr)_360px]">
-            <div className="space-y-5">
-              {Array.from({ length: 2 }).map((_, sectionIndex) => (
-                <div key={sectionIndex} className="space-y-3">
-                  <div className="flex items-start gap-3">
-                    <Skeleton className="size-10 rounded-full" />
-                    <div className="min-w-0 flex-1 space-y-2">
-                      <Skeleton className="h-5 w-40 rounded-full" />
-                      <Skeleton className="h-4 w-full rounded-full" />
-                    </div>
-                  </div>
-                  {Array.from({ length: 3 }).map((_, index) => (
-                    <div key={index} className="rounded-[1.35rem] border border-[color:color-mix(in_srgb,var(--border)_76%,white)] px-4 py-4">
-                      <Skeleton className="h-4 w-32 rounded-full" />
-                      <Skeleton className="mt-2 h-4 w-48 rounded-full" />
-                      <Skeleton className="mt-2 h-4 w-56 rounded-full" />
-                    </div>
-                  ))}
-                </div>
-              ))}
-            </div>
-
-            <div className="space-y-4">
-              {Array.from({ length: 2 }).map((_, index) => (
-                <div key={index} className="rounded-[1.8rem] border border-[color:color-mix(in_srgb,var(--wellstudio-blue)_12%,white)] bg-white p-4 shadow-[0_20px_45px_rgba(18,20,24,0.06)] sm:p-5">
-                  <div className="flex items-start gap-3">
-                    <Skeleton className="size-10 rounded-full" />
-                    <div className="min-w-0 flex-1 space-y-2">
-                      <Skeleton className="h-5 w-36 rounded-full" />
-                      <Skeleton className="h-4 w-full rounded-full" />
-                    </div>
-                  </div>
-                  <div className="mt-5 space-y-3">
-                    <Skeleton className="h-20 w-full rounded-[1.15rem]" />
-                    <Skeleton className="h-10 w-24 rounded-full" />
-                    <Skeleton className="h-24 w-full rounded-[1.15rem]" />
-                    <Skeleton className="h-11 w-52 rounded-full" />
+          <div className="space-y-4">
+            {Array.from({ length: 2 }).map((_, sectionIndex) => (
+              <div key={sectionIndex} className="space-y-3">
+                <div className="flex items-start gap-3">
+                  <Skeleton className="size-9 rounded-full" />
+                  <div className="min-w-0 flex-1 space-y-2">
+                    <Skeleton className="h-5 w-40 rounded-full" />
+                    <Skeleton className="h-4 w-full rounded-full" />
                   </div>
                 </div>
-              ))}
-            </div>
+                {Array.from({ length: 3 }).map((_, index) => (
+                  <div key={index} className="rounded-[1.15rem] border border-[color:color-mix(in_srgb,var(--border)_76%,white)] px-4 py-3">
+                    <Skeleton className="h-4 w-32 rounded-full" />
+                    <Skeleton className="mt-2 h-4 w-48 rounded-full" />
+                    <Skeleton className="mt-2 h-4 w-56 rounded-full" />
+                  </div>
+                ))}
+              </div>
+            ))}
           </div>
         </div>
+      </div>
+
+      <div className="space-y-3 lg:col-start-2 2xl:col-auto">
+        <Skeleton className="h-16 w-full rounded-[1.25rem]" />
+        {Array.from({ length: 2 }).map((_, index) => (
+          <div key={index} className="rounded-[1.45rem] border border-[color:color-mix(in_srgb,var(--wellstudio-blue)_12%,white)] bg-white p-4 shadow-[0_16px_36px_rgba(18,20,24,0.055)]">
+            <div className="flex items-start gap-3">
+              <Skeleton className="size-9 rounded-full" />
+              <div className="min-w-0 flex-1 space-y-2">
+                <Skeleton className="h-5 w-36 rounded-full" />
+                <Skeleton className="h-4 w-full rounded-full" />
+              </div>
+            </div>
+            <div className="mt-4 space-y-3">
+              <Skeleton className="h-16 w-full rounded-[1rem]" />
+              <Skeleton className="h-10 w-24 rounded-full" />
+              <Skeleton className="h-20 w-full rounded-[1rem]" />
+              <Skeleton className="h-11 w-48 rounded-full" />
+            </div>
+          </div>
+        ))}
       </div>
     </div>
   )
@@ -422,7 +437,7 @@ function MembershipLinkCard({
         sessionId: selectedSessionId,
       })}
       className={cn(
-        'block rounded-[1.35rem] border px-4 py-4 transition-[background-color,border-color,box-shadow] duration-200 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--ring)]',
+        'block rounded-[1.15rem] border px-4 py-3 transition-[background-color,border-color,box-shadow] duration-200 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--ring)]',
         isSelected
           ? 'border-[color:color-mix(in_srgb,var(--wellstudio-blue)_28%,white)] bg-[color:color-mix(in_srgb,var(--wellstudio-blue)_8%,white)] shadow-[0_12px_30px_rgba(20,24,30,0.08)]'
           : 'border-[color:color-mix(in_srgb,var(--border)_76%,white)] bg-[color:color-mix(in_srgb,var(--card)_74%,white)] hover:bg-white',
@@ -444,7 +459,7 @@ function MembershipLinkCard({
           </StatusBadge>
         </div>
       </div>
-      <p className="mt-3 text-sm leading-7 text-[color:color-mix(in_srgb,var(--foreground)_72%,white)]">
+      <p className="mt-2 text-sm leading-6 text-[color:color-mix(in_srgb,var(--foreground)_72%,white)]">
         {membership.extraAllowanceHint}
       </p>
     </Link>
@@ -465,7 +480,7 @@ function OverrideHistoryCard({
   sessionId: string | null
 }) {
   return (
-    <article className="rounded-[1.35rem] border border-[color:color-mix(in_srgb,var(--border)_76%,white)] bg-[color:color-mix(in_srgb,var(--card)_74%,white)] px-4 py-4">
+    <article className="rounded-[1.15rem] border border-[color:color-mix(in_srgb,var(--border)_76%,white)] bg-[color:color-mix(in_srgb,var(--card)_74%,white)] px-4 py-3">
       <div className="flex flex-wrap items-start justify-between gap-3">
         <div className="min-w-0 space-y-1.5">
           <div className="flex flex-wrap items-center gap-2">
@@ -473,7 +488,7 @@ function OverrideHistoryCard({
             <StatusBadge tone={item.statusTone}>{item.statusLabel}</StatusBadge>
           </div>
           <p className="text-sm font-medium text-[var(--wellstudio-ink)]">{item.summaryLabel}</p>
-          <p className="text-sm leading-7 text-[color:color-mix(in_srgb,var(--foreground)_72%,white)]">
+          <p className="text-sm leading-6 text-[color:color-mix(in_srgb,var(--foreground)_72%,white)]">
             {item.reason}
           </p>
         </div>
@@ -483,7 +498,7 @@ function OverrideHistoryCard({
         </div>
       </div>
 
-      <div className="mt-4 grid gap-3 border-t border-[color:color-mix(in_srgb,var(--border)_72%,white)] pt-4 text-sm text-[color:color-mix(in_srgb,var(--foreground)_72%,white)] sm:grid-cols-2">
+      <div className="mt-3 grid gap-3 border-t border-[color:color-mix(in_srgb,var(--border)_72%,white)] pt-3 text-sm text-[color:color-mix(in_srgb,var(--foreground)_72%,white)] sm:grid-cols-2">
         <div>
           <p className="text-[11px] uppercase tracking-[0.2em] text-[var(--wellstudio-blue-deep)]">
             Concedido por
@@ -501,12 +516,12 @@ function OverrideHistoryCard({
       </div>
 
       {item.canRevoke ? (
-        <details className="mt-4 rounded-[1.15rem] border border-[color:color-mix(in_srgb,var(--destructive)_16%,white)] bg-[color:color-mix(in_srgb,var(--destructive)_5%,white)] px-4 py-3">
+        <details className="mt-3 rounded-[1rem] border border-[color:color-mix(in_srgb,var(--destructive)_16%,white)] bg-[color:color-mix(in_srgb,var(--destructive)_5%,white)] px-4 py-3">
           <summary className="cursor-pointer list-none text-sm font-medium text-[var(--wellstudio-ink)]">
             Revocar override
           </summary>
           <div className="mt-3 space-y-3">
-            <p className="text-sm leading-7 text-[color:color-mix(in_srgb,var(--foreground)_72%,white)]">
+            <p className="text-sm leading-6 text-[color:color-mix(in_srgb,var(--foreground)_72%,white)]">
               La revocación no borra historial. Solo marca `revokedAt` y deja trazabilidad del actor.
             </p>
             <form action={revokeMemberOverrideAction}>
@@ -527,6 +542,26 @@ function OverrideHistoryCard({
         </details>
       ) : null}
     </article>
+  )
+}
+
+function ActionRailEmpty({
+  title,
+  description,
+}: {
+  title: string
+  description: string
+}) {
+  return (
+    <div className="rounded-[1.45rem] border border-dashed border-[color:color-mix(in_srgb,var(--border)_82%,white)] bg-[color:color-mix(in_srgb,var(--card)_78%,white)] px-5 py-6">
+      <p className="text-xs uppercase tracking-[0.24em] text-[var(--wellstudio-blue-deep)]">
+        Acciones
+      </p>
+      <h2 className="mt-3 text-lg font-medium text-[var(--wellstudio-ink)]">{title}</h2>
+      <p className="mt-2 text-sm leading-6 text-[color:color-mix(in_srgb,var(--foreground)_70%,white)]">
+        {description}
+      </p>
+    </div>
   )
 }
 

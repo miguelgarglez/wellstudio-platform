@@ -1,6 +1,15 @@
 import { describe, expect, it } from 'vitest'
 
 import {
+  ADMIN_PLAYGROUND_MEMBER_EMAILS,
+  ADMIN_PLAYGROUND_PLAN_SLUGS,
+  ADMIN_PLAYGROUND_PREFIX,
+  ADMIN_PLAYGROUND_SESSION_LABELS,
+  buildAdminPlaygroundMemberProfiles,
+  buildAdminPlaygroundSessionBlueprints,
+  buildAdminPlaygroundTimeline,
+} from '@/modules/testing/server/sandbox-scenarios/admin-playground.mjs'
+import {
   buildMemberReservationsFlowSessionBlueprints,
   buildMemberReservationsFlowTimeline,
   MEMBER_RESERVATIONS_FLOW_OPERATIONS,
@@ -16,6 +25,9 @@ describe('sandbox scenario helpers', () => {
   it('accepts only managed sandbox scenario emails', () => {
     expect(isManagedScenarioEmail('e2e.member.sandbox@wellstudio.test')).toBe(true)
     expect(isManagedScenarioEmail('e2e.member.flow.sandbox@wellstudio.test')).toBe(true)
+    expect(
+      isManagedScenarioEmail(ADMIN_PLAYGROUND_MEMBER_EMAILS.weeklyActive),
+    ).toBe(true)
     expect(isManagedScenarioEmail('miguel.garglez@gmail.com')).toBe(false)
     expect(isManagedScenarioEmail('e2e.member.local@wellstudio.test')).toBe(false)
   })
@@ -90,5 +102,56 @@ describe('sandbox scenario helpers', () => {
     expect(MEMBER_RESERVATIONS_FLOW_OPERATIONS.cancelableReservationState).toBe(
       'cancelable-reservation-state',
     )
+  })
+
+  it('defines stable admin playground plan slugs and managed labels', () => {
+    expect(Object.values(ADMIN_PLAYGROUND_PLAN_SLUGS)).toEqual([
+      'admin-playground-weekly',
+      'admin-playground-monthly',
+      'admin-playground-unlimited',
+    ])
+
+    for (const label of Object.values(ADMIN_PLAYGROUND_SESSION_LABELS) as string[]) {
+      expect(label.startsWith(`${ADMIN_PLAYGROUND_PREFIX} · Session`)).toBe(true)
+    }
+  })
+
+  it('builds deterministic admin playground session blueprints', () => {
+    const blueprints = buildAdminPlaygroundSessionBlueprints(
+      new Date('2026-04-03T10:00:00.000Z'),
+    )
+
+    expect(blueprints.strength.startsAt.getDate()).toBe(4)
+    expect(blueprints.strength.startsAt.getHours()).toBe(17)
+    expect(blueprints.strength.status).toBe('PUBLISHED')
+    expect(blueprints.strength.reservedCount).toBe(3)
+
+    expect(blueprints.mobility.startsAt.getDate()).toBe(5)
+    expect(blueprints.recovery.waitlistEnabled).toBe(false)
+    expect(blueprints.past.status).toBe('COMPLETED')
+  })
+
+  it('builds admin playground timelines relative to now', () => {
+    const timeline = buildAdminPlaygroundTimeline(new Date('2026-04-03T10:00:00.000Z'))
+
+    expect(timeline.strength.startsAt.getDate()).toBe(4)
+    expect(timeline.mobility.startsAt.getDate()).toBe(5)
+    expect(timeline.recovery.startsAt.getDate()).toBe(7)
+    expect(timeline.past.startsAt.getDate()).toBe(26)
+  })
+
+  it('exposes varied admin playground member states', () => {
+    const profiles = buildAdminPlaygroundMemberProfiles()
+
+    expect(profiles).toHaveLength(6)
+    expect(profiles.map((profile) => profile.membershipStatus)).toEqual([
+      'ACTIVE',
+      'ACTIVE',
+      'ACTIVE',
+      'PENDING_ACTIVATION',
+      'EXPIRED',
+      null,
+    ])
+    expect(profiles.some((profile) => !profile.hasMembership)).toBe(true)
   })
 })

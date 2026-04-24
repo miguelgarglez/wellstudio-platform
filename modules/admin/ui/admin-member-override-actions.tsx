@@ -55,7 +55,19 @@ export function AdminMemberOverrideActions({
     sessionCandidates.find((session) => session.id === selectedSessionId) ?? null
 
   return (
-    <div className="space-y-4">
+    <div className="space-y-3">
+      <div className="rounded-[1.35rem] border border-[color:color-mix(in_srgb,var(--wellstudio-blue)_12%,white)] bg-[color:color-mix(in_srgb,var(--card)_82%,white)] px-4 py-4 shadow-[0_14px_32px_rgba(18,20,24,0.05)]">
+        <p className="text-xs uppercase tracking-[0.24em] text-[var(--wellstudio-blue-deep)]">
+          Inspector
+        </p>
+        <h2 className="mt-2 text-lg font-medium text-[var(--wellstudio-ink)]">
+          Acciones de override
+        </h2>
+        <p className="mt-1 text-sm leading-6 text-[color:color-mix(in_srgb,var(--foreground)_70%,white)]">
+          Elige membership y sesión desde la workspace; aquí solo ejecutas cambios trazables.
+        </p>
+      </div>
+
       {updatedState === 'extra' ? (
         <StatusNotice
           tone="success"
@@ -88,16 +100,16 @@ export function AdminMemberOverrideActions({
         />
       ) : null}
 
-      <section className="rounded-[1.8rem] border border-[color:color-mix(in_srgb,var(--wellstudio-blue)_12%,white)] bg-white p-4 shadow-[0_20px_45px_rgba(18,20,24,0.06)] sm:p-5">
+      <section className="rounded-[1.45rem] border border-[color:color-mix(in_srgb,var(--wellstudio-blue)_12%,white)] bg-white p-4 shadow-[0_16px_36px_rgba(18,20,24,0.055)]">
         <div className="flex items-start gap-3">
-          <span className="inline-flex size-10 shrink-0 items-center justify-center rounded-full bg-[color:color-mix(in_srgb,var(--wellstudio-blue)_10%,white)] text-[var(--wellstudio-blue-deep)]">
+          <span className="inline-flex size-9 shrink-0 items-center justify-center rounded-full bg-[color:color-mix(in_srgb,var(--wellstudio-blue)_10%,white)] text-[var(--wellstudio-blue-deep)]">
             <TicketPlus className="size-4" aria-hidden="true" />
           </span>
           <div className="min-w-0">
             <h2 className="text-lg font-medium text-[var(--wellstudio-ink)]">
               Allowance extra
             </h2>
-            <p className="mt-1 text-sm leading-7 text-[color:color-mix(in_srgb,var(--foreground)_72%,white)]">
+            <p className="mt-1 text-sm leading-6 text-[color:color-mix(in_srgb,var(--foreground)_72%,white)]">
               Concede reservas adicionales dentro del periodo natural vigente de la membership seleccionada.
             </p>
           </div>
@@ -196,16 +208,16 @@ export function AdminMemberOverrideActions({
         </form>
       </section>
 
-      <section className="rounded-[1.8rem] border border-[color:color-mix(in_srgb,var(--wellstudio-blue)_12%,white)] bg-white p-4 shadow-[0_20px_45px_rgba(18,20,24,0.06)] sm:p-5">
+      <section className="rounded-[1.45rem] border border-[color:color-mix(in_srgb,var(--wellstudio-blue)_12%,white)] bg-white p-4 shadow-[0_16px_36px_rgba(18,20,24,0.055)]">
         <div className="flex items-start gap-3">
-          <span className="inline-flex size-10 shrink-0 items-center justify-center rounded-full bg-[color:color-mix(in_srgb,var(--wellstudio-blue)_10%,white)] text-[var(--wellstudio-blue-deep)]">
+          <span className="inline-flex size-9 shrink-0 items-center justify-center rounded-full bg-[color:color-mix(in_srgb,var(--wellstudio-blue)_10%,white)] text-[var(--wellstudio-blue-deep)]">
             <LockKeyhole className="size-4" aria-hidden="true" />
           </span>
           <div className="min-w-0">
             <h2 className="text-lg font-medium text-[var(--wellstudio-ink)]">
               Session access
             </h2>
-            <p className="mt-1 text-sm leading-7 text-[color:color-mix(in_srgb,var(--foreground)_72%,white)]">
+            <p className="mt-1 text-sm leading-6 text-[color:color-mix(in_srgb,var(--foreground)_72%,white)]">
               Desbloquea una sesión futura publicada concreta sin alterar la política base del plan.
             </p>
           </div>

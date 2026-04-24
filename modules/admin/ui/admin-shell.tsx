@@ -79,16 +79,16 @@ export function AdminShell({ children, summary }: AdminShellProps) {
   }
 
   return (
-    <div className="wellstudio-admin-shell min-h-screen bg-transparent text-[var(--foreground)]">
-      <div className="mx-auto flex min-h-screen w-full max-w-7xl flex-col px-4 pb-[calc(env(safe-area-inset-bottom)+5.8rem)] pt-4 sm:px-6 sm:pt-6 lg:px-8 lg:pb-10 lg:pt-8">
-        <div className="grid flex-1 gap-6 lg:grid-cols-[280px_minmax(0,1fr)] lg:items-start lg:gap-8">
-          <aside className="hidden lg:block">
-            <div className="sticky top-8">
-              <div className="rounded-[2rem] border border-white/8 bg-[linear-gradient(180deg,#121418_0%,#181b21_100%)] p-5 text-white shadow-[0_24px_70px_rgba(17,18,22,0.18)]">
-                <div className="flex items-center gap-3 rounded-[1.45rem] border border-white/10 bg-white/4 px-3 py-3">
-                  <WellstudioLogoMark className="size-12 rounded-[1rem] shadow-none" />
+    <div className="wellstudio-admin-shell min-h-screen bg-transparent text-[var(--foreground)] xl:h-screen xl:overflow-hidden">
+      <div className="flex min-h-screen w-full flex-col px-3 pb-[calc(env(safe-area-inset-bottom)+5.8rem)] pt-3 sm:px-5 sm:pt-5 xl:h-screen xl:px-4 xl:pb-4 xl:pt-4">
+        <div className="grid flex-1 gap-4 xl:h-full xl:grid-cols-[248px_minmax(0,1fr)] xl:items-stretch">
+          <aside className="hidden xl:block xl:min-h-0">
+            <div className="sticky top-4 flex h-[calc(100vh-2rem)] flex-col">
+              <div className="flex min-h-0 flex-1 flex-col rounded-[1.65rem] border border-white/8 bg-[linear-gradient(180deg,#111317_0%,#171a20_100%)] p-4 text-white shadow-[0_22px_62px_rgba(17,18,22,0.18)]">
+                <div className="flex items-center gap-3 rounded-[1.25rem] border border-white/10 bg-white/4 px-3 py-3">
+                  <WellstudioLogoMark className="size-11 rounded-[0.9rem] shadow-none" />
                   <div className="min-w-0">
-                    <p className="font-display text-2xl uppercase tracking-[0.08em] text-white">
+                    <p className="font-display text-[1.35rem] uppercase tracking-[0.08em] text-white">
                       WellStudio
                     </p>
                     <p className="text-xs uppercase tracking-[0.22em] text-white/62">
@@ -97,13 +97,13 @@ export function AdminShell({ children, summary }: AdminShellProps) {
                   </div>
                 </div>
 
-                <div className="mt-6 space-y-3 px-1">
+                <div className="mt-5 space-y-3 px-1">
                   <div className="space-y-1.5">
                     <p className="text-xs uppercase tracking-[0.24em] text-[var(--wellstudio-blue-soft)]">
                       Operador activo
                     </p>
-                    <p className="text-lg font-medium text-white">{summary.displayName}</p>
-                    <p className="text-sm text-white/70" translate="no">
+                    <p className="text-base font-medium text-white">{summary.displayName}</p>
+                    <p className="truncate text-sm text-white/70" translate="no">
                       {summary.email}
                     </p>
                   </div>
@@ -112,7 +112,7 @@ export function AdminShell({ children, summary }: AdminShellProps) {
                   </span>
                 </div>
 
-                <nav aria-label="Navegación admin" className="mt-7 flex flex-col gap-1">
+                <nav aria-label="Navegación admin" className="mt-6 flex flex-col gap-1">
                   {adminNavItems.map((item) => {
                     const Icon = item.icon
                     const isActive = isAdminNavItemActive(pathname, item.href)
@@ -128,7 +128,7 @@ export function AdminShell({ children, summary }: AdminShellProps) {
                         onClick={() => handleAdminNavigation(item.href)}
                         aria-current={isActive ? 'page' : undefined}
                         className={cn(
-                          'relative flex items-center gap-3 overflow-hidden rounded-[1.35rem] px-4 py-3 text-sm font-medium transition-[background-color,color,box-shadow] duration-200 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white/50',
+                          'relative flex items-center gap-3 overflow-hidden rounded-[1.2rem] px-3.5 py-2.5 text-sm font-medium transition-[background-color,color,box-shadow] duration-200 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white/50',
                           isActive
                             ? 'bg-[color:color-mix(in_srgb,var(--wellstudio-blue)_24%,white_6%)] text-white shadow-[inset_0_0_0_1px_rgba(255,255,255,0.08)]'
                             : 'text-white/78 hover:bg-white/6 hover:text-white',
@@ -156,12 +156,12 @@ export function AdminShell({ children, summary }: AdminShellProps) {
                   })}
                 </nav>
 
-                <div className="mt-8 rounded-[1.5rem] border border-white/10 bg-white/[0.045] p-4">
+                <div className="mt-auto rounded-[1.35rem] border border-white/10 bg-white/[0.045] p-3.5">
                   <p className="text-xs uppercase tracking-[0.22em] text-[var(--wellstudio-blue-soft)]">
                     Sesión
                   </p>
-                  <p className="mt-3 text-sm text-white/70">
-                    Esta superficie controla reglas operativas del dominio. Mantén cambios trazables y explícitos.
+                  <p className="mt-3 text-sm leading-6 text-white/70">
+                    Cambios operativos trazables sobre reglas de dominio.
                   </p>
                   <div className="mt-4">
                     <LogoutButton
@@ -174,8 +174,8 @@ export function AdminShell({ children, summary }: AdminShellProps) {
             </div>
           </aside>
 
-          <div className="min-w-0">
-            <div className="mb-5 flex items-center gap-3 rounded-[1.6rem] border border-[color:color-mix(in_srgb,var(--wellstudio-blue)_10%,white)] bg-[color:color-mix(in_srgb,var(--card)_86%,white)] px-4 py-4 shadow-[0_18px_40px_rgba(18,20,24,0.06)] lg:hidden">
+          <div className="min-w-0 xl:h-full xl:overflow-y-auto">
+            <div className="mb-5 flex items-center gap-3 rounded-[1.6rem] border border-[color:color-mix(in_srgb,var(--wellstudio-blue)_10%,white)] bg-[color:color-mix(in_srgb,var(--card)_86%,white)] px-4 py-4 shadow-[0_18px_40px_rgba(18,20,24,0.06)] xl:hidden">
               <WellstudioLogoMark className="size-11 rounded-[0.95rem]" />
               <div className="min-w-0">
                 <p className="font-display text-2xl uppercase tracking-[0.08em] text-[var(--wellstudio-ink)]">
@@ -187,7 +187,7 @@ export function AdminShell({ children, summary }: AdminShellProps) {
               </div>
             </div>
 
-            <main id="main-content" className="pb-2">
+            <main id="main-content" className="pb-2 xl:min-h-full">
               <AdminContentTransition
                 direction={contentDirection}
                 isPending={isNavigationPending}
@@ -202,7 +202,7 @@ export function AdminShell({ children, summary }: AdminShellProps) {
 
       <nav
         aria-label="Navegación admin móvil"
-        className="fixed inset-x-0 bottom-0 z-40 border-t border-[color:color-mix(in_srgb,var(--border)_80%,white)] bg-[color:color-mix(in_srgb,var(--card)_88%,white)]/95 px-3 pb-[calc(env(safe-area-inset-bottom)+0.65rem)] pt-2.5 shadow-[0_-16px_40px_rgba(18,20,24,0.08)] backdrop-blur-xl lg:hidden"
+        className="fixed inset-x-0 bottom-0 z-40 border-t border-[color:color-mix(in_srgb,var(--border)_80%,white)] bg-[color:color-mix(in_srgb,var(--card)_88%,white)]/95 px-3 pb-[calc(env(safe-area-inset-bottom)+0.65rem)] pt-2.5 shadow-[0_-16px_40px_rgba(18,20,24,0.08)] backdrop-blur-xl xl:hidden"
       >
         <div className="mx-auto flex w-fit max-w-[calc(100vw-2rem)] items-center justify-center gap-2 rounded-[2rem] border border-[color:color-mix(in_srgb,var(--wellstudio-blue)_8%,white)] bg-white/58 p-1.5 shadow-[0_10px_28px_rgba(18,20,24,0.07)]">
           {adminNavItems.map((item) => {

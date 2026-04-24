@@ -227,6 +227,17 @@ Direccion:
 - menos bloques hero
 - prioridad a claridad operativa
 
+Regla de producto:
+
+- admin no es un portal de consumo, es una herramienta de operacion
+- en desktop debe aprovechar el ancho disponible para listas, contexto, detalle e inspector
+- evitar heroes editoriales grandes en admin; usar toolbars compactas con contexto util
+- preferir patrones de workbench: rail de busqueda/lista, panel de detalle y rail de acciones
+- usar cards solo cuando la card sea la unidad de interaccion; si solo agrupa informacion, preferir filas, secciones y divisores
+- mantener URL como fuente de verdad para seleccion, filtros y paneles operativos
+- member app puede ser mas guiada, espaciosa y editorial; admin debe ser mas denso, escaneable y accionable
+- no reutilizar layouts de member en admin salvo componentes atomicos compartidos como botones, inputs, badges o tokens de marca
+
 ## Motion
 
 - usar animaciones cortas y funcionales

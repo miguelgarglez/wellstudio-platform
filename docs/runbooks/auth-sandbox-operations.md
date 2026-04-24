@@ -108,6 +108,22 @@ Este comando prepara el dominio sandbox para QA visual y futura validación E2E 
 - waitlist activa
 - historial reciente
 
+### Reconciliar playground admin
+
+```bash
+pnpm sandbox:admin-playground
+```
+
+Este comando prepara datos ricos para revisar `/admin` y `/admin/overrides` con estados realistas:
+
+- planes con políticas explícitas ilimitada, semanal y mensual
+- socios buscables con memberships activas, pendientes, expiradas y ausentes
+- overrides vigentes, revocados y expirados
+- sesiones futuras publicadas para `SESSION_ACCESS`
+- contexto comercial ligero como tarjeta, pagos y créditos
+
+El playground admin es para QA manual y revisión de producto. No es un fixture determinista para assertions E2E.
+
 ## Qué cubre hoy la suite sandbox
 
 - login válido de member

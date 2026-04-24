@@ -167,9 +167,8 @@ a {
 
 .wellstudio-admin-shell {
   background:
-    radial-gradient(circle at top left, color-mix(in srgb, var(--wellstudio-blue) 10%, transparent), transparent 24%),
-    radial-gradient(circle at bottom right, color-mix(in srgb, var(--wellstudio-blue-soft) 10%, transparent), transparent 22%),
-    linear-gradient(180deg, #f6f2eb 0%, #f7f4ef 44%, #efe9df 100%);
+    radial-gradient(circle at top left, color-mix(in srgb, var(--wellstudio-blue) 7%, transparent), transparent 22%),
+    linear-gradient(180deg, #f6f3ee 0%, #f4f0e8 46%, #eee8dd 100%);
 }
 
 @keyframes wellstudio-auth-rise {

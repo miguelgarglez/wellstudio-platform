@@ -15,6 +15,11 @@ import {
   SCENARIO_CONFIRMATION_FLAG,
 } from '../../modules/testing/server/sandbox-scenarios/shared.mjs'
 import {
+  ADMIN_PLAYGROUND_DEFAULT_ADMIN_EMAIL,
+  ADMIN_PLAYGROUND_SCENARIO,
+  ensureAdminPlaygroundScenario,
+} from '../../modules/testing/server/sandbox-scenarios/admin-playground.mjs'
+import {
   ensureMemberReservationsFlowAvailableSessionState,
   ensureMemberReservationsFlowCancelableReservationState,
   ensureMemberReservationsFlowScenario,
@@ -26,13 +31,22 @@ import {
 const ROOT = process.cwd()
 const SCENARIOS = {
   [MEMBER_RESERVATIONS_FLOW_SCENARIO]: {
-    [MEMBER_RESERVATIONS_FLOW_OPERATIONS.full]: ensureMemberReservationsFlowScenario,
-    [MEMBER_RESERVATIONS_FLOW_OPERATIONS.waitlistState]:
-      ensureMemberReservationsFlowWaitlistState,
-    [MEMBER_RESERVATIONS_FLOW_OPERATIONS.availableSessionState]:
-      ensureMemberReservationsFlowAvailableSessionState,
-    [MEMBER_RESERVATIONS_FLOW_OPERATIONS.cancelableReservationState]:
-      ensureMemberReservationsFlowCancelableReservationState,
+    requiresMemberAuthUser: true,
+    operations: {
+      [MEMBER_RESERVATIONS_FLOW_OPERATIONS.full]: ensureMemberReservationsFlowScenario,
+      [MEMBER_RESERVATIONS_FLOW_OPERATIONS.waitlistState]:
+        ensureMemberReservationsFlowWaitlistState,
+      [MEMBER_RESERVATIONS_FLOW_OPERATIONS.availableSessionState]:
+        ensureMemberReservationsFlowAvailableSessionState,
+      [MEMBER_RESERVATIONS_FLOW_OPERATIONS.cancelableReservationState]:
+        ensureMemberReservationsFlowCancelableReservationState,
+    },
+  },
+  [ADMIN_PLAYGROUND_SCENARIO]: {
+    requiresMemberAuthUser: false,
+    operations: {
+      [MEMBER_RESERVATIONS_FLOW_OPERATIONS.full]: ensureAdminPlaygroundScenario,
+    },
   },
 }
 
@@ -50,9 +64,11 @@ if (!scenarioName || !SCENARIOS[scenarioName]) {
   )
 }
 
-if (!SCENARIOS[scenarioName][scenarioOperationName]) {
+const scenarioConfig = SCENARIOS[scenarioName]
+
+if (!scenarioConfig.operations[scenarioOperationName]) {
   exitWithHelp(
-    `Unknown operation "${scenarioOperationName}" for scenario "${scenarioName}". Available operations: ${Object.keys(SCENARIOS[scenarioName]).join(', ')}`,
+    `Unknown operation "${scenarioOperationName}" for scenario "${scenarioName}". Available operations: ${Object.keys(scenarioConfig.operations).join(', ')}`,
   )
 }
 
@@ -62,16 +78,8 @@ if (!args.includes(SCENARIO_CONFIRMATION_FLAG)) {
 
 const databaseUrl = requireEnv('DATABASE_URL')
 const supabaseUrl = requireEnv('NEXT_PUBLIC_SUPABASE_URL')
-const serviceRoleKey = requireEnv('SUPABASE_SERVICE_ROLE_KEY')
 const sandboxProjectRef = requireEnv('SUPABASE_SANDBOX_PROJECT_REF')
 const sandboxEnabled = requireEnv('E2E_AUTH_SANDBOX')
-const memberEmail = requireEnv('E2E_MEMBER_EMAIL')
-
-if (!isManagedScenarioEmail(memberEmail)) {
-  exitWithHelp(
-    `Refusing to reconcile scenario for non-managed email "${memberEmail}". Expected an e2e sandbox account.`,
-  )
-}
 
 const currentProjectRef = assertSandboxContext({
   supabaseUrl,
@@ -84,21 +92,6 @@ assertDatabaseUrlMatchesSandbox({
   sandboxProjectRef,
 })
 
-const supabase = createClient(supabaseUrl, serviceRoleKey, {
-  auth: {
-    autoRefreshToken: false,
-    persistSession: false,
-  },
-})
-
-const authUser = await findAuthUserByEmail(supabase, memberEmail)
-
-if (!authUser) {
-  exitWithHelp(
-    `Sandbox auth user "${memberEmail}" was not found. Run node scripts/auth/ensure-sandbox-user.mjs member --confirm-sandbox-reset first.`,
-  )
-}
-
 const adapter = new PrismaPg({ connectionString: databaseUrl })
 const prisma = new PrismaClient({
   adapter,
@@ -106,14 +99,14 @@ const prisma = new PrismaClient({
 })
 
 try {
-  const scenario = await SCENARIOS[scenarioName][scenarioOperationName]({
+  const scenarioInput = await buildScenarioInput({
+    scenarioConfig,
+    supabaseUrl,
+  })
+  const scenario = await scenarioConfig.operations[scenarioOperationName]({
     prisma,
-    authUser: {
-      id: authUser.id,
-      email: authUser.email ?? memberEmail,
-    },
-    email: memberEmail,
     now: new Date(),
+    ...scenarioInput,
   })
 
   printSummary({
@@ -127,6 +120,46 @@ try {
   process.exitCode = 1
 } finally {
   await prisma.$disconnect()
+}
+
+async function buildScenarioInput({ scenarioConfig, supabaseUrl }) {
+  if (!scenarioConfig.requiresMemberAuthUser) {
+    return {
+      adminEmail:
+        process.env.E2E_ADMIN_EMAIL || ADMIN_PLAYGROUND_DEFAULT_ADMIN_EMAIL,
+    }
+  }
+
+  const serviceRoleKey = requireEnv('SUPABASE_SERVICE_ROLE_KEY')
+  const memberEmail = requireEnv('E2E_MEMBER_EMAIL')
+
+  if (!isManagedScenarioEmail(memberEmail)) {
+    exitWithHelp(
+      `Refusing to reconcile scenario for non-managed email "${memberEmail}". Expected an e2e sandbox account.`,
+    )
+  }
+
+  const supabase = createClient(supabaseUrl, serviceRoleKey, {
+    auth: {
+      autoRefreshToken: false,
+      persistSession: false,
+    },
+  })
+  const authUser = await findAuthUserByEmail(supabase, memberEmail)
+
+  if (!authUser) {
+    exitWithHelp(
+      `Sandbox auth user "${memberEmail}" was not found. Run node scripts/auth/ensure-sandbox-user.mjs member --confirm-sandbox-reset first.`,
+    )
+  }
+
+  return {
+    authUser: {
+      id: authUser.id,
+      email: authUser.email ?? memberEmail,
+    },
+    email: memberEmail,
+  }
 }
 
 async function findAuthUserByEmail(client, email) {
@@ -157,6 +190,15 @@ async function findAuthUserByEmail(client, email) {
 }
 
 function printSummary({ scenario, currentProjectRef, scenarioOperationName }) {
+  if (scenario.scenario === ADMIN_PLAYGROUND_SCENARIO) {
+    printAdminPlaygroundSummary({
+      scenario,
+      currentProjectRef,
+      scenarioOperationName,
+    })
+    return
+  }
+
   console.log(
     `Reconciled sandbox scenario "${scenario.scenario}" (${scenarioOperationName}) for ${scenario.memberEmail} in project ${currentProjectRef}.`,
   )
@@ -180,6 +222,31 @@ function printSummary({ scenario, currentProjectRef, scenarioOperationName }) {
   console.log('1. agent-browser --session-name wellstudio-sandbox open http://localhost:3000/login')
   console.log('2. Log in with the sandbox member credentials')
   console.log('3. Open /app and /app/reservations to validate the scenario visually')
+}
+
+function printAdminPlaygroundSummary({
+  scenario,
+  currentProjectRef,
+  scenarioOperationName,
+}) {
+  console.log(
+    `Reconciled sandbox scenario "${scenario.scenario}" (${scenarioOperationName}) in project ${currentProjectRef}.`,
+  )
+  console.log(`Admin actor: ${scenario.adminEmail}`)
+  console.log(`Plans: ${scenario.planSlugs.join(', ')}`)
+  console.log(`Members: ${scenario.memberEmails.join(', ')}`)
+  console.log(`Active memberships: ${scenario.activeMembershipCount}`)
+  console.log('Managed sessions:')
+
+  for (const label of scenario.sessionLabels) {
+    console.log(`- ${label}`)
+  }
+
+  console.log('')
+  console.log('Recommended next steps:')
+  console.log('1. Open http://localhost:3000/admin')
+  console.log('2. Check membership policy density and explicit policy states')
+  console.log('3. Open /admin/overrides?q=playground to inspect member override states')
 }
 
 function assertDatabaseUrlMatchesSandbox({ databaseUrl, sandboxProjectRef }) {
@@ -218,6 +285,9 @@ function exitWithHelp(message) {
   )
   console.error(
     `  node scripts/sandbox/ensure-member-scenario.mjs ${MEMBER_RESERVATIONS_FLOW_SCENARIO} ${MEMBER_RESERVATIONS_FLOW_OPERATIONS.waitlistState} ${SCENARIO_CONFIRMATION_FLAG}`,
+  )
+  console.error(
+    `  node scripts/sandbox/ensure-member-scenario.mjs ${ADMIN_PLAYGROUND_SCENARIO} ${SCENARIO_CONFIRMATION_FLAG}`,
   )
   process.exit(1)
 }

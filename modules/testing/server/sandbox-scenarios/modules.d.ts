@@ -84,3 +84,44 @@ declare module '@/modules/testing/server/sandbox-scenarios/member-reservations-f
     now?: Date
   }): Promise<unknown>
 }
+
+declare module '@/modules/testing/server/sandbox-scenarios/admin-playground.mjs' {
+  export const ADMIN_PLAYGROUND_SCENARIO: string
+  export const ADMIN_PLAYGROUND_PREFIX: string
+  export const ADMIN_PLAYGROUND_DEFAULT_ADMIN_EMAIL: string
+  export const ADMIN_PLAYGROUND_PLAN_SLUGS: Record<string, string>
+  export const ADMIN_PLAYGROUND_MEMBER_EMAILS: Record<string, string>
+  export const ADMIN_PLAYGROUND_SESSION_LABELS: Record<string, string>
+
+  export function buildAdminPlaygroundTimeline(now?: Date): Record<
+    string,
+    {
+      startsAt: Date
+      endsAt: Date
+    }
+  >
+  export function buildAdminPlaygroundSessionBlueprints(now?: Date): Record<
+    string,
+    {
+      startsAt: Date
+      endsAt: Date
+      reservedCount: number
+      locationLabel: string
+      classTypeKey: 'strength' | 'mobility' | 'recovery'
+      status: 'PUBLISHED' | 'COMPLETED'
+      waitlistEnabled: boolean
+    }
+  >
+  export function buildAdminPlaygroundMemberProfiles(): Array<{
+    email: string
+    firstName: string
+    lastName: string
+    hasMembership: boolean
+    membershipStatus: string | null
+  }>
+  export function ensureAdminPlaygroundScenario(input: {
+    prisma: unknown
+    adminEmail?: string
+    now?: Date
+  }): Promise<unknown>
+}

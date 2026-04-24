@@ -25,7 +25,7 @@ Nota operativa importante:
 - eso incluye sesiones canónicas, reservas/waitlists E2E asociadas y relaciones E2E derivadas
 - por tanto, los IDs de esas entidades no deben tratarse como estables entre ejecuciones
 
-## Escenario disponible hoy
+## Escenarios disponibles hoy
 
 ### `member-reservations-flow`
 
@@ -36,6 +36,29 @@ Deja listo el member sandbox para validar:
 - una sesión futura reservable desde agenda
 - una sesión futura completa con waitlist activa
 - historial reciente con `attended`, `canceled` y `no_show`
+
+### `admin-playground`
+
+Deja listo el backoffice para validación manual y revisión de producto:
+
+- varios planes con políticas explícitas:
+  - ilimitada
+  - allowance semanal
+  - allowance mensual
+- varios socios buscables desde `/admin/overrides`:
+  - membership activa
+  - membership pendiente
+  - membership expirada
+  - socio sin membership
+  - perfil con datos parciales
+- sesiones futuras publicadas para probar `SESSION_ACCESS`
+- overrides vigentes, revocados y expirados
+- contexto comercial ligero:
+  - tarjeta default
+  - pagos recientes
+  - cuenta de créditos con saldo no trivial
+
+Este escenario no debe usarse para assertions deterministas de Playwright. Su objetivo es que el panel admin tenga densidad realista para QA manual, diseño y revisión de producto.
 
 ## Requisitos previos
 
@@ -64,6 +87,18 @@ Ese comando envuelve:
 node scripts/sandbox/ensure-member-scenario.mjs member-reservations-flow --confirm-sandbox-scenario
 ```
 
+Para el playground admin:
+
+```bash
+pnpm sandbox:admin-playground
+```
+
+Equivalente a:
+
+```bash
+node scripts/sandbox/ensure-member-scenario.mjs admin-playground --confirm-sandbox-scenario
+```
+
 ## Qué hace
 
 - valida que el proyecto actual es el sandbox esperado
@@ -77,6 +112,13 @@ node scripts/sandbox/ensure-member-scenario.mjs member-reservations-flow --confi
 - limpia y recrea solo las sesiones gestionadas por el escenario
 - recrea reservas, waitlist e historial del escenario
 
+En `admin-playground`, además:
+
+- asegura un actor admin local usando `E2E_ADMIN_EMAIL` si existe
+- crea usuarios locales de demo sin depender de Supabase Auth para cada socio
+- reconcilia planes, políticas, memberships, overrides, sesiones y contexto comercial gestionado
+- usa prefijos `Admin Playground` para poder distinguir lo creado por el escenario
+
 ## Validación recomendada
 
 1. asegurar la cuenta auth sandbox
@@ -89,6 +131,12 @@ node scripts/auth/ensure-sandbox-user.mjs member --confirm-sandbox-reset
 
 ```bash
 pnpm sandbox:scenario member-reservations-flow
+```
+
+Para revisar el backoffice:
+
+```bash
+pnpm sandbox:admin-playground
 ```
 
 3. abrir el login con `agent-browser`
@@ -106,6 +154,9 @@ agent-browser --session-name wellstudio-sandbox \
 - reserva cancelable
 - waitlist activa
 - agenda con sesión reservable
+- `/admin`
+- `/admin/overrides?q=playground`
+- estados de overrides vigentes, revocados y expirados
 
 ## Uso desde Playwright
 
@@ -121,6 +172,8 @@ Cuándo usar cada camino:
 
 - `pnpm sandbox:scenario member-reservations-flow`
   - cuando quieras QA manual, `agent-browser` o inspección previa del estado
+- `pnpm sandbox:admin-playground`
+  - cuando quieras revisar admin con datos ricos sin acoplar Playwright a ese volumen
 - `pnpm test:e2e:reservations:sandbox`
   - cuando quieras que Playwright reconcilie el escenario y ejecute los flujos reales del portal
 
@@ -133,6 +186,7 @@ Nota:
 ## Convenciones E2E
 
 - entidades del escenario usan prefijos `E2E` o `E2E Sandbox Flow`
+- entidades del playground admin usan prefijos `Admin Playground` y emails `e2e.admin.playground.*.sandbox@wellstudio.test`
 - las fechas son relativas al momento actual
 - la reejecución del comando debe ser segura e idempotente
 
