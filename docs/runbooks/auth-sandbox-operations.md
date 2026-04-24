@@ -32,8 +32,9 @@ No cubre todavía:
 ### Admin
 
 - `e2e.admin.sandbox@wellstudio.test`
-- uso: acceso al primer backoffice de políticas de membership
-- nota: el helper E2E de admin promueve el rol `ADMIN` local bajo demanda tras el primer login real
+- uso: acceso al backoffice de politicas de membership y overrides por socio
+- nota: el helper E2E de admin asegura el usuario Supabase y promueve el rol `ADMIN` local bajo demanda antes de validar la shell admin
+- el login admin sin `redirectTo` debe resolver destino por rol y aterrizar en `/admin`
 
 ## Variables necesarias
 

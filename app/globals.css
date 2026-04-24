@@ -248,6 +248,42 @@ a {
   }
 }
 
+@keyframes wellstudio-admin-content-enter-forward {
+  from {
+    opacity: 0;
+    transform: translate3d(var(--admin-panel-distance, 18px), 0, 0);
+  }
+
+  to {
+    opacity: 1;
+    transform: translate3d(0, 0, 0);
+  }
+}
+
+@keyframes wellstudio-admin-content-enter-backward {
+  from {
+    opacity: 0;
+    transform: translate3d(calc(var(--admin-panel-distance, 18px) * -1), 0, 0);
+  }
+
+  to {
+    opacity: 1;
+    transform: translate3d(0, 0, 0);
+  }
+}
+
+@keyframes wellstudio-admin-content-enter-neutral {
+  from {
+    opacity: 0;
+    transform: translate3d(0, 8px, 0);
+  }
+
+  to {
+    opacity: 1;
+    transform: translate3d(0, 0, 0);
+  }
+}
+
 @media (prefers-reduced-motion: no-preference) {
   .wellstudio-auth-animate [data-slot="auth-brand-rail"] {
     animation: wellstudio-auth-rise 720ms cubic-bezier(0.2, 0.8, 0.2, 1) both;
@@ -315,6 +351,46 @@ a {
 
   .wellstudio-admin-panel-animate {
     animation: wellstudio-admin-panel-enter 220ms cubic-bezier(0.22, 0.78, 0.22, 1) both;
+  }
+
+  .wellstudio-admin-content-animate {
+    will-change: transform, opacity;
+  }
+
+  .wellstudio-admin-content-animate[data-pending="true"] [data-slot="admin-content-inner"] {
+    opacity: 0.82;
+    transform: translate3d(0, 0, 0) scale(0.992);
+    transition:
+      opacity 150ms ease,
+      filter 180ms ease,
+      transform 180ms ease;
+    filter: saturate(0.9) contrast(0.985);
+  }
+
+  .wellstudio-admin-content-animate[data-pending="false"] [data-slot="admin-content-inner"] {
+    opacity: 1;
+    transform: translate3d(0, 0, 0) scale(1);
+    transition:
+      opacity 160ms ease,
+      filter 180ms ease,
+      transform 180ms ease;
+    filter: none;
+  }
+
+  .wellstudio-admin-content-animate[data-direction="forward"] {
+    animation: wellstudio-admin-content-enter-forward var(--admin-panel-duration, 300ms) cubic-bezier(0.2, 0.8, 0.2, 1) both;
+  }
+
+  .wellstudio-admin-content-animate[data-direction="backward"] {
+    animation: wellstudio-admin-content-enter-backward var(--admin-panel-duration, 300ms) cubic-bezier(0.2, 0.8, 0.2, 1) both;
+  }
+
+  .wellstudio-admin-content-animate[data-direction="neutral"] {
+    animation: wellstudio-admin-content-enter-neutral var(--admin-panel-duration, 300ms) cubic-bezier(0.2, 0.8, 0.2, 1) both;
+  }
+
+  .wellstudio-admin-content-animate[data-direction="hold"] {
+    animation: none;
   }
 }
 

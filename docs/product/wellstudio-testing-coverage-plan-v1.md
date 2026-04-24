@@ -144,6 +144,8 @@ No cerrar pagos sin probar al menos un flujo sandbox end-to-end.
 ### Unit / Integration
 
 - permisos de staff/admin
+- read models de politicas y overrides admin
+- server actions finas de grant/revoke de overrides
 - creacion de clase
 - edicion de clase
 - audit log en acciones sensibles
@@ -151,6 +153,10 @@ No cerrar pagos sin probar al menos un flujo sandbox end-to-end.
 ### E2E
 
 - admin entra y ve panel
+- admin directo desde login aterriza en `/admin` por rol
+- member no accede a `/admin` ni `/admin/overrides`
+- admin edita politica de reserva por plan
+- admin concede y revoca overrides por socio
 - admin crea o edita una sesion
 
 ## Matriz minima por modulo

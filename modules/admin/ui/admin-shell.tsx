@@ -1,10 +1,18 @@
+'use client'
+
 import type { ReactNode } from 'react'
 import Link from 'next/link'
-import { ClipboardList } from 'lucide-react'
+import { ClipboardList, ShieldPlus } from 'lucide-react'
+import { usePathname } from 'next/navigation'
+import { useEffect, useRef, useState } from 'react'
 
 import { WellstudioLogoMark } from '@/components/brand/wellstudio-logo-mark'
 import { LogoutButton } from '@/modules/auth/ui/logout-button'
 import type { AdminShellSummary } from '@/modules/admin/server/admin-shell-summary'
+import {
+  AdminContentTransition,
+  type AdminTransitionDirection,
+} from '@/modules/admin/ui/admin-content-transition'
 import { cn } from '@/lib/utils'
 
 type AdminShellProps = {
@@ -18,12 +26,61 @@ const adminNavItems = [
     label: 'Políticas',
     icon: ClipboardList,
   },
+  {
+    href: '/admin/overrides',
+    label: 'Overrides',
+    icon: ShieldPlus,
+  },
 ]
 
 export function AdminShell({ children, summary }: AdminShellProps) {
+  const pathname = usePathname()
+  const navFeedbackTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null)
+  const [pendingTransition, setPendingTransition] = useState<{
+    pathname: string
+    direction: Exclude<AdminTransitionDirection, 'hold'>
+  }>({
+    pathname,
+    direction: 'neutral',
+  })
+  const [navFeedbackPathname, setNavFeedbackPathname] = useState<string | null>(null)
+  const contentDirection =
+    pendingTransition.pathname === pathname
+      ? pendingTransition.direction
+      : 'hold'
+  const isNavigationPending = pendingTransition.pathname !== pathname
+
+  useEffect(() => {
+    return () => {
+      if (navFeedbackTimeoutRef.current) {
+        clearTimeout(navFeedbackTimeoutRef.current)
+      }
+    }
+  }, [])
+
+  function handleAdminNavigation(targetPathname: string) {
+    if (targetPathname === pathname) {
+      return
+    }
+
+    if (navFeedbackTimeoutRef.current) {
+      clearTimeout(navFeedbackTimeoutRef.current)
+    }
+
+    setPendingTransition({
+      pathname: targetPathname,
+      direction: getAdminTransitionDirection(pathname, targetPathname),
+    })
+    setNavFeedbackPathname(targetPathname)
+    navFeedbackTimeoutRef.current = setTimeout(() => {
+      setNavFeedbackPathname(null)
+      navFeedbackTimeoutRef.current = null
+    }, ADMIN_NAV_FEEDBACK.minimumVisibleMs)
+  }
+
   return (
     <div className="wellstudio-admin-shell min-h-screen bg-transparent text-[var(--foreground)]">
-      <div className="mx-auto flex min-h-screen w-full max-w-7xl flex-col px-4 pb-8 pt-4 sm:px-6 sm:pt-6 lg:px-8 lg:pb-10 lg:pt-8">
+      <div className="mx-auto flex min-h-screen w-full max-w-7xl flex-col px-4 pb-[calc(env(safe-area-inset-bottom)+5.8rem)] pt-4 sm:px-6 sm:pt-6 lg:px-8 lg:pb-10 lg:pt-8">
         <div className="grid flex-1 gap-6 lg:grid-cols-[280px_minmax(0,1fr)] lg:items-start lg:gap-8">
           <aside className="hidden lg:block">
             <div className="sticky top-8">
@@ -58,17 +115,41 @@ export function AdminShell({ children, summary }: AdminShellProps) {
                 <nav aria-label="Navegación admin" className="mt-7 flex flex-col gap-1">
                   {adminNavItems.map((item) => {
                     const Icon = item.icon
+                    const isActive = isAdminNavItemActive(pathname, item.href)
+                    const isPendingTarget =
+                      (isNavigationPending && pendingTransition.pathname === item.href) ||
+                      navFeedbackPathname === item.href
 
                     return (
                       <Link
                         key={item.href}
                         href={item.href}
-                        aria-current="page"
+                        prefetch={false}
+                        onClick={() => handleAdminNavigation(item.href)}
+                        aria-current={isActive ? 'page' : undefined}
                         className={cn(
-                          'flex items-center gap-3 rounded-[1.35rem] bg-[color:color-mix(in_srgb,var(--wellstudio-blue)_24%,white_6%)] px-4 py-3 text-sm font-medium text-white shadow-[inset_0_0_0_1px_rgba(255,255,255,0.08)] transition-[background-color,color,box-shadow] duration-200 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white/50',
+                          'relative flex items-center gap-3 overflow-hidden rounded-[1.35rem] px-4 py-3 text-sm font-medium transition-[background-color,color,box-shadow] duration-200 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white/50',
+                          isActive
+                            ? 'bg-[color:color-mix(in_srgb,var(--wellstudio-blue)_24%,white_6%)] text-white shadow-[inset_0_0_0_1px_rgba(255,255,255,0.08)]'
+                            : 'text-white/78 hover:bg-white/6 hover:text-white',
+                          isPendingTarget
+                            ? 'bg-[color:color-mix(in_srgb,var(--wellstudio-blue)_32%,white_10%)] text-white shadow-[inset_0_0_0_1px_rgba(255,255,255,0.1),0_10px_24px_rgba(20,24,30,0.2)]'
+                            : undefined,
                         )}
                       >
-                        <Icon className="size-4" aria-hidden="true" />
+                        {isPendingTarget ? (
+                          <span
+                            aria-hidden="true"
+                            data-slot="member-portal-nav-progress"
+                            className="pointer-events-none absolute inset-x-4 bottom-1.5 h-[2px] rounded-full bg-[color:color-mix(in_srgb,var(--wellstudio-blue-soft)_30%,transparent)]"
+                          >
+                            <span className="block h-full w-16 rounded-full bg-[linear-gradient(90deg,color-mix(in_srgb,var(--wellstudio-blue)_84%,white),color-mix(in_srgb,var(--wellstudio-blue-soft)_100%,white))]" />
+                          </span>
+                        ) : null}
+                        {isPendingTarget ? (
+                          <span className="sr-only">Cargando</span>
+                        ) : null}
+                        <Icon className="relative z-[1] size-4" aria-hidden="true" />
                         <span>{item.label}</span>
                       </Link>
                     )
@@ -107,11 +188,100 @@ export function AdminShell({ children, summary }: AdminShellProps) {
             </div>
 
             <main id="main-content" className="pb-2">
-              {children}
+              <AdminContentTransition
+                direction={contentDirection}
+                isPending={isNavigationPending}
+                pathname={pathname}
+              >
+                {children}
+              </AdminContentTransition>
             </main>
           </div>
         </div>
       </div>
+
+      <nav
+        aria-label="Navegación admin móvil"
+        className="fixed inset-x-0 bottom-0 z-40 border-t border-[color:color-mix(in_srgb,var(--border)_80%,white)] bg-[color:color-mix(in_srgb,var(--card)_88%,white)]/95 px-3 pb-[calc(env(safe-area-inset-bottom)+0.65rem)] pt-2.5 shadow-[0_-16px_40px_rgba(18,20,24,0.08)] backdrop-blur-xl lg:hidden"
+      >
+        <div className="mx-auto flex w-fit max-w-[calc(100vw-2rem)] items-center justify-center gap-2 rounded-[2rem] border border-[color:color-mix(in_srgb,var(--wellstudio-blue)_8%,white)] bg-white/58 p-1.5 shadow-[0_10px_28px_rgba(18,20,24,0.07)]">
+          {adminNavItems.map((item) => {
+            const Icon = item.icon
+            const isActive = isAdminNavItemActive(pathname, item.href)
+            const isPendingTarget =
+              (isNavigationPending && pendingTransition.pathname === item.href) ||
+              navFeedbackPathname === item.href
+
+            return (
+              <Link
+                key={item.href}
+                href={item.href}
+                prefetch={false}
+                onClick={() => handleAdminNavigation(item.href)}
+                aria-current={isActive ? 'page' : undefined}
+                className={cn(
+                  'relative flex w-28 min-w-0 flex-col items-center gap-1 overflow-hidden rounded-[1.45rem] px-3 py-2 text-center text-xs font-medium transition-[background-color,color,box-shadow] duration-200 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--ring)] sm:w-32',
+                  isActive
+                    ? 'bg-[color:color-mix(in_srgb,var(--wellstudio-blue)_18%,white)] text-[var(--wellstudio-ink)]'
+                    : 'text-[color:color-mix(in_srgb,var(--foreground)_70%,white)]',
+                  isPendingTarget
+                    ? 'bg-[color:color-mix(in_srgb,var(--wellstudio-blue)_24%,white)] text-[var(--wellstudio-ink)] shadow-[0_8px_20px_rgba(20,24,30,0.08)]'
+                    : undefined,
+                )}
+              >
+                {isPendingTarget ? (
+                  <span
+                    aria-hidden="true"
+                    data-slot="member-portal-nav-progress"
+                    className="pointer-events-none absolute inset-x-2 bottom-1 h-[2px] rounded-full bg-[color:color-mix(in_srgb,var(--wellstudio-blue)_14%,white)]"
+                  >
+                    <span className="block h-full w-10 rounded-full bg-[linear-gradient(90deg,color-mix(in_srgb,var(--wellstudio-blue)_84%,white),color-mix(in_srgb,var(--wellstudio-blue-soft)_100%,white))]" />
+                  </span>
+                ) : null}
+                {isPendingTarget ? (
+                  <span className="sr-only">Cargando</span>
+                ) : null}
+                <Icon className="relative z-[1] size-4" aria-hidden="true" />
+                <span className="truncate">{item.label}</span>
+              </Link>
+            )
+          })}
+        </div>
+      </nav>
     </div>
   )
+}
+
+const ADMIN_NAV_FEEDBACK = {
+  minimumVisibleMs: 820,
+}
+
+function isAdminNavItemActive(pathname: string | null, href: string) {
+  if (!pathname) {
+    return false
+  }
+
+  if (href === '/admin') {
+    return pathname === '/admin'
+  }
+
+  return pathname === href || pathname.startsWith(`${href}/`)
+}
+
+function getAdminTransitionDirection(
+  currentPathname: string,
+  targetPathname: string,
+): Exclude<AdminTransitionDirection, 'hold'> {
+  const currentIndex = adminNavItems.findIndex((item) =>
+    isAdminNavItemActive(currentPathname, item.href),
+  )
+  const targetIndex = adminNavItems.findIndex((item) =>
+    isAdminNavItemActive(targetPathname, item.href),
+  )
+
+  if (currentIndex === -1 || targetIndex === -1 || currentIndex === targetIndex) {
+    return 'neutral'
+  }
+
+  return targetIndex > currentIndex ? 'forward' : 'backward'
 }

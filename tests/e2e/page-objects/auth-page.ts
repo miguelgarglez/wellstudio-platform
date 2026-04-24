@@ -220,7 +220,22 @@ export class AuthPage {
       this.page.getByLabel('Navegación admin').getByRole('link', { name: 'Políticas' }),
     ).toBeVisible()
     await expect(
+      this.page.getByLabel('Navegación admin').getByRole('link', { name: 'Overrides' }),
+    ).toBeVisible()
+    await expect(
       this.page.getByLabel('Planes de membresía').getByRole('link').first(),
+    ).toBeVisible()
+  }
+
+  async expectAdminOverridesVisible() {
+    await expect(
+      this.page.getByRole('heading', { name: 'Overrides por socio' }),
+    ).toBeVisible()
+    await expect(
+      this.page.getByLabel('Navegación admin').getByRole('link', { name: 'Overrides' }),
+    ).toBeVisible()
+    await expect(
+      this.page.getByRole('textbox', { name: 'Buscar socio' }),
     ).toBeVisible()
   }
 

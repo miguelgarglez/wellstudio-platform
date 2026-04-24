@@ -829,6 +829,17 @@ Prioridades:
 - gestionar socios
 - revisar leads
 
+Superficies admin ya implementadas:
+
+- `/admin`: politicas de reserva por membership plan
+- `/admin/overrides`: overrides auditables por socio sobre memberships activas
+
+Regla de acceso:
+
+- el proxy protege `/admin/*` frente a usuarios no autenticados
+- el layout admin aplica guard server-side `ADMIN` o `STAFF`
+- login sin destino explicito resuelve destino por rol y envia `ADMIN`/`STAFF` a `/admin`
+
 No intentar en V1:
 
 - BI complejo

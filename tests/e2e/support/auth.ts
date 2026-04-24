@@ -24,7 +24,7 @@ export async function loginAsSandboxAdmin(page: Page) {
   const authPage = new AuthPage(page)
   const { email, password } = getSandboxAdminCredentials()
 
-  await ensureSandboxAdminAuthUser(email, password)
+  await ensureSandboxAdminAccess(email, password)
 
   await page.goto('/admin')
   await authPage.fillLoginForm(email, password)
@@ -34,10 +34,13 @@ export async function loginAsSandboxAdmin(page: Page) {
   })
   await page.waitForLoadState('domcontentloaded')
 
-  await grantSandboxAdminRole(email)
-
   await page.goto('/admin')
   await authPage.expectAdminPoliciesVisible()
+}
+
+export async function ensureSandboxAdminAccess(email: string, password: string) {
+  await ensureSandboxAdminAuthUser(email, password)
+  await grantSandboxAdminRole(email)
 }
 
 async function ensureSandboxAdminAuthUser(email: string, password: string) {
@@ -59,15 +62,6 @@ async function ensureSandboxAdminAuthUser(email: string, password: string) {
   const existingUser = users[0] ?? null
 
   if (existingUser) {
-    const { error } = await supabase.auth.admin.updateUserById(existingUser.id, {
-      password,
-      email_confirm: true,
-    })
-
-    if (error) {
-      throw new Error(`Failed to refresh sandbox admin user: ${error.message}`)
-    }
-
     return
   }
 

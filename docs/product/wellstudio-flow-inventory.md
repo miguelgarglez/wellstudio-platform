@@ -619,6 +619,15 @@ Nivel de certeza:
 
 - inferido con alta confianza
 
+Estado V1 implementado:
+
+- `/admin/overrides` permite buscar socios por nombre o email
+- opera solo sobre memberships activas
+- permite conceder `extra_allowance` para la ventana vigente de una politica periodica
+- permite conceder `session_access` sobre sesiones futuras publicadas
+- permite revocar overrides vigentes sin borrar historial
+- las acciones delegan en servicios de dominio y dejan trazabilidad auditable
+
 ## Decisiones pendientes antes de implementar reservas y pagos
 
 - regla exacta de elegibilidad por producto

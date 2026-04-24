@@ -124,6 +124,7 @@ Requiere proyecto Supabase de test y cuentas de escenario.
 Debe validar:
 
 - login correcto
+- login admin sin `redirectTo` aterriza en `/admin`
 - error por credenciales incorrectas
 - logout
 - acceso posterior a ruta protegida
@@ -134,6 +135,7 @@ Estado actual:
 - error por credenciales incorrectas cubierto
 - logout cubierto con invalidación SSR real
 - acceso posterior a ruta protegida tras logout cubierto
+- login admin por rol cubierto en la suite admin sandbox
 - provisión local explícita todavía pendiente
 - la base de escenarios sandbox poblados ya existe para suites de portal privado
 

@@ -1,7 +1,13 @@
 import { expect, test } from '@playwright/test'
 
-import { loginAsSandboxAdmin, loginAsSandboxMember } from '../support/auth'
 import {
+  ensureSandboxAdminAccess,
+  loginAsSandboxAdmin,
+  loginAsSandboxMember,
+} from '../support/auth'
+import { AuthPage } from '../page-objects/auth-page'
+import {
+  getSandboxAdminCredentials,
   hasSandboxAdminCredentials,
   hasSandboxCredentials,
   isSandboxAuthEnabled,
@@ -25,6 +31,20 @@ test.describe('Admin membership policies @admin @sandbox', () => {
 
     expect(response?.status()).toBe(404)
     await expect(page.getByText('This page could not be found.')).toBeVisible()
+  })
+
+  test('admin direct login lands on admin by default', async ({ page }) => {
+    const authPage = new AuthPage(page)
+    const { email, password } = getSandboxAdminCredentials()
+
+    await ensureSandboxAdminAccess(email, password)
+
+    await authPage.gotoLogin()
+    await authPage.fillLoginForm(email, password)
+    await authPage.submitLogin()
+
+    await expect(page).toHaveURL(/\/admin$/)
+    await authPage.expectAdminPoliciesVisible()
   })
 
   test('admin can view and update a membership booking policy', async ({ page }) => {
