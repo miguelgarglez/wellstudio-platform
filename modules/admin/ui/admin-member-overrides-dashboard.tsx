@@ -1,4 +1,5 @@
 import Link from 'next/link'
+import type { CSSProperties } from 'react'
 import {
   AlertTriangle,
   ArrowRight,
@@ -8,8 +9,6 @@ import {
   Sparkles,
 } from 'lucide-react'
 
-import { Button } from '@/components/ui/button'
-import { Input } from '@/components/ui/input'
 import { Skeleton } from '@/components/ui/skeleton'
 import type {
   AdminBookingOverrideItem,
@@ -17,6 +16,7 @@ import type {
   AdminMemberOverrideOverview,
 } from '@/modules/admin/server/admin-member-overrides-overview'
 import { AdminMemberOverrideActions } from '@/modules/admin/ui/admin-member-override-actions'
+import { AdminMemberSearchForm } from '@/modules/admin/ui/admin-member-search-form'
 import { AdminOperationToast } from '@/modules/admin/ui/admin-operation-toast'
 import { AdminRevokeOverrideDialog } from '@/modules/admin/ui/admin-revoke-override-dialog'
 import { cn } from '@/lib/utils'
@@ -30,6 +30,12 @@ export function AdminMemberOverridesDashboard({
   overview,
   updatedState,
 }: AdminMemberOverridesDashboardProps) {
+  const isDefaultMemberList = overview.query.length === 0
+  const searchPanelTitle = isDefaultMemberList ? 'Socios recientes' : 'Resultados'
+  const searchPanelDescription = isDefaultMemberList
+    ? 'Últimos socios con contexto operativo o membership activa.'
+    : 'Filtrado por nombre o email.'
+
   return (
     <div className="wellstudio-admin-overrides-grid grid gap-4">
       <AdminOperationToast key={updatedState ?? 'idle'} state={updatedState} />
@@ -48,39 +54,27 @@ export function AdminMemberOverridesDashboard({
             </span>
             <div className="min-w-0">
               <h2 id="admin-member-search" className="text-lg font-medium text-[var(--wellstudio-ink)]">
-                Buscar socio
+                {searchPanelTitle}
               </h2>
               <p className="mt-1 text-sm leading-6 text-[color:color-mix(in_srgb,var(--foreground)_70%,white)]">
-                Busca, selecciona y conserva el contexto visible mientras operas.
+                {searchPanelDescription}
               </p>
             </div>
           </div>
         </div>
 
-        <form action="/admin/overrides" className="px-2 pb-2 pt-3">
-          <div className="space-y-3">
-            <Input
-              name="q"
-              defaultValue={overview.query}
-              placeholder="Busca por nombre o email…"
-              autoComplete="off"
-              spellCheck={false}
-              aria-label="Buscar socio"
-              className="bg-white"
-            />
-            <Button type="submit" className="w-full rounded-full">
-              Buscar socio
-            </Button>
-          </div>
-        </form>
+        <AdminMemberSearchForm
+          query={overview.query}
+          selectedMemberId={overview.selectedMemberId}
+        />
 
         <div className="pt-2">
-          {overview.query.length === 0 ? (
+          {isDefaultMemberList && overview.searchResults.length === 0 ? (
             <EmptySearchState
-              title="Empieza con una búsqueda"
-              description="Usa nombre o email para abrir el contexto comercial y el historial de excepciones del socio."
+              title="Sin socios recientes"
+              description="Cuando haya actividad operativa o memberships activas, aparecerán aquí. También puedes buscar por nombre o email."
             />
-          ) : overview.searchResults.length === 0 ? (
+          ) : !isDefaultMemberList && overview.searchResults.length === 0 ? (
             <EmptySearchState
               title="Sin resultados"
               description="No hemos encontrado ningún socio para esta búsqueda. Ajusta el texto y vuelve a intentarlo."
@@ -88,11 +82,15 @@ export function AdminMemberOverridesDashboard({
           ) : (
             <nav aria-label="Resultados de búsqueda de socios">
               <ul className="space-y-1.5 px-0.5">
-                {overview.searchResults.map((member) => {
+                {overview.searchResults.map((member, index) => {
                   const isSelected = overview.selectedMemberId === member.id
 
                   return (
-                    <li key={member.id}>
+                    <li
+                      key={member.id}
+                      className="wellstudio-admin-list-item"
+                      style={{ '--admin-list-index': index } as CSSProperties}
+                    >
                       <Link
                         href={buildOverridesHref({
                           query: overview.query,
@@ -113,6 +111,11 @@ export function AdminMemberOverridesDashboard({
                             <p className="truncate text-xs text-[color:color-mix(in_srgb,var(--foreground)_68%,white)]" translate="no">
                               {member.email}
                             </p>
+                            {isDefaultMemberList && member.contextLabel ? (
+                              <p className="text-[11px] uppercase tracking-[0.16em] text-[color:color-mix(in_srgb,var(--foreground)_54%,white)]">
+                                {member.contextLabel}
+                              </p>
+                            ) : null}
                           </div>
                           <div className="shrink-0 text-right">
                             <p className="text-xs uppercase tracking-[0.18em] text-[var(--wellstudio-blue-deep)]">
@@ -299,9 +302,20 @@ export function AdminMemberOverridesDashboard({
                     Selecciona un socio para operar
                   </h2>
                   <p className="text-sm leading-7 text-[color:color-mix(in_srgb,var(--foreground)_72%,white)]">
-                    El panel mostrará memberships activas, historial de excepciones y acciones para conceder reservas extra o acceso puntual.
+                    La lista muestra socios recientes o activos. Al seleccionar uno verás memberships, sesiones candidatas e historial de excepciones.
                   </p>
                 </div>
+                <ul className="grid gap-2 text-left text-sm text-[color:color-mix(in_srgb,var(--foreground)_70%,white)] sm:grid-cols-3">
+                  <li className="rounded-[1rem] border border-[color:color-mix(in_srgb,var(--wellstudio-blue)_12%,white)] bg-white px-3 py-3">
+                    Busca por nombre o email
+                  </li>
+                  <li className="rounded-[1rem] border border-[color:color-mix(in_srgb,var(--wellstudio-blue)_12%,white)] bg-white px-3 py-3">
+                    Opera sobre memberships activas
+                  </li>
+                  <li className="rounded-[1rem] border border-[color:color-mix(in_srgb,var(--wellstudio-blue)_12%,white)] bg-white px-3 py-3">
+                    Todo cambio queda auditado
+                  </li>
+                </ul>
               </div>
             </div>
           )}

@@ -33,6 +33,16 @@ test.describe('Admin member overrides @admin @sandbox', () => {
     await expect(page.getByText('This page could not be found.')).toBeVisible()
   })
 
+  test('admin sees default members without automatic selection', async ({ page }) => {
+    await loginAsSandboxAdmin(page)
+    await page.goto('/admin/overrides')
+
+    await expect(page.getByRole('heading', { name: 'Excepciones de reserva' })).toBeVisible()
+    await expect(page.getByRole('heading', { name: 'Socios recientes' })).toBeVisible()
+    await expect(page.getByRole('heading', { name: 'Selecciona un socio para operar' })).toBeVisible()
+    await expect(page).not.toHaveURL(/member=/)
+  })
+
   test('admin can grant and revoke booking overrides for a sandbox member', async ({ page }) => {
     test.setTimeout(90_000)
 
@@ -47,6 +57,15 @@ test.describe('Admin member overrides @admin @sandbox', () => {
       .click()
 
     await expect(page).toHaveURL(/\/admin\/overrides\?q=.*&member=/)
+    await expect(page.getByRole('heading', { name: 'Resultados' })).toBeVisible()
+
+    await page.getByLabel('Buscar socio').fill('sin-resultados-admin-e2e')
+    await page.getByRole('button', { name: 'Buscar socio' }).click()
+
+    await expect(page).toHaveURL(/q=sin-resultados-admin-e2e/)
+    await expect(page).toHaveURL(/member=/)
+    await expect(page.getByText('Sin resultados')).toBeVisible()
+    await expect(page.getByText('e2e.member.sandbox@wellstudio.test')).toBeVisible()
 
     const membershipLink = page.getByRole('link', { name: /E2E Membership Flow/i }).first()
     await membershipLink.click()

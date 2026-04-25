@@ -3,7 +3,8 @@ import { normalizeEmail } from '@/modules/auth/lib/normalize-email'
 import { buildPlanWindowLabel } from '@/modules/members/server/member-commercial'
 import { resolveEffectiveMembershipBookingPolicy } from '@/modules/reservations/server/membership-booking-policy'
 
-const SEARCH_RESULTS_LIMIT = 8
+const SEARCH_RESULTS_LIMIT = 12
+const DEFAULT_MEMBER_RESULTS_LIMIT = 12
 const OVERRIDE_HISTORY_LIMIT = 12
 const SESSION_CANDIDATES_LIMIT = 8
 
@@ -82,12 +83,19 @@ type SessionCandidateRecord = {
   }
 }
 
+type RecentOverrideMemberRecord = {
+  memberMembership: {
+    member: SearchMemberRecord
+  }
+}
+
 export type AdminMemberSearchResult = {
   id: string
   displayName: string
   email: string
   statusLabel: string
   activeMembershipCount: number
+  contextLabel?: string
 }
 
 export type AdminMemberMembershipSummary = {
@@ -158,68 +166,8 @@ export async function getAdminMemberOverrideOverview(input: {
   const now = new Date()
   const query = normalizeQuery(input.query)
   const searchResultsPromise = query
-    ? prisma.member.findMany({
-        where: {
-          OR: [
-            {
-              firstName: {
-                contains: query,
-                mode: 'insensitive',
-              },
-            },
-            {
-              lastName: {
-                contains: query,
-                mode: 'insensitive',
-              },
-            },
-            {
-              user: {
-                email: {
-                  contains: query,
-                  mode: 'insensitive',
-                },
-              },
-            },
-            {
-              user: {
-                normalizedEmail: {
-                  contains: normalizeEmail(query),
-                },
-              },
-            },
-          ],
-        },
-        take: SEARCH_RESULTS_LIMIT,
-        orderBy: [
-          {
-            firstName: 'asc',
-          },
-          {
-            lastName: 'asc',
-          },
-        ],
-        select: {
-          id: true,
-          firstName: true,
-          lastName: true,
-          status: true,
-          user: {
-            select: {
-              email: true,
-            },
-          },
-          memberships: {
-            where: {
-              status: 'ACTIVE',
-            },
-            select: {
-              id: true,
-            },
-          },
-        },
-      })
-    : Promise.resolve([])
+    ? getAdminMemberSearchResults(query)
+    : getDefaultAdminMemberSearchResults()
 
   const selectedMemberPromise = input.selectedMemberId
     ? prisma.member.findUnique({
@@ -272,7 +220,9 @@ export async function getAdminMemberOverrideOverview(input: {
     selectedMemberPromise,
   ])
 
-  const searchResults = searchResultRecords.map((member) => buildAdminMemberSearchResult(member))
+  const searchResults = searchResultRecords.map(({ member, contextLabel }) =>
+    buildAdminMemberSearchResult(member, contextLabel),
+  )
 
   if (!selectedMemberRecord) {
     return {
@@ -422,7 +372,162 @@ export async function getAdminMemberOverrideOverview(input: {
   } satisfies AdminMemberOverrideOverview
 }
 
-export function buildAdminMemberSearchResult(member: SearchMemberRecord) {
+type AdminMemberResultSource = {
+  member: SearchMemberRecord
+  contextLabel?: string
+}
+
+async function getAdminMemberSearchResults(query: string): Promise<AdminMemberResultSource[]> {
+  const members = (await prisma.member.findMany({
+    where: {
+      OR: [
+        {
+          firstName: {
+            contains: query,
+            mode: 'insensitive',
+          },
+        },
+        {
+          lastName: {
+            contains: query,
+            mode: 'insensitive',
+          },
+        },
+        {
+          user: {
+            email: {
+              contains: query,
+              mode: 'insensitive',
+            },
+          },
+        },
+        {
+          user: {
+            normalizedEmail: {
+              contains: normalizeEmail(query),
+            },
+          },
+        },
+      ],
+    },
+    take: SEARCH_RESULTS_LIMIT,
+    orderBy: [
+      {
+        firstName: 'asc',
+      },
+      {
+        lastName: 'asc',
+      },
+    ],
+    select: adminMemberSearchResultSelect,
+  })) as SearchMemberRecord[]
+
+  return members.map((member) => ({ member }))
+}
+
+async function getDefaultAdminMemberSearchResults(): Promise<AdminMemberResultSource[]> {
+  const [recentOverrides, activeMembers, recentlyUpdatedMembers] = await Promise.all([
+    prisma.memberMembershipBookingOverride.findMany({
+      orderBy: {
+        createdAt: 'desc',
+      },
+      take: DEFAULT_MEMBER_RESULTS_LIMIT,
+      select: {
+        memberMembership: {
+          select: {
+            member: {
+              select: adminMemberSearchResultSelect,
+            },
+          },
+        },
+      },
+    }) as Promise<RecentOverrideMemberRecord[]>,
+    prisma.member.findMany({
+      where: {
+        memberships: {
+          some: {
+            status: 'ACTIVE',
+          },
+        },
+      },
+      take: DEFAULT_MEMBER_RESULTS_LIMIT,
+      orderBy: {
+        updatedAt: 'desc',
+      },
+      select: adminMemberSearchResultSelect,
+    }) as Promise<SearchMemberRecord[]>,
+    prisma.member.findMany({
+      take: DEFAULT_MEMBER_RESULTS_LIMIT,
+      orderBy: {
+        updatedAt: 'desc',
+      },
+      select: adminMemberSearchResultSelect,
+    }) as Promise<SearchMemberRecord[]>,
+  ])
+
+  return mergeDefaultMemberResultSources(
+    recentOverrides,
+    activeMembers,
+    recentlyUpdatedMembers,
+  )
+}
+
+export function mergeDefaultMemberResultSources(
+  recentOverrides: RecentOverrideMemberRecord[],
+  activeMembers: SearchMemberRecord[],
+  recentlyUpdatedMembers: SearchMemberRecord[],
+) {
+  const results: AdminMemberResultSource[] = []
+  const seenMemberIds = new Set<string>()
+
+  function add(member: SearchMemberRecord, contextLabel: string) {
+    if (seenMemberIds.has(member.id) || results.length >= DEFAULT_MEMBER_RESULTS_LIMIT) {
+      return
+    }
+
+    seenMemberIds.add(member.id)
+    results.push({ member, contextLabel })
+  }
+
+  for (const override of recentOverrides) {
+    add(override.memberMembership.member, 'Excepción reciente')
+  }
+
+  for (const member of activeMembers) {
+    add(member, 'Membership activa')
+  }
+
+  for (const member of recentlyUpdatedMembers) {
+    add(member, 'Actividad reciente')
+  }
+
+  return results
+}
+
+const adminMemberSearchResultSelect = {
+  id: true,
+  firstName: true,
+  lastName: true,
+  status: true,
+  user: {
+    select: {
+      email: true,
+    },
+  },
+  memberships: {
+    where: {
+      status: 'ACTIVE',
+    },
+    select: {
+      id: true,
+    },
+  },
+} as const
+
+export function buildAdminMemberSearchResult(
+  member: SearchMemberRecord,
+  contextLabel?: string,
+) {
   return {
     id: member.id,
     displayName: buildMemberDisplayName({
@@ -433,6 +538,7 @@ export function buildAdminMemberSearchResult(member: SearchMemberRecord) {
     email: member.user.email,
     statusLabel: formatMemberStatusLabel(member.status),
     activeMembershipCount: member.memberships.length,
+    contextLabel,
   } satisfies AdminMemberSearchResult
 }
 

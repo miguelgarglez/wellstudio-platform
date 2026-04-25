@@ -31,6 +31,7 @@ import {
   buildAdminBookingOverrideItem,
   buildAdminSessionAccessCandidate,
   getAdminMemberOverrideOverview,
+  mergeDefaultMemberResultSources,
 } from '@/modules/admin/server/admin-member-overrides-overview'
 
 describe('getAdminMemberOverrideOverview', () => {
@@ -139,8 +140,48 @@ describe('getAdminMemberOverrideOverview', () => {
     })
   })
 
-  it('returns empty detail state when no member is selected', async () => {
-    memberFindManyMock.mockResolvedValue([])
+  it('returns default member results without auto-selecting a member', async () => {
+    overrideFindManyMock.mockResolvedValue([
+      {
+        memberMembership: {
+          member: {
+            id: 'member-recent',
+            firstName: 'Recent',
+            lastName: 'Override',
+            status: 'ACTIVE',
+            user: {
+              email: 'recent.override@wellstudio.test',
+            },
+            memberships: [{ id: 'membership-recent' }],
+          },
+        },
+      },
+    ])
+    memberFindManyMock
+      .mockResolvedValueOnce([
+        {
+          id: 'member-active',
+          firstName: 'Active',
+          lastName: 'Member',
+          status: 'ACTIVE',
+          user: {
+            email: 'active.member@wellstudio.test',
+          },
+          memberships: [{ id: 'membership-active' }],
+        },
+      ])
+      .mockResolvedValueOnce([
+        {
+          id: 'member-updated',
+          firstName: 'Updated',
+          lastName: 'Member',
+          status: 'INACTIVE',
+          user: {
+            email: 'updated.member@wellstudio.test',
+          },
+          memberships: [],
+        },
+      ])
 
     const overview = await getAdminMemberOverrideOverview({
       query: null,
@@ -149,14 +190,114 @@ describe('getAdminMemberOverrideOverview', () => {
       selectedSessionId: null,
     })
 
-    expect(overview.searchResults).toEqual([])
+    expect(overview.searchResults).toMatchObject([
+      {
+        id: 'member-recent',
+        contextLabel: 'Excepción reciente',
+      },
+      {
+        id: 'member-active',
+        contextLabel: 'Membership activa',
+      },
+      {
+        id: 'member-updated',
+        contextLabel: 'Actividad reciente',
+      },
+    ])
     expect(overview.selectedMember).toBeNull()
     expect(overview.selectedMembership).toBeNull()
     expect(overview.selectedSession).toBeNull()
   })
+
+  it('searches across members without hiding non-operable results', async () => {
+    memberFindManyMock.mockResolvedValue([
+      {
+        id: 'member-no-active',
+        firstName: 'No',
+        lastName: 'Active',
+        status: 'INACTIVE',
+        user: {
+          email: 'no.active@wellstudio.test',
+        },
+        memberships: [],
+      },
+    ])
+
+    const overview = await getAdminMemberOverrideOverview({
+      query: 'no',
+      selectedMemberId: null,
+      selectedMembershipId: null,
+      selectedSessionId: null,
+    })
+
+    expect(overview.searchResults).toMatchObject([
+      {
+        id: 'member-no-active',
+        activeMembershipCount: 0,
+        contextLabel: undefined,
+      },
+    ])
+    expect(overview.selectedMember).toBeNull()
+  })
 })
 
 describe('admin member override mappers', () => {
+  it('merges default member sources by operational priority without duplicates', () => {
+    const recentMember = {
+      id: 'member-1',
+      firstName: 'Recent',
+      lastName: 'Override',
+      status: 'ACTIVE',
+      user: {
+        email: 'recent.override@wellstudio.test',
+      },
+      memberships: [{ id: 'membership-1' }],
+    }
+    const activeMember = {
+      id: 'member-2',
+      firstName: 'Active',
+      lastName: 'Member',
+      status: 'ACTIVE',
+      user: {
+        email: 'active.member@wellstudio.test',
+      },
+      memberships: [{ id: 'membership-2' }],
+    }
+    const updatedMember = {
+      id: 'member-3',
+      firstName: 'Updated',
+      lastName: 'Member',
+      status: 'INACTIVE',
+      user: {
+        email: 'updated.member@wellstudio.test',
+      },
+      memberships: [],
+    }
+
+    const results = mergeDefaultMemberResultSources(
+      [
+        {
+          memberMembership: {
+            member: recentMember,
+          },
+        },
+      ],
+      [recentMember, activeMember],
+      [activeMember, updatedMember],
+    )
+
+    expect(results.map((result) => result.member.id)).toEqual([
+      'member-1',
+      'member-2',
+      'member-3',
+    ])
+    expect(results.map((result) => result.contextLabel)).toEqual([
+      'Excepción reciente',
+      'Membership activa',
+      'Actividad reciente',
+    ])
+  })
+
   it('maps session access overrides into readable history rows', () => {
     const item = buildAdminBookingOverrideItem(
       {

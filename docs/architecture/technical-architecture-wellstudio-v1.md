@@ -841,6 +841,7 @@ Patron de interfaz:
 - evitar scrolls paralelos innecesarios dentro de una misma pantalla admin; si una accion requiere foco o formulario, preferir `Dialog`/`Sheet` sobre rails largos con overflow propio
 - la experiencia member puede priorizar orientacion, bienvenida y cards de resumen; admin debe priorizar densidad controlada, escaneo rapido, trazabilidad y ejecucion
 - los estados principales de una pantalla admin deben vivir en la URL siempre que condicionen seleccion, filtros o deep-linking
+- las listas admin por defecto deben ser read models server-side acotados y honestos: pueden priorizar actividad reciente u operabilidad, pero deben distinguirse de resultados de busqueda exhaustivos
 - las acciones admin siguen siendo server actions finas que delegan en servicios de dominio; el layout no debe introducir reglas de negocio
 
 Regla de acceso:

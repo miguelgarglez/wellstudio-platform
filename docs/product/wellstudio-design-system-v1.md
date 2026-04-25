@@ -236,6 +236,8 @@ Regla de producto:
 - evitar rails largos con scroll propio si el contenido principal ya hace scroll; los formularios y selecciones largas deben pasar a `Dialog`, `Sheet` o una superficie dedicada
 - usar cards solo cuando la card sea la unidad de interaccion; si solo agrupa informacion, preferir filas, secciones y divisores
 - mantener URL como fuente de verdad para seleccion, filtros y paneles operativos
+- las listas admin pueden tener defaults seguros cuando evitan pantallas vacias; deben estar acotadas, explicar su criterio y no presentarse como exhaustivas
+- la busqueda admin puede seguir siendo submit-based cuando el estado server-side y la URL aportan mas robustez que una busqueda incremental
 - member app puede ser mas guiada, espaciosa y editorial; admin debe ser mas denso, escaneable y accionable
 - no reutilizar layouts de member en admin salvo componentes atomicos compartidos como botones, inputs, badges o tokens de marca
 
