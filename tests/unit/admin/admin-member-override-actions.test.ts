@@ -42,7 +42,7 @@ describe('grantExtraAllowanceOverrideAction', () => {
     const state = await grantExtraAllowanceOverrideAction(null, new FormData())
 
     expect(state).toMatchObject({
-      message: 'Necesitamos una sesión admin o staff válida para conceder overrides.',
+      message: 'Necesitamos una sesión admin o staff válida para conceder excepciones.',
     })
     expect(grantMembershipPeriodAllowanceOverrideMock).not.toHaveBeenCalled()
   })

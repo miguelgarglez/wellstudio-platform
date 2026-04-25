@@ -230,9 +230,10 @@ Direccion:
 Regla de producto:
 
 - admin no es un portal de consumo, es una herramienta de operacion
-- en desktop debe aprovechar el ancho disponible para listas, contexto, detalle e inspector
+- en desktop debe aprovechar el ancho disponible para listas, contexto y detalle accionable
 - evitar heroes editoriales grandes en admin; usar toolbars compactas con contexto util
-- preferir patrones de workbench: rail de busqueda/lista, panel de detalle y rail de acciones
+- preferir patrones de workbench: rail de busqueda/lista, panel de detalle y acciones contextuales cerca del objeto seleccionado
+- evitar rails largos con scroll propio si el contenido principal ya hace scroll; los formularios y selecciones largas deben pasar a `Dialog`, `Sheet` o una superficie dedicada
 - usar cards solo cuando la card sea la unidad de interaccion; si solo agrupa informacion, preferir filas, secciones y divisores
 - mantener URL como fuente de verdad para seleccion, filtros y paneles operativos
 - member app puede ser mas guiada, espaciosa y editorial; admin debe ser mas denso, escaneable y accionable
@@ -257,6 +258,15 @@ Regla de producto:
 
 - la identidad de WellStudio vive en tokens y componentes
 - `Base UI` o `Radix` son solo primitivas
+- Añadir componentes shadcn/Base UI nuevos es adecuado en cualquier superficie del producto cuando el patron mejora claridad, foco, accesibilidad o velocidad de uso, y no existe ya un componente equivalente en `components/ui`.
+- Antes de crear UI ad hoc, comprobar si el patron existe o puede entrar como primitiva compartida: `Dialog`, `Sheet`, `Popover`, `DropdownMenu`, `Tabs`, `Table`, `Command`, `Tooltip`, etc.
+- En admin, los overlays no son un lujo visual: son una herramienta de foco. Tambien pueden ser correctos en member o public cuando reduzcan carga cognitiva o expliquen una accion sin llenar la pagina.
+- Criterio para overlays:
+  - `Dialog`: acciones enfocadas con formulario corto o confirmacion no destructiva donde conviene bloquear el resto de la pantalla.
+  - `Sheet`: panel lateral para detalle secundario, historial amplio o edicion que se beneficia de conservar contexto visible.
+  - `Popover` / menus contextuales: informacion auxiliar o acciones de fila; no deben contener flujos largos.
+  - `AlertDialog`: acciones destructivas o revocaciones auditables.
+- Al añadir componentes shadcn, preferir `dry-run --diff` antes de aplicar. Si el CLI intenta sobrescribir componentes base ya personalizados, copiar/adaptar solo el componente nuevo y no pisar tokens ni variantes existentes. Si el CLI requiere instalar dependencias nuevas, avisar y pedir confirmacion antes.
 - la eleccion de primitive library no cambia la direccion visual
 
 ## Aplicacion inmediata

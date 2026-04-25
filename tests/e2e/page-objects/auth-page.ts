@@ -217,10 +217,14 @@ export class AuthPage {
       this.page.getByRole('heading', { name: 'Políticas de reserva' }),
     ).toBeVisible()
     await expect(
-      this.page.getByLabel('Navegación admin').getByRole('link', { name: 'Políticas' }),
+      this.page
+        .getByLabel('Navegación admin', { exact: true })
+        .getByRole('link', { name: 'Políticas' }),
     ).toBeVisible()
     await expect(
-      this.page.getByLabel('Navegación admin').getByRole('link', { name: 'Overrides' }),
+      this.page
+        .getByLabel('Navegación admin', { exact: true })
+        .getByRole('link', { name: 'Excepciones' }),
     ).toBeVisible()
     await expect(
       this.page.getByLabel('Planes de membresía').getByRole('link').first(),
@@ -229,10 +233,12 @@ export class AuthPage {
 
   async expectAdminOverridesVisible() {
     await expect(
-      this.page.getByRole('heading', { name: 'Overrides por socio' }),
+      this.page.getByRole('heading', { name: 'Excepciones de reserva' }),
     ).toBeVisible()
     await expect(
-      this.page.getByLabel('Navegación admin').getByRole('link', { name: 'Overrides' }),
+      this.page
+        .getByLabel('Navegación admin', { exact: true })
+        .getByRole('link', { name: 'Excepciones' }),
     ).toBeVisible()
     await expect(
       this.page.getByRole('textbox', { name: 'Buscar socio' }),

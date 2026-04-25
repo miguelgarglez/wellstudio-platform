@@ -28,7 +28,7 @@ const adminNavItems = [
   },
   {
     href: '/admin/overrides',
-    label: 'Overrides',
+    label: 'Excepciones',
     icon: ShieldPlus,
   },
 ]
@@ -80,9 +80,9 @@ export function AdminShell({ children, summary }: AdminShellProps) {
 
   return (
     <div className="wellstudio-admin-shell min-h-screen bg-transparent text-[var(--foreground)] xl:h-screen xl:overflow-hidden">
-      <div className="flex min-h-screen w-full flex-col px-3 pb-[calc(env(safe-area-inset-bottom)+5.8rem)] pt-3 sm:px-5 sm:pt-5 xl:h-screen xl:px-4 xl:pb-4 xl:pt-4">
-        <div className="grid flex-1 gap-4 xl:h-full xl:grid-cols-[248px_minmax(0,1fr)] xl:items-stretch">
-          <aside className="hidden xl:block xl:min-h-0">
+      <div className="flex min-h-screen w-full flex-col px-3 pb-[calc(env(safe-area-inset-bottom)+5.8rem)] pt-3 sm:px-5 sm:pt-5 xl:h-screen xl:px-0 xl:pb-0 xl:pt-0">
+        <div className="grid flex-1 gap-4 xl:h-full xl:grid-cols-[264px_minmax(0,1fr)] xl:items-stretch xl:gap-0">
+          <aside className="hidden xl:block xl:min-h-0 xl:p-4 xl:pr-0">
             <div className="sticky top-4 flex h-[calc(100vh-2rem)] flex-col">
               <div className="flex min-h-0 flex-1 flex-col rounded-[1.65rem] border border-white/8 bg-[linear-gradient(180deg,#111317_0%,#171a20_100%)] p-4 text-white shadow-[0_22px_62px_rgba(17,18,22,0.18)]">
                 <div className="flex items-center gap-3 rounded-[1.25rem] border border-white/10 bg-white/4 px-3 py-3">
@@ -174,7 +174,7 @@ export function AdminShell({ children, summary }: AdminShellProps) {
             </div>
           </aside>
 
-          <div className="min-w-0 xl:h-full xl:overflow-y-auto">
+          <div className="min-w-0 xl:h-full xl:overflow-y-auto xl:px-4">
             <div className="mb-5 flex items-center gap-3 rounded-[1.6rem] border border-[color:color-mix(in_srgb,var(--wellstudio-blue)_10%,white)] bg-[color:color-mix(in_srgb,var(--card)_86%,white)] px-4 py-4 shadow-[0_18px_40px_rgba(18,20,24,0.06)] xl:hidden">
               <WellstudioLogoMark className="size-11 rounded-[0.95rem]" />
               <div className="min-w-0">
@@ -187,7 +187,7 @@ export function AdminShell({ children, summary }: AdminShellProps) {
               </div>
             </div>
 
-            <main id="main-content" className="pb-2 xl:min-h-full">
+            <main id="main-content" className="pb-2 xl:min-h-full xl:py-4">
               <AdminContentTransition
                 direction={contentDirection}
                 isPending={isNavigationPending}

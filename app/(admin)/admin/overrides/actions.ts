@@ -33,7 +33,7 @@ export async function grantExtraAllowanceOverrideAction(
 
   if (!authContext) {
     return {
-      message: 'Necesitamos una sesión admin o staff válida para conceder overrides.',
+      message: 'Necesitamos una sesión admin o staff válida para conceder excepciones.',
     }
   }
 
@@ -45,7 +45,7 @@ export async function grantExtraAllowanceOverrideAction(
 
   if (!memberId || !membershipId) {
     return {
-      message: 'Falta la membership activa sobre la que querías conceder allowance extra.',
+      message: 'Falta la membership activa sobre la que querías conceder reservas extra.',
     }
   }
 
@@ -53,7 +53,7 @@ export async function grantExtraAllowanceOverrideAction(
 
   if (!Number.isFinite(extraBookings) || extraBookings <= 0) {
     return {
-      message: 'Revisa la cantidad antes de conceder el override.',
+      message: 'Revisa la cantidad antes de conceder reservas extra.',
       fieldErrors: {
         extraBookings: 'Introduce un entero positivo.',
       },
@@ -62,7 +62,7 @@ export async function grantExtraAllowanceOverrideAction(
 
   if (reason.length === 0) {
     return {
-      message: 'Necesitamos una razón breve y explícita para auditar este override.',
+      message: 'Necesitamos una razón breve y explícita para auditar esta excepción.',
       fieldErrors: {
         reason: 'La razón es obligatoria.',
       },
@@ -80,7 +80,7 @@ export async function grantExtraAllowanceOverrideAction(
     return {
       message: mapOverrideActionError(
         error,
-        'No hemos podido conceder el allowance extra. Reintenta en unos segundos.',
+        'No hemos podido conceder reservas extra. Reintenta en unos segundos.',
       ),
     }
   }
@@ -90,7 +90,6 @@ export async function grantExtraAllowanceOverrideAction(
     buildOverridesRedirect({
       query,
       memberId,
-      membershipId,
       updated: 'extra',
     }),
   )
@@ -104,7 +103,7 @@ export async function grantSessionAccessOverrideAction(
 
   if (!authContext) {
     return {
-      message: 'Necesitamos una sesión admin o staff válida para conceder overrides.',
+      message: 'Necesitamos una sesión admin o staff válida para conceder excepciones.',
     }
   }
 
@@ -116,19 +115,19 @@ export async function grantSessionAccessOverrideAction(
 
   if (!memberId || !membershipId) {
     return {
-      message: 'Falta la membership activa sobre la que querías conceder session access.',
+      message: 'Falta la membership activa sobre la que querías conceder acceso puntual.',
     }
   }
 
   if (!sessionId) {
     return {
-      message: 'Selecciona una sesión futura publicada antes de conceder el access override.',
+      message: 'Selecciona una sesión futura publicada antes de conceder acceso puntual.',
     }
   }
 
   if (reason.length === 0) {
     return {
-      message: 'Necesitamos una razón breve y explícita para auditar este override.',
+      message: 'Necesitamos una razón breve y explícita para auditar esta excepción.',
       fieldErrors: {
         reason: 'La razón es obligatoria.',
       },
@@ -146,7 +145,7 @@ export async function grantSessionAccessOverrideAction(
     return {
       message: mapOverrideActionError(
         error,
-        'No hemos podido conceder el session access. Reintenta en unos segundos.',
+        'No hemos podido conceder acceso puntual. Reintenta en unos segundos.',
       ),
     }
   }
@@ -156,8 +155,6 @@ export async function grantSessionAccessOverrideAction(
     buildOverridesRedirect({
       query,
       memberId,
-      membershipId,
-      sessionId,
       updated: 'session',
     }),
   )
@@ -172,8 +169,6 @@ export async function revokeMemberOverrideAction(formData: FormData) {
 
   const query = readOptionalField(formData, 'query')
   const memberId = readRequiredField(formData, 'memberId')
-  const membershipId = readOptionalField(formData, 'membershipId')
-  const sessionId = readOptionalField(formData, 'sessionId')
   const overrideId = readRequiredField(formData, 'overrideId')
 
   if (!memberId || !overrideId) {
@@ -190,8 +185,6 @@ export async function revokeMemberOverrideAction(formData: FormData) {
       buildOverridesRedirect({
         query,
         memberId,
-        membershipId,
-        sessionId,
         updated: 'revoke-error',
       }),
     )
@@ -202,8 +195,6 @@ export async function revokeMemberOverrideAction(formData: FormData) {
     buildOverridesRedirect({
       query,
       memberId,
-      membershipId,
-      sessionId,
       updated: 'revoked',
     }),
   )
@@ -243,7 +234,7 @@ function mapOverrideActionError(error: unknown, fallback: string) {
   }
 
   if (error.message.includes('periodic booking policy')) {
-    return 'La membership seleccionada no admite allowance extra porque no tiene una política periódica activa.'
+    return 'La membership seleccionada no admite reservas extra porque no tiene una política periódica activa.'
   }
 
   if (error.message.includes('Class session not found')) {
@@ -251,7 +242,7 @@ function mapOverrideActionError(error: unknown, fallback: string) {
   }
 
   if (error.message.includes('Member membership not found')) {
-    return 'La membership seleccionada ya no está operativa para conceder este override.'
+    return 'La membership seleccionada ya no está operativa para conceder esta excepción.'
   }
 
   return fallback

@@ -121,6 +121,10 @@ export type AdminSessionAccessCandidate = {
   id: string
   label: string
   detailLabel: string
+  className: string
+  dateLabel: string
+  timeLabel: string
+  locationLabel: string
 }
 
 export type AdminSelectedMemberOverrideContext = {
@@ -460,8 +464,8 @@ export function buildAdminMemberMembershipSummary(
     policySummaryLabel: formatPolicySummaryLabel(policy),
     extraAllowanceEnabled,
     extraAllowanceHint: extraAllowanceEnabled
-      ? 'La membership admite allowance extra dentro del periodo natural vigente.'
-      : 'Esta membership no tiene política periódica. Desde aquí solo admite session access puntual.',
+      ? 'La membership admite reservas extra dentro del periodo natural vigente.'
+      : 'Esta membership no tiene política periódica. Desde aquí solo admite acceso puntual a sesión.',
   } satisfies AdminMemberMembershipSummary
 }
 
@@ -481,7 +485,7 @@ export function buildAdminBookingOverrideItem(
 
   return {
     id: override.id,
-    typeLabel: override.overrideType === 'EXTRA_ALLOWANCE' ? 'Allowance extra' : 'Session access',
+    typeLabel: override.overrideType === 'EXTRA_ALLOWANCE' ? 'Reservas extra' : 'Acceso puntual',
     typeTone: override.overrideType === 'EXTRA_ALLOWANCE' ? 'extra' : 'session',
     statusLabel: isRevoked ? 'Revocado' : isExpired ? 'Expirado' : 'Vigente',
     statusTone,
@@ -512,6 +516,10 @@ export function buildAdminSessionAccessCandidate(
     id: session.id,
     label: `${session.classType.name} · ${timing.dateLabel} · ${timing.timeLabel}`,
     detailLabel: session.locationLabel ?? 'Ubicación por confirmar',
+    className: session.classType.name,
+    dateLabel: timing.dateLabel,
+    timeLabel: timing.timeLabel,
+    locationLabel: session.locationLabel ?? 'Ubicación por confirmar',
   } satisfies AdminSessionAccessCandidate
 }
 

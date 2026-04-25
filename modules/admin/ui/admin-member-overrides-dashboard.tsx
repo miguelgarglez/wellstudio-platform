@@ -1,5 +1,12 @@
 import Link from 'next/link'
-import { AlertTriangle, Search, ShieldPlus, Sparkles } from 'lucide-react'
+import {
+  AlertTriangle,
+  ArrowRight,
+  CalendarRange,
+  Search,
+  ShieldPlus,
+  Sparkles,
+} from 'lucide-react'
 
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
@@ -10,7 +17,8 @@ import type {
   AdminMemberOverrideOverview,
 } from '@/modules/admin/server/admin-member-overrides-overview'
 import { AdminMemberOverrideActions } from '@/modules/admin/ui/admin-member-override-actions'
-import { revokeMemberOverrideAction } from '@/app/(admin)/admin/overrides/actions'
+import { AdminOperationToast } from '@/modules/admin/ui/admin-operation-toast'
+import { AdminRevokeOverrideDialog } from '@/modules/admin/ui/admin-revoke-override-dialog'
 import { cn } from '@/lib/utils'
 
 type AdminMemberOverridesDashboardProps = {
@@ -23,10 +31,12 @@ export function AdminMemberOverridesDashboard({
   updatedState,
 }: AdminMemberOverridesDashboardProps) {
   return (
-    <div className="grid gap-4 lg:grid-cols-[minmax(280px,320px)_minmax(0,1fr)] 2xl:grid-cols-[minmax(280px,320px)_minmax(0,1fr)_minmax(340px,390px)]">
+    <div className="wellstudio-admin-overrides-grid grid gap-4">
+      <AdminOperationToast key={updatedState ?? 'idle'} state={updatedState} />
+
       <section
         aria-labelledby="admin-member-search"
-        className="rounded-[1.55rem] border border-[color:color-mix(in_srgb,var(--wellstudio-blue)_12%,white)] bg-[color:color-mix(in_srgb,var(--card)_86%,white)] p-3 shadow-[0_16px_36px_rgba(18,20,24,0.055)] xl:sticky xl:top-4 xl:max-h-[calc(100vh-8.4rem)] xl:overflow-y-auto"
+        className="rounded-[1.55rem] border border-[color:color-mix(in_srgb,var(--wellstudio-blue)_12%,white)] bg-[color:color-mix(in_srgb,var(--card)_86%,white)] p-3 shadow-[0_16px_36px_rgba(18,20,24,0.055)] xl:sticky xl:top-4"
       >
         <div className="border-b border-[color:color-mix(in_srgb,var(--border)_72%,white)] px-2 pb-3 pt-2">
           <p className="text-xs uppercase tracking-[0.24em] text-[var(--wellstudio-blue-deep)]">
@@ -68,7 +78,7 @@ export function AdminMemberOverridesDashboard({
           {overview.query.length === 0 ? (
             <EmptySearchState
               title="Empieza con una búsqueda"
-              description="Usa nombre o email para abrir el contexto comercial y el historial de overrides del socio."
+              description="Usa nombre o email para abrir el contexto comercial y el historial de excepciones del socio."
             />
           ) : overview.searchResults.length === 0 ? (
             <EmptySearchState
@@ -155,32 +165,32 @@ export function AdminMemberOverridesDashboard({
                   </StatusBadge>
                 </div>
 
-                <div className="grid gap-3 sm:grid-cols-3">
-                  <DetailPill
-                    label="Memberships activas"
+                <dl className="flex flex-wrap gap-x-5 gap-y-2 text-sm text-[color:color-mix(in_srgb,var(--foreground)_72%,white)]">
+                  <InlineFact
+                    label="Memberships"
                     value={
                       overview.selectedMember.activeMembershipCount === 1
                         ? '1 activa'
                         : `${overview.selectedMember.activeMembershipCount} activas`
                     }
                   />
-                  <DetailPill
-                    label="Overrides visibles"
+                  <InlineFact
+                    label="Excepciones"
                     value={
                       overview.selectedMember.overrides.length === 1
                         ? '1 registro'
                         : `${overview.selectedMember.overrides.length} registros`
                     }
                   />
-                  <DetailPill
-                    label="Sesiones elegibles"
+                  <InlineFact
+                    label="Sesiones"
                     value={
                       overview.selectedMember.sessionCandidates.length === 1
                         ? '1 candidata'
                         : `${overview.selectedMember.sessionCandidates.length} candidatas`
                     }
                   />
-                </div>
+                </dl>
               </header>
 
               <div className="space-y-4">
@@ -191,10 +201,10 @@ export function AdminMemberOverridesDashboard({
                     </span>
                     <div className="min-w-0">
                       <h3 className="text-lg font-medium text-[var(--wellstudio-ink)]">
-                        Memberships activas
+                        Membership operable
                       </h3>
                       <p className="mt-1 text-sm leading-6 text-[color:color-mix(in_srgb,var(--foreground)_72%,white)]">
-                        Selecciona la membership operable. El inspector derecho ejecuta las acciones.
+                        Abre una membership para conceder excepciones sin cargar la página principal con formularios.
                       </p>
                     </div>
                   </div>
@@ -208,36 +218,56 @@ export function AdminMemberOverridesDashboard({
                           memberId={overview.selectedMemberId!}
                           membership={membership}
                           selectedMembershipId={overview.selectedMembershipId}
-                          selectedSessionId={overview.selectedSessionId}
                         />
                       ))}
                     </div>
                   ) : (
                     <EmptyInset
                       title="Sin memberships activas"
-                      description="Este socio no tiene memberships activas operables. Puedes consultar el historial, pero no conceder overrides nuevos."
+                      description="Este socio no tiene memberships activas operables. Puedes consultar el historial, pero no conceder excepciones nuevas."
                     />
                   )}
                 </section>
 
-                <section className="space-y-3">
-                  <div className="flex items-start gap-3">
-                    <span className="inline-flex size-9 shrink-0 items-center justify-center rounded-full bg-[color:color-mix(in_srgb,var(--wellstudio-blue)_10%,white)] text-[var(--wellstudio-blue-deep)]">
-                        <AlertTriangle className="size-4" aria-hidden="true" />
-                    </span>
-                    <div className="min-w-0">
-                      <h3 className="text-lg font-medium text-[var(--wellstudio-ink)]">
-                        Historial de overrides
-                      </h3>
-                      <p className="mt-1 text-sm leading-6 text-[color:color-mix(in_srgb,var(--foreground)_72%,white)]">
-                        Vigencia, actor, razón y revocación. V1 concede y revoca, no edita.
-                      </p>
-                    </div>
-                  </div>
+                <AdminMemberOverrideActions
+                  query={overview.query}
+                  memberId={overview.selectedMember.id}
+                  memberships={overview.selectedMember.activeMemberships}
+                  selectedMembershipId={overview.selectedMembershipId}
+                  selectedSessionId={overview.selectedSessionId}
+                  sessionCandidates={overview.selectedMember.sessionCandidates}
+                />
 
-                  {overview.selectedMember.overrides.length > 0 ? (
-                    <div className="space-y-2">
-                      {overview.selectedMember.overrides.map((override) => (
+                <details
+                  id="admin-override-history"
+                  className="group/history border-t border-[color:color-mix(in_srgb,var(--border)_72%,white)] pt-4"
+                  open={
+                    overview.selectedMember.overrides.some((override) => override.canRevoke) ||
+                    isSuccessfulUpdatedState(updatedState)
+                  }
+                >
+                  <summary className="flex cursor-pointer list-none items-start gap-3 rounded-[1rem] transition-colors hover:bg-[color:color-mix(in_srgb,var(--wellstudio-blue)_5%,white)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--ring)]">
+                    <span className="inline-flex size-9 shrink-0 items-center justify-center rounded-full bg-[color:color-mix(in_srgb,var(--wellstudio-blue)_10%,white)] text-[var(--wellstudio-blue-deep)]">
+                      <AlertTriangle className="size-4" aria-hidden="true" />
+                    </span>
+                    <span className="min-w-0 flex-1">
+                      <span className="block text-base font-medium text-[var(--wellstudio-ink)]">
+                        Historial de excepciones
+                      </span>
+                      <span className="mt-1 block text-sm leading-6 text-[color:color-mix(in_srgb,var(--foreground)_68%,white)]">
+                        {overview.selectedMember.overrides.length === 0
+                          ? 'Sin excepciones previas.'
+                          : `${overview.selectedMember.overrides.length} registro${overview.selectedMember.overrides.length === 1 ? '' : 's'} · abrir trazabilidad`}
+                      </span>
+                    </span>
+                    <span className="mt-1 text-xs uppercase tracking-[0.18em] text-[var(--wellstudio-blue-deep)]">
+                      Ver
+                    </span>
+                  </summary>
+
+                  <div className="mt-3 space-y-2">
+                    {overview.selectedMember.overrides.length > 0 ? (
+                      overview.selectedMember.overrides.map((override, index) => (
                         <OverrideHistoryCard
                           key={override.id}
                           item={override}
@@ -245,16 +275,17 @@ export function AdminMemberOverridesDashboard({
                           memberId={overview.selectedMemberId!}
                           membershipId={overview.selectedMembershipId}
                           sessionId={overview.selectedSessionId}
+                          highlight={index === 0 && isSuccessfulUpdatedState(updatedState)}
                         />
-                      ))}
-                    </div>
-                  ) : (
-                    <EmptyInset
-                      title="Sin overrides previos"
-                      description="Todavía no hay concesiones ni revocaciones registradas para las memberships activas de este socio."
-                    />
-                  )}
-                </section>
+                      ))
+                    ) : (
+                      <EmptyInset
+                        title="Sin excepciones previas"
+                        description="Todavía no hay concesiones ni revocaciones registradas para las memberships activas de este socio."
+                      />
+                    )}
+                  </div>
+                </details>
               </div>
             </>
           ) : (
@@ -268,7 +299,7 @@ export function AdminMemberOverridesDashboard({
                     Selecciona un socio para operar
                   </h2>
                   <p className="text-sm leading-7 text-[color:color-mix(in_srgb,var(--foreground)_72%,white)]">
-                    El panel derecho mostrará memberships activas, historial de overrides y las acciones para conceder allowance extra o session access.
+                    El panel mostrará memberships activas, historial de excepciones y acciones para conceder reservas extra o acceso puntual.
                   </p>
                 </div>
               </div>
@@ -277,41 +308,13 @@ export function AdminMemberOverridesDashboard({
         </div>
       </section>
 
-      <aside
-        aria-label="Acciones de override"
-        className="min-w-0 lg:col-start-2 2xl:col-auto 2xl:sticky 2xl:top-4 2xl:max-h-[calc(100vh-8.4rem)] 2xl:overflow-y-auto"
-      >
-        {overview.selectedMember ? (
-          overview.selectedMember.activeMemberships.length > 0 ? (
-            <AdminMemberOverrideActions
-              query={overview.query}
-              memberId={overview.selectedMember.id}
-              memberships={overview.selectedMember.activeMemberships}
-              selectedMembershipId={overview.selectedMembershipId}
-              selectedSessionId={overview.selectedSessionId}
-              sessionCandidates={overview.selectedMember.sessionCandidates}
-              updatedState={updatedState}
-            />
-          ) : (
-            <ActionRailEmpty
-              title="Sin acciones disponibles"
-              description="Solo se pueden conceder overrides sobre memberships activas. Mantén el historial visible, pero no muestres formularios que no se pueden ejecutar."
-            />
-          )
-        ) : (
-          <ActionRailEmpty
-            title="Inspector de acciones"
-            description="Selecciona un socio para ver acciones de allowance extra, session access y revocación."
-          />
-        )}
-      </aside>
     </div>
   )
 }
 
 export function AdminMemberOverridesDashboardSkeleton() {
   return (
-    <div className="grid gap-4 lg:grid-cols-[minmax(280px,320px)_minmax(0,1fr)] 2xl:grid-cols-[minmax(280px,320px)_minmax(0,1fr)_minmax(340px,390px)]">
+    <div className="wellstudio-admin-overrides-grid grid gap-4">
       <div className="rounded-[1.55rem] border border-[color:color-mix(in_srgb,var(--wellstudio-blue)_12%,white)] bg-[color:color-mix(in_srgb,var(--card)_86%,white)] p-3 shadow-[0_16px_36px_rgba(18,20,24,0.055)]">
         <div className="border-b border-[color:color-mix(in_srgb,var(--border)_72%,white)] px-2 pb-3 pt-2">
           <Skeleton className="h-3 w-20 rounded-full" />
@@ -389,26 +392,6 @@ export function AdminMemberOverridesDashboardSkeleton() {
         </div>
       </div>
 
-      <div className="space-y-3 lg:col-start-2 2xl:col-auto">
-        <Skeleton className="h-16 w-full rounded-[1.25rem]" />
-        {Array.from({ length: 2 }).map((_, index) => (
-          <div key={index} className="rounded-[1.45rem] border border-[color:color-mix(in_srgb,var(--wellstudio-blue)_12%,white)] bg-white p-4 shadow-[0_16px_36px_rgba(18,20,24,0.055)]">
-            <div className="flex items-start gap-3">
-              <Skeleton className="size-9 rounded-full" />
-              <div className="min-w-0 flex-1 space-y-2">
-                <Skeleton className="h-5 w-36 rounded-full" />
-                <Skeleton className="h-4 w-full rounded-full" />
-              </div>
-            </div>
-            <div className="mt-4 space-y-3">
-              <Skeleton className="h-16 w-full rounded-[1rem]" />
-              <Skeleton className="h-10 w-24 rounded-full" />
-              <Skeleton className="h-20 w-full rounded-[1rem]" />
-              <Skeleton className="h-11 w-48 rounded-full" />
-            </div>
-          </div>
-        ))}
-      </div>
     </div>
   )
 }
@@ -418,13 +401,11 @@ function MembershipLinkCard({
   memberId,
   membership,
   selectedMembershipId,
-  selectedSessionId,
 }: {
   query: string
   memberId: string
   membership: AdminMemberMembershipSummary
   selectedMembershipId: string | null
-  selectedSessionId: string | null
 }) {
   const isSelected = membership.id === selectedMembershipId
 
@@ -434,34 +415,54 @@ function MembershipLinkCard({
         query,
         memberId,
         membershipId: membership.id,
-        sessionId: selectedSessionId,
       })}
       className={cn(
-        'block rounded-[1.15rem] border px-4 py-3 transition-[background-color,border-color,box-shadow] duration-200 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--ring)]',
+        'group/membership block rounded-[1.15rem] border px-4 py-3 transition-[background-color,border-color,box-shadow,transform] duration-200 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--ring)] active:scale-[0.99] motion-safe:hover:-translate-y-0.5',
         isSelected
           ? 'border-[color:color-mix(in_srgb,var(--wellstudio-blue)_28%,white)] bg-[color:color-mix(in_srgb,var(--wellstudio-blue)_8%,white)] shadow-[0_12px_30px_rgba(20,24,30,0.08)]'
-          : 'border-[color:color-mix(in_srgb,var(--border)_76%,white)] bg-[color:color-mix(in_srgb,var(--card)_74%,white)] hover:bg-white',
+          : 'border-[color:color-mix(in_srgb,var(--border)_76%,white)] bg-[color:color-mix(in_srgb,var(--card)_74%,white)] hover:border-[color:color-mix(in_srgb,var(--wellstudio-blue)_22%,white)] hover:bg-white hover:shadow-[0_12px_30px_rgba(20,24,30,0.06)]',
       )}
     >
       <div className="flex items-start justify-between gap-3">
-        <div className="min-w-0 space-y-1.5">
-          <p className="text-sm font-medium text-[var(--wellstudio-ink)]">{membership.planName}</p>
-          <p className="text-sm text-[color:color-mix(in_srgb,var(--foreground)_70%,white)]">
-            {membership.windowLabel}
-          </p>
-          <p className="text-xs uppercase tracking-[0.18em] text-[var(--wellstudio-blue-deep)]">
-            {membership.policySummaryLabel}
-          </p>
+        <div className="flex min-w-0 gap-3">
+          <span className="mt-0.5 hidden size-10 shrink-0 items-center justify-center rounded-full bg-[color:color-mix(in_srgb,var(--wellstudio-blue)_10%,white)] text-[var(--wellstudio-blue-deep)] sm:inline-flex">
+            <CalendarRange className="size-4" aria-hidden="true" />
+          </span>
+          <div className="min-w-0 space-y-1.5">
+            <p className="text-base font-medium leading-6 text-[var(--wellstudio-ink)]">
+              {membership.planName}
+            </p>
+            <p className="text-sm text-[color:color-mix(in_srgb,var(--foreground)_70%,white)]">
+              {membership.windowLabel}
+            </p>
+            <div className="flex flex-wrap items-center gap-2">
+              <p className="text-xs uppercase tracking-[0.18em] text-[var(--wellstudio-blue-deep)]">
+                {membership.policySummaryLabel}
+              </p>
+              <span className="hidden h-1 w-1 rounded-full bg-[color:color-mix(in_srgb,var(--foreground)_28%,white)] sm:inline-block" />
+              <p className="text-xs uppercase tracking-[0.14em] text-[color:color-mix(in_srgb,var(--foreground)_58%,white)]">
+                Operable
+              </p>
+            </div>
+          </div>
         </div>
-        <div className="shrink-0 text-right">
+        <div className="flex shrink-0 flex-col items-end gap-3 text-right">
           <StatusBadge tone={membership.extraAllowanceEnabled ? 'ready' : 'blocked'}>
             {membership.statusLabel}
           </StatusBadge>
+          <span className="hidden items-center gap-1.5 rounded-full border border-[color:color-mix(in_srgb,var(--wellstudio-blue)_14%,white)] bg-white px-3 py-1.5 text-xs font-medium uppercase tracking-[0.16em] text-[var(--wellstudio-blue-deep)] transition-[background-color,border-color,color,transform] group-hover/membership:border-[color:color-mix(in_srgb,var(--wellstudio-blue)_24%,white)] group-hover/membership:bg-[color:color-mix(in_srgb,var(--wellstudio-blue)_8%,white)] group-hover/membership:text-[var(--wellstudio-blue)] sm:inline-flex">
+            Operar
+            <ArrowRight className="size-3.5 transition-transform group-hover/membership:translate-x-0.5" aria-hidden="true" />
+          </span>
         </div>
       </div>
       <p className="mt-2 text-sm leading-6 text-[color:color-mix(in_srgb,var(--foreground)_72%,white)]">
         {membership.extraAllowanceHint}
       </p>
+      <span className="mt-3 inline-flex items-center gap-1.5 rounded-full border border-[color:color-mix(in_srgb,var(--wellstudio-blue)_14%,white)] bg-white px-3 py-1.5 text-xs font-medium uppercase tracking-[0.16em] text-[var(--wellstudio-blue-deep)] transition-[background-color,border-color,color,transform] group-hover/membership:border-[color:color-mix(in_srgb,var(--wellstudio-blue)_24%,white)] group-hover/membership:bg-[color:color-mix(in_srgb,var(--wellstudio-blue)_8%,white)] group-hover/membership:text-[var(--wellstudio-blue)] sm:hidden">
+        Operar
+        <ArrowRight className="size-3.5 transition-transform group-hover/membership:translate-x-0.5" aria-hidden="true" />
+      </span>
     </Link>
   )
 }
@@ -472,15 +473,22 @@ function OverrideHistoryCard({
   memberId,
   membershipId,
   sessionId,
+  highlight,
 }: {
   item: AdminBookingOverrideItem
   query: string
   memberId: string
   membershipId: string | null
   sessionId: string | null
+  highlight: boolean
 }) {
   return (
-    <article className="rounded-[1.15rem] border border-[color:color-mix(in_srgb,var(--border)_76%,white)] bg-[color:color-mix(in_srgb,var(--card)_74%,white)] px-4 py-3">
+    <article
+      className={cn(
+        'rounded-[1.15rem] border border-[color:color-mix(in_srgb,var(--border)_76%,white)] bg-[color:color-mix(in_srgb,var(--card)_74%,white)] px-4 py-3',
+        highlight ? 'wellstudio-admin-history-highlight' : undefined,
+      )}
+    >
       <div className="flex flex-wrap items-start justify-between gap-3">
         <div className="min-w-0 space-y-1.5">
           <div className="flex flex-wrap items-center gap-2">
@@ -496,6 +504,17 @@ function OverrideHistoryCard({
           <p>{item.membershipPlanName}</p>
           <p className="mt-1">{item.windowLabel}</p>
         </div>
+        {item.canRevoke ? (
+          <AdminRevokeOverrideDialog
+            query={query}
+            memberId={memberId}
+            membershipId={membershipId}
+            sessionId={sessionId}
+            overrideId={item.id}
+            overrideLabel={item.summaryLabel}
+            triggerClassName="shrink-0 border-[color:color-mix(in_srgb,var(--destructive)_20%,white)] bg-[color:color-mix(in_srgb,var(--destructive)_8%,white)] px-3 text-destructive hover:bg-[color:color-mix(in_srgb,var(--destructive)_14%,white)]"
+          />
+        ) : null}
       </div>
 
       <div className="mt-3 grid gap-3 border-t border-[color:color-mix(in_srgb,var(--border)_72%,white)] pt-3 text-sm text-[color:color-mix(in_srgb,var(--foreground)_72%,white)] sm:grid-cols-2">
@@ -514,55 +533,14 @@ function OverrideHistoryCard({
           <p>{item.revokedAtLabel ?? 'Vigente mientras no se revoque o expire'}</p>
         </div>
       </div>
-
-      {item.canRevoke ? (
-        <details className="mt-3 rounded-[1rem] border border-[color:color-mix(in_srgb,var(--destructive)_16%,white)] bg-[color:color-mix(in_srgb,var(--destructive)_5%,white)] px-4 py-3">
-          <summary className="cursor-pointer list-none text-sm font-medium text-[var(--wellstudio-ink)]">
-            Revocar override
-          </summary>
-          <div className="mt-3 space-y-3">
-            <p className="text-sm leading-6 text-[color:color-mix(in_srgb,var(--foreground)_72%,white)]">
-              La revocación no borra historial. Solo marca `revokedAt` y deja trazabilidad del actor.
-            </p>
-            <form action={revokeMemberOverrideAction}>
-              <input type="hidden" name="query" value={query} />
-              <input type="hidden" name="memberId" value={memberId} />
-              <input type="hidden" name="membershipId" value={membershipId ?? ''} />
-              <input type="hidden" name="sessionId" value={sessionId ?? ''} />
-              <input type="hidden" name="overrideId" value={item.id} />
-              <Button
-                type="submit"
-                variant="ghost"
-                className="rounded-full border border-[color:color-mix(in_srgb,var(--destructive)_16%,white)] bg-white text-[var(--wellstudio-ink)] hover:bg-white/90"
-              >
-                Confirmar revocación
-              </Button>
-            </form>
-          </div>
-        </details>
-      ) : null}
     </article>
   )
 }
 
-function ActionRailEmpty({
-  title,
-  description,
-}: {
-  title: string
-  description: string
-}) {
-  return (
-    <div className="rounded-[1.45rem] border border-dashed border-[color:color-mix(in_srgb,var(--border)_82%,white)] bg-[color:color-mix(in_srgb,var(--card)_78%,white)] px-5 py-6">
-      <p className="text-xs uppercase tracking-[0.24em] text-[var(--wellstudio-blue-deep)]">
-        Acciones
-      </p>
-      <h2 className="mt-3 text-lg font-medium text-[var(--wellstudio-ink)]">{title}</h2>
-      <p className="mt-2 text-sm leading-6 text-[color:color-mix(in_srgb,var(--foreground)_70%,white)]">
-        {description}
-      </p>
-    </div>
-  )
+function isSuccessfulUpdatedState(
+  updatedState: AdminMemberOverridesDashboardProps['updatedState'],
+) {
+  return updatedState === 'extra' || updatedState === 'session' || updatedState === 'revoked'
 }
 
 function EmptySearchState({
@@ -633,7 +611,7 @@ function StatusBadge({
   )
 }
 
-function DetailPill({
+function InlineFact({
   label,
   value,
 }: {
@@ -641,11 +619,11 @@ function DetailPill({
   value: string
 }) {
   return (
-    <div className="rounded-[1.2rem] border border-[color:color-mix(in_srgb,var(--border)_76%,white)] px-4 py-4">
-      <p className="text-[11px] uppercase tracking-[0.2em] text-[var(--wellstudio-blue-deep)]">
+    <div className="flex items-baseline gap-1.5">
+      <dt className="text-xs uppercase tracking-[0.16em] text-[var(--wellstudio-blue-deep)]">
         {label}
-      </p>
-      <p className="mt-2 text-sm font-medium text-[var(--wellstudio-ink)]">{value}</p>
+      </dt>
+      <dd className="font-medium text-[var(--wellstudio-ink)]">{value}</dd>
     </div>
   )
 }

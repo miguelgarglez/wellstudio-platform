@@ -36,9 +36,9 @@ export default async function AdminOverridesPage({ searchParams }: AdminOverride
 
   return (
     <AdminSectionShell
-      eyebrow="Admin · Overrides"
-      title="Overrides por socio"
-      description="Busca un socio, revisa sus memberships activas y concede excepciones auditables sin salir de una workspace operativa y trazable."
+      eyebrow="Admin · Excepciones"
+      title="Excepciones de reserva"
+      description="Busca un socio, confirma la membership o sesión implicada y registra excepciones auditables sin tocar la política base."
     >
       <Suspense fallback={<AdminMemberOverridesDashboardSkeleton />}>
         <AdminMemberOverridesSection

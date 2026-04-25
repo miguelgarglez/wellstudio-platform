@@ -130,7 +130,7 @@ describe('getAdminMemberOverrideOverview', () => {
     expect(overview.selectedMember?.activeMemberships).toHaveLength(1)
     expect(overview.selectedMembership?.extraAllowanceEnabled).toBe(true)
     expect(overview.selectedMember?.overrides[0]).toMatchObject({
-      typeLabel: 'Allowance extra',
+      typeLabel: 'Reservas extra',
       statusLabel: 'Vigente',
       summaryLabel: '+2 reservas en el periodo actual',
     })
@@ -198,7 +198,7 @@ describe('admin member override mappers', () => {
       new Date('2026-04-25T09:00:00.000Z'),
     )
 
-    expect(item.typeLabel).toBe('Session access')
+    expect(item.typeLabel).toBe('Acceso puntual')
     expect(item.statusLabel).toBe('Revocado')
     expect(item.summaryLabel).toContain('Grupo Premium')
     expect(item.revokedByLabel).toBe('Staff Ops')
@@ -221,5 +221,9 @@ describe('admin member override mappers', () => {
     expect(candidate.label).toContain('Grupo Base')
     expect(candidate.label).toContain('Mañana')
     expect(candidate.detailLabel).toBe('Sala principal')
+    expect(candidate.className).toBe('Grupo Base')
+    expect(candidate.dateLabel).toBe('Mañana')
+    expect(candidate.timeLabel).toBe('20:00 – 20:50')
+    expect(candidate.locationLabel).toBe('Sala principal')
   })
 })
