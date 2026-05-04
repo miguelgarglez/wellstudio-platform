@@ -59,9 +59,9 @@ test.describe('Admin membership policies @admin @sandbox', () => {
     await planLinks.first().click()
 
     await expect(page).toHaveURL(/\/admin\?plan=/)
-    await page.getByRole('button', { name: /Editar política explícita/i }).click()
+    await page.getByRole('button', { name: /Editar regla de reserva/i }).click()
 
-    const editorSheet = page.getByRole('dialog', { name: 'Editar política' })
+    const editorSheet = page.getByRole('dialog', { name: 'Editar regla de reserva' })
     await expect(editorSheet).toBeVisible()
     await editorSheet.getByText('Allowance semanal', { exact: true }).click()
     await editorSheet.getByLabel(/Reservas disponibles por periodo/i).fill('6')
@@ -71,13 +71,13 @@ test.describe('Admin membership policies @admin @sandbox', () => {
     await expect(page.getByRole('status').getByText('Política guardada')).toBeVisible()
     await expect(editorSheet).not.toBeVisible()
 
-    await page.getByRole('button', { name: /Editar política explícita/i }).click()
-    await expect(page.getByRole('dialog', { name: 'Editar política' }).getByLabel(/Reservas disponibles por periodo/i)).toHaveValue('6')
+    await page.getByRole('button', { name: /Editar regla de reserva/i }).click()
+    await expect(page.getByRole('dialog', { name: 'Editar regla de reserva' }).getByLabel(/Reservas disponibles por periodo/i)).toHaveValue('6')
 
     await page.reload()
 
-    await page.getByRole('button', { name: /Editar política explícita/i }).click()
-    await expect(page.getByRole('dialog', { name: 'Editar política' }).getByLabel(/Reservas disponibles por periodo/i)).toHaveValue('6')
+    await page.getByRole('button', { name: /Editar regla de reserva/i }).click()
+    await expect(page.getByRole('dialog', { name: 'Editar regla de reserva' }).getByLabel(/Reservas disponibles por periodo/i)).toHaveValue('6')
   })
 
   test('admin opens policy detail as a sheet on mobile', async ({ page }) => {
@@ -97,8 +97,8 @@ test.describe('Admin membership policies @admin @sandbox', () => {
     })
 
     await expect(detailSheet).toBeVisible()
-    await expect(detailSheet.getByText('Estado operativo actual')).toBeVisible()
-    await expect(detailSheet.getByRole('button', { name: /Editar política explícita/i })).toBeVisible()
+    await expect(detailSheet.getByText('Qué afecta este cambio')).toBeVisible()
+    await expect(detailSheet.getByRole('button', { name: /Editar regla de reserva/i })).toBeVisible()
     await detailSheet.getByRole('button', { name: 'Cerrar' }).click()
     await expect(page).not.toHaveURL(/plan=/)
   })

@@ -38,13 +38,13 @@ export function AdminMembershipPolicyEditorSheet({
             </span>
             <span className="min-w-0 space-y-1">
               <span className="block text-xs uppercase tracking-[0.22em] text-[var(--wellstudio-blue-deep)]">
-                Acción enfocada
+                Operación segura
               </span>
               <span className="block text-lg font-medium text-[var(--wellstudio-ink)]">
-                Editar política explícita
+                Editar regla de reserva
               </span>
               <span className="block max-w-2xl text-sm leading-6 text-[color:color-mix(in_srgb,var(--foreground)_72%,white)]">
-                Abre un panel dedicado para cambiar el régimen de reserva sin cargar el detalle del plan con formularios permanentes.
+                Abre un panel dedicado para cambiar la regla que aplicará el motor a este plan.
               </span>
             </span>
           </div>
@@ -65,10 +65,10 @@ export function AdminMembershipPolicyEditorSheet({
               Operación admin
             </p>
             <SheetTitle className="text-2xl font-medium text-[var(--wellstudio-ink)]">
-              Editar política
+              Editar regla de reserva
             </SheetTitle>
             <SheetDescription className="max-w-2xl text-base leading-7">
-              Ajusta la política explícita que leerá el motor de reservas para este membership plan.
+              Ajusta la política explícita que leerá el motor de reservas para este membership plan. No afecta a overrides individuales ni a otros planes.
             </SheetDescription>
           </SheetHeader>
 

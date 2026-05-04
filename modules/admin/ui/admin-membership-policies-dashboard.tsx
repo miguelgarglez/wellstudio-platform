@@ -1,6 +1,6 @@
 import type { ReactNode } from 'react'
 import Link from 'next/link'
-import { Layers3, ShieldCheck, Sparkles } from 'lucide-react'
+import { ArrowRight, Layers3, ShieldCheck, Sparkles } from 'lucide-react'
 
 import { Skeleton } from '@/components/ui/skeleton'
 import type { AdminMembershipPolicyOverview } from '@/modules/admin/server/admin-membership-policy-overview'
@@ -31,7 +31,7 @@ export function AdminMembershipPoliciesDashboard({
       >
         <div className="border-b border-[color:color-mix(in_srgb,var(--border)_72%,white)] px-2 pb-3 pt-2">
           <p className="text-xs uppercase tracking-[0.24em] text-[var(--wellstudio-blue-deep)]">
-            Membership plans
+            Reglas por plan
           </p>
           <div className="mt-2 flex items-start gap-2.5">
             <span className="inline-flex size-9 shrink-0 items-center justify-center rounded-full bg-[color:color-mix(in_srgb,var(--wellstudio-blue)_10%,white)] text-[var(--wellstudio-blue-deep)]">
@@ -42,7 +42,7 @@ export function AdminMembershipPoliciesDashboard({
                 Política efectiva por plan
               </h2>
               <p className="mt-1 text-sm leading-6 text-[color:color-mix(in_srgb,var(--foreground)_70%,white)]">
-                Selecciona un plan y edita la política explícita que lee el motor.
+                Revisa qué puede reservar cada plan y si depende de una regla explícita o de fallback.
               </p>
             </div>
           </div>
@@ -58,28 +58,32 @@ export function AdminMembershipPoliciesDashboard({
                   <Link
                     href={`/admin?plan=${encodeURIComponent(plan.id)}`}
                     className={cn(
-                      'block rounded-[1.05rem] border px-3 py-3 transition-[background-color,border-color,box-shadow,transform] duration-200 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--ring)]',
+                      'group block rounded-[1.05rem] border px-3 py-3 transition-[background-color,border-color,box-shadow,transform] duration-200 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--ring)]',
                       isSelected
                         ? 'border-[color:color-mix(in_srgb,var(--wellstudio-blue)_32%,white)] bg-[color:color-mix(in_srgb,var(--wellstudio-blue)_8%,white)] shadow-[0_12px_30px_rgba(20,24,30,0.08)]'
                         : 'border-transparent bg-transparent hover:border-[color:color-mix(in_srgb,var(--wellstudio-blue)_16%,white)] hover:bg-white',
                     )}
                   >
-                    <div className="flex items-start justify-between gap-3">
-                      <div className="min-w-0 space-y-1">
-                        <p className="text-sm font-medium text-[var(--wellstudio-ink)]">{plan.name}</p>
-                        <p className="text-sm text-[color:color-mix(in_srgb,var(--foreground)_68%,white)]">
+                    <div className="min-w-0 space-y-3">
+                      <div className="min-w-0 space-y-1 overflow-hidden">
+                        <p className="truncate text-sm font-medium text-[var(--wellstudio-ink)]">{plan.name}</p>
+                        <p className="text-sm font-medium text-[var(--wellstudio-blue-deep)]">
                           {plan.policySummaryLabel}
                         </p>
-                        <p className="text-xs uppercase tracking-[0.18em] text-[var(--wellstudio-blue-deep)]">
+                        <p className="truncate text-xs uppercase tracking-[0.18em] text-[color:color-mix(in_srgb,var(--foreground)_58%,white)]">
                           {plan.billingSummary}
                         </p>
                       </div>
-                      <div className="shrink-0 space-y-2 text-right">
+                      <div className="flex min-w-0 flex-wrap items-center justify-between gap-2">
                         <PolicySourceBadge tone={plan.policySourceTone}>
                           {plan.policySourceLabel}
                         </PolicySourceBadge>
-                        <p className="text-xs uppercase tracking-[0.18em] text-[color:color-mix(in_srgb,var(--foreground)_60%,white)]">
+                        <p className="inline-flex shrink-0 items-center gap-1 text-xs uppercase tracking-[0.18em] text-[color:color-mix(in_srgb,var(--foreground)_60%,white)]">
                           {plan.statusLabel}
+                          <ArrowRight
+                            className="size-3 opacity-0 transition-[opacity,transform] duration-200 group-hover:translate-x-0.5 group-hover:opacity-100"
+                            aria-hidden="true"
+                          />
                         </p>
                       </div>
                     </div>
@@ -134,17 +138,17 @@ export function AdminMembershipPoliciesDashboard({
                 </div>
               </header>
 
-              <div className="rounded-[1.2rem] border border-[color:color-mix(in_srgb,var(--wellstudio-blue)_12%,white)] bg-[color:color-mix(in_srgb,var(--wellstudio-blue)_5%,white)] px-4 py-3">
+              <div className="rounded-[1.25rem] border border-[color:color-mix(in_srgb,var(--wellstudio-blue)_12%,white)] bg-[color:color-mix(in_srgb,var(--wellstudio-blue)_5%,white)] px-4 py-4">
                 <div className="flex items-start gap-3">
                   <span className="inline-flex size-9 shrink-0 items-center justify-center rounded-full bg-white text-[var(--wellstudio-blue-deep)] shadow-[0_10px_22px_rgba(18,20,24,0.06)]">
                     <ShieldCheck className="size-4" aria-hidden="true" />
                   </span>
                   <div className="min-w-0 space-y-1">
                     <p className="text-sm font-medium text-[var(--wellstudio-ink)]">
-                      Estado operativo actual
+                      Qué afecta este cambio
                     </p>
                     <p className="text-sm leading-6 text-[color:color-mix(in_srgb,var(--foreground)_72%,white)]">
-                      Esta vista muestra la política efectiva. La edición se abre aparte para evitar formularios permanentes dentro del panel de lectura.
+                      Al guardar, las próximas comprobaciones de reserva de este plan leerán la política explícita. No se cambian reservas existentes, overrides individuales ni reglas de otros planes.
                     </p>
                   </div>
                 </div>
@@ -166,7 +170,7 @@ export function AdminMembershipPoliciesDashboard({
                     Selecciona un plan para editar
                   </h2>
                   <p className="text-sm leading-7 text-[color:color-mix(in_srgb,var(--foreground)_72%,white)]">
-                    El panel derecho mostrará el fallback efectivo, el contexto comercial del plan y la acción enfocada para persistir una política explícita.
+                    El panel derecho mostrará qué permite reservar hoy, si la fuente es explícita o legacy, y la acción enfocada para guardar una nueva regla.
                   </p>
                 </div>
               </div>
