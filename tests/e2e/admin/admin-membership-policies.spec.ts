@@ -71,4 +71,26 @@ test.describe('Admin membership policies @admin @sandbox', () => {
 
     await expect(page.getByLabel(/Reservas disponibles por periodo/i)).toHaveValue('6')
   })
+
+  test('admin opens policy detail as a sheet on mobile', async ({ page }) => {
+    await loginAsSandboxAdmin(page)
+    await page.setViewportSize({ width: 390, height: 844 })
+
+    const planLinks = page.getByLabel('Planes de membresía').getByRole('link')
+    const planCount = await planLinks.count()
+    expect(planCount).toBeGreaterThan(0)
+
+    await planLinks.first().click()
+
+    await expect(page).toHaveURL(/\/admin\?plan=/)
+
+    const detailSheet = page.getByRole('dialog').filter({
+      hasText: 'Plan seleccionado',
+    })
+
+    await expect(detailSheet).toBeVisible()
+    await expect(detailSheet.getByText('Escritura directa sobre')).toBeVisible()
+    await detailSheet.getByRole('button', { name: 'Cerrar' }).click()
+    await expect(page).not.toHaveURL(/plan=/)
+  })
 })

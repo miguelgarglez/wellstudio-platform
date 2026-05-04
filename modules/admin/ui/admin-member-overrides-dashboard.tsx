@@ -18,6 +18,7 @@ import type {
 import { AdminMemberOverrideActions } from '@/modules/admin/ui/admin-member-override-actions'
 import { AdminMemberSearchForm } from '@/modules/admin/ui/admin-member-search-form'
 import { AdminOperationToast } from '@/modules/admin/ui/admin-operation-toast'
+import { AdminResponsiveDetailFrame } from '@/modules/admin/ui/admin-responsive-detail-frame'
 import { AdminRevokeOverrideDialog } from '@/modules/admin/ui/admin-revoke-override-dialog'
 import { cn } from '@/lib/utils'
 
@@ -42,7 +43,7 @@ export function AdminMemberOverridesDashboard({
 
       <section
         aria-labelledby="admin-member-search"
-        className="rounded-[1.55rem] border border-[color:color-mix(in_srgb,var(--wellstudio-blue)_12%,white)] bg-[color:color-mix(in_srgb,var(--card)_86%,white)] p-3 shadow-[0_16px_36px_rgba(18,20,24,0.055)] xl:sticky xl:top-4"
+        className="min-w-0 overflow-hidden rounded-[1.55rem] border border-[color:color-mix(in_srgb,var(--wellstudio-blue)_12%,white)] bg-[color:color-mix(in_srgb,var(--card)_86%,white)] p-3 shadow-[0_16px_36px_rgba(18,20,24,0.055)] xl:sticky xl:top-4"
       >
         <div className="border-b border-[color:color-mix(in_srgb,var(--border)_72%,white)] px-2 pb-3 pt-2">
           <p className="text-xs uppercase tracking-[0.24em] text-[var(--wellstudio-blue-deep)]">
@@ -103,8 +104,8 @@ export function AdminMemberOverridesDashboard({
                             : 'border-transparent bg-transparent hover:border-[color:color-mix(in_srgb,var(--wellstudio-blue)_16%,white)] hover:bg-white',
                         )}
                       >
-                        <div className="flex items-start justify-between gap-3">
-                          <div className="min-w-0 space-y-1">
+                        <div className="grid min-w-0 grid-cols-[minmax(0,1fr)_auto] items-start gap-3">
+                          <div className="min-w-0 space-y-1 overflow-hidden">
                             <p className="text-sm font-medium text-[var(--wellstudio-ink)]">
                               {member.displayName}
                             </p>
@@ -138,9 +139,17 @@ export function AdminMemberOverridesDashboard({
         </div>
       </section>
 
-      <section
-        aria-labelledby="admin-member-override-detail"
-        className="min-w-0 rounded-[1.55rem] border border-[color:color-mix(in_srgb,var(--wellstudio-blue)_12%,white)] bg-white p-4 shadow-[0_16px_36px_rgba(18,20,24,0.055)] sm:p-5"
+      <AdminResponsiveDetailFrame
+        isOpen={Boolean(overview.selectedMember)}
+        closeHref={buildOverridesListHref(overview.query)}
+        labelledBy="admin-member-override-detail"
+        mobileFeedback={
+          <AdminOperationToast
+            key={`mobile-${updatedState ?? 'idle'}`}
+            state={updatedState}
+            variant="inline"
+          />
+        }
       >
         <div
           key={overview.selectedMember?.id ?? 'empty'}
@@ -320,7 +329,7 @@ export function AdminMemberOverridesDashboard({
             </div>
           )}
         </div>
-      </section>
+      </AdminResponsiveDetailFrame>
 
     </div>
   )
@@ -663,6 +672,17 @@ function buildOverridesHref(input: {
   if (input.sessionId) {
     params.set('session', input.sessionId)
   }
+
+  return `/admin/overrides?${params.toString()}`
+}
+
+function buildOverridesListHref(query: string) {
+  if (!query) {
+    return '/admin/overrides'
+  }
+
+  const params = new URLSearchParams()
+  params.set('q', query)
 
   return `/admin/overrides?${params.toString()}`
 }

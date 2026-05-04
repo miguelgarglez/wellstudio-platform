@@ -11,6 +11,7 @@ import {
   CheckCircle2,
   LockKeyhole,
   TicketPlus,
+  X,
 } from 'lucide-react'
 
 import { Button } from '@/components/ui/button'
@@ -104,6 +105,12 @@ export function AdminMemberOverrideActions({
     })
   }
 
+  function closeAllSheets() {
+    startRoutingTransition(() => {
+      router.push(buildOverridesListHref(query))
+    })
+  }
+
   function chooseSession(sessionId: string) {
     updateOperationState({ mode: 'session', sessionStep: 'form' })
     startRoutingTransition(() => {
@@ -126,11 +133,34 @@ export function AdminMemberOverrideActions({
     }}>
       <SheetContent
         side="right"
+        showCloseButton={false}
         className="data-[side=right]:w-full data-[side=right]:sm:max-w-none data-[side=right]:md:w-[min(48rem,calc(100vw-2rem))] gap-0 overflow-hidden rounded-none border-l border-[color:color-mix(in_srgb,var(--wellstudio-blue)_12%,white)] bg-[color:color-mix(in_srgb,var(--card)_90%,white)] p-0 shadow-[0_24px_80px_rgba(18,20,24,0.2)] md:rounded-l-[1.6rem]"
       >
         {selectedMembership ? (
           <>
-            <SheetHeader className="border-b border-[color:color-mix(in_srgb,var(--border)_72%,white)] bg-white/72 p-5 pr-12">
+            <div className="flex items-center justify-between gap-3 border-b border-[color:color-mix(in_srgb,var(--border)_72%,white)] bg-white/72 px-4 py-3">
+              <Button
+                type="button"
+                variant="ghost"
+                size="sm"
+                className="rounded-full"
+                onClick={closeOperationSheet}
+              >
+                <ArrowLeft className="size-4" aria-hidden="true" />
+                Volver
+              </Button>
+              <Button
+                type="button"
+                variant="ghost"
+                size="icon-sm"
+                className="rounded-full"
+                onClick={closeAllSheets}
+              >
+                <X className="size-4" aria-hidden="true" />
+                <span className="sr-only">Cerrar operación</span>
+              </Button>
+            </div>
+            <SheetHeader className="border-b border-[color:color-mix(in_srgb,var(--border)_72%,white)] bg-white/72 p-5">
               <p className="text-xs uppercase tracking-[0.24em] text-[var(--wellstudio-blue-deep)]">
                 Operación admin
               </p>
@@ -820,6 +850,17 @@ function buildOverridesHref(input: {
   if (input.sessionId) {
     params.set('session', input.sessionId)
   }
+
+  return `/admin/overrides?${params.toString()}`
+}
+
+function buildOverridesListHref(query: string) {
+  if (!query) {
+    return '/admin/overrides'
+  }
+
+  const params = new URLSearchParams()
+  params.set('q', query)
 
   return `/admin/overrides?${params.toString()}`
 }

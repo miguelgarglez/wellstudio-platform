@@ -43,6 +43,30 @@ test.describe('Admin member overrides @admin @sandbox', () => {
     await expect(page).not.toHaveURL(/member=/)
   })
 
+  test('admin opens member detail as a sheet on mobile', async ({ page }) => {
+    const { email } = getSandboxCredentials()
+
+    await loginAsSandboxAdmin(page)
+    await page.setViewportSize({ width: 390, height: 844 })
+    await page.goto(`/admin/overrides?q=${encodeURIComponent(email)}`)
+
+    await page
+      .getByRole('link', { name: /e2e\.member\.sandbox@wellstudio\.test/i })
+      .click()
+
+    await expect(page).toHaveURL(/member=/)
+
+    const detailSheet = page.getByRole('dialog').filter({
+      hasText: 'Membership operable',
+    })
+
+    await expect(detailSheet).toBeVisible()
+    await expect(detailSheet.getByText('e2e.member.sandbox@wellstudio.test')).toBeVisible()
+    await detailSheet.getByRole('button', { name: 'Cerrar' }).click()
+    await expect(page).not.toHaveURL(/member=/)
+    await expect(page.getByRole('heading', { name: 'Resultados' })).toBeVisible()
+  })
+
   test('admin can grant and revoke booking overrides for a sandbox member', async ({ page }) => {
     test.setTimeout(90_000)
 

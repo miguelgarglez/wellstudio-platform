@@ -10,6 +10,7 @@ type AdminOperationToastState = 'extra' | 'session' | 'revoked' | 'revoke-error'
 
 type AdminOperationToastProps = {
   state: AdminOperationToastState
+  variant?: 'fixed' | 'inline'
 }
 
 const TOAST_COPY: Record<
@@ -42,7 +43,10 @@ const TOAST_COPY: Record<
   },
 }
 
-export function AdminOperationToast({ state }: AdminOperationToastProps) {
+export function AdminOperationToast({
+  state,
+  variant = 'fixed',
+}: AdminOperationToastProps) {
   const [isVisible, setIsVisible] = useState(true)
 
   useEffect(() => {
@@ -70,7 +74,11 @@ export function AdminOperationToast({ state }: AdminOperationToastProps) {
     <div
       role={copy.tone === 'error' ? 'alert' : 'status'}
       aria-live={copy.tone === 'error' ? 'assertive' : 'polite'}
-      className="pointer-events-none fixed inset-x-3 top-3 z-50 flex justify-center sm:inset-x-auto sm:right-4 sm:top-4 sm:block"
+      className={cn(
+        variant === 'fixed'
+          ? 'pointer-events-none fixed inset-x-3 top-3 z-50 flex justify-center sm:inset-x-auto sm:right-4 sm:top-4 sm:block'
+          : 'pointer-events-none absolute inset-x-3 top-3 z-20 flex justify-center',
+      )}
     >
       <div
         className={cn(

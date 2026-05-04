@@ -5,6 +5,7 @@ import { Layers3, ShieldCheck, Sparkles } from 'lucide-react'
 import { Skeleton } from '@/components/ui/skeleton'
 import type { AdminMembershipPolicyOverview } from '@/modules/admin/server/admin-membership-policy-overview'
 import { AdminMembershipPolicyForm } from '@/modules/admin/ui/admin-membership-policy-form'
+import { AdminResponsiveDetailFrame } from '@/modules/admin/ui/admin-responsive-detail-frame'
 import { cn } from '@/lib/utils'
 
 type AdminMembershipPoliciesDashboardProps = {
@@ -84,9 +85,11 @@ export function AdminMembershipPoliciesDashboard({
         </nav>
       </section>
 
-      <section
-        aria-labelledby="admin-membership-plan-detail"
-        className="min-w-0 rounded-[1.55rem] border border-[color:color-mix(in_srgb,var(--wellstudio-blue)_12%,white)] bg-white p-4 pb-7 shadow-[0_16px_36px_rgba(18,20,24,0.055)] sm:p-5 sm:pb-8"
+      <AdminResponsiveDetailFrame
+        isOpen={Boolean(overview.selectedPlan)}
+        closeHref="/admin"
+        labelledBy="admin-membership-plan-detail"
+        className="pb-7 sm:pb-8"
       >
         <div key={overview.selectedPlan?.id ?? 'empty'} className="wellstudio-admin-panel-animate space-y-4">
           {overview.selectedPlan ? (
@@ -158,7 +161,7 @@ export function AdminMembershipPoliciesDashboard({
             </div>
           )}
         </div>
-      </section>
+      </AdminResponsiveDetailFrame>
     </div>
   )
 }

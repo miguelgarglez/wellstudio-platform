@@ -234,6 +234,7 @@ Regla de producto:
 - evitar heroes editoriales grandes en admin; usar toolbars compactas con contexto util
 - preferir patrones de workbench: rail de busqueda/lista, panel de detalle y acciones contextuales cerca del objeto seleccionado
 - evitar rails largos con scroll propio si el contenido principal ya hace scroll; los formularios y selecciones largas deben pasar a `Dialog`, `Sheet` o una superficie dedicada
+- en mobile/tablet, los workbenches admin no deben apilar lista y detalle obligando a scrollear para operar; el detalle seleccionado debe poder abrirse como `Sheet` contextual y cerrarse volviendo al listado
 - usar cards solo cuando la card sea la unidad de interaccion; si solo agrupa informacion, preferir filas, secciones y divisores
 - mantener URL como fuente de verdad para seleccion, filtros y paneles operativos
 - las listas admin pueden tener defaults seguros cuando evitan pantallas vacias; deben estar acotadas, explicar su criterio y no presentarse como exhaustivas
