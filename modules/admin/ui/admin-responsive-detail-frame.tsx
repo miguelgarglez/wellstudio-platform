@@ -37,6 +37,7 @@ export function AdminResponsiveDetailFrame({
         aria-labelledby={labelledBy}
         className={cn(
           'min-w-0 rounded-[1.55rem] border border-[color:color-mix(in_srgb,var(--wellstudio-blue)_12%,white)] bg-white p-4 shadow-[0_16px_36px_rgba(18,20,24,0.055)] sm:p-5',
+          !isOpen && 'hidden lg:block',
           className,
         )}
       >

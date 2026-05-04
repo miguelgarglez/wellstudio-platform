@@ -4,7 +4,8 @@ import { Layers3, ShieldCheck, Sparkles } from 'lucide-react'
 
 import { Skeleton } from '@/components/ui/skeleton'
 import type { AdminMembershipPolicyOverview } from '@/modules/admin/server/admin-membership-policy-overview'
-import { AdminMembershipPolicyForm } from '@/modules/admin/ui/admin-membership-policy-form'
+import { AdminMembershipPolicyEditorSheet } from '@/modules/admin/ui/admin-membership-policy-editor-sheet'
+import { AdminOperationToast } from '@/modules/admin/ui/admin-operation-toast'
 import { AdminResponsiveDetailFrame } from '@/modules/admin/ui/admin-responsive-detail-frame'
 import { cn } from '@/lib/utils'
 
@@ -19,6 +20,11 @@ export function AdminMembershipPoliciesDashboard({
 }: AdminMembershipPoliciesDashboardProps) {
   return (
     <div className="grid gap-4 lg:grid-cols-[minmax(280px,320px)_minmax(0,1fr)]">
+      <AdminOperationToast
+        key={isSaveSuccessVisible ? 'policy-saved' : 'idle'}
+        state={isSaveSuccessVisible ? 'policy-saved' : null}
+      />
+
       <section
         aria-labelledby="admin-membership-plan-list"
         className="rounded-[1.55rem] border border-[color:color-mix(in_srgb,var(--wellstudio-blue)_12%,white)] bg-[color:color-mix(in_srgb,var(--card)_86%,white)] p-3 shadow-[0_16px_36px_rgba(18,20,24,0.055)] xl:sticky xl:top-4 xl:max-h-[calc(100vh-8.4rem)] xl:overflow-y-auto"
@@ -90,6 +96,13 @@ export function AdminMembershipPoliciesDashboard({
         closeHref="/admin"
         labelledBy="admin-membership-plan-detail"
         className="pb-7 sm:pb-8"
+        mobileFeedback={
+          <AdminOperationToast
+            key={`mobile-${isSaveSuccessVisible ? 'policy-saved' : 'idle'}`}
+            state={isSaveSuccessVisible ? 'policy-saved' : null}
+            variant="inline"
+          />
+        }
       >
         <div key={overview.selectedPlan?.id ?? 'empty'} className="wellstudio-admin-panel-animate space-y-4">
           {overview.selectedPlan ? (
@@ -128,19 +141,18 @@ export function AdminMembershipPoliciesDashboard({
                   </span>
                   <div className="min-w-0 space-y-1">
                     <p className="text-sm font-medium text-[var(--wellstudio-ink)]">
-                      Escritura directa sobre `MembershipBookingPolicy`
+                      Estado operativo actual
                     </p>
                     <p className="text-sm leading-6 text-[color:color-mix(in_srgb,var(--foreground)_72%,white)]">
-                      Esta pantalla no toca el motor de elegibilidad. Solo persiste la política explícita que ese motor ya sabe interpretar.
+                      Esta vista muestra la política efectiva. La edición se abre aparte para evitar formularios permanentes dentro del panel de lectura.
                     </p>
                   </div>
                 </div>
               </div>
 
-              <AdminMembershipPolicyForm
+              <AdminMembershipPolicyEditorSheet
                 key={overview.selectedPlan.id}
                 plan={overview.selectedPlan}
-                isSuccessVisible={isSaveSuccessVisible}
               />
             </>
           ) : (
@@ -154,7 +166,7 @@ export function AdminMembershipPoliciesDashboard({
                     Selecciona un plan para editar
                   </h2>
                   <p className="text-sm leading-7 text-[color:color-mix(in_srgb,var(--foreground)_72%,white)]">
-                    El panel derecho mostrará el fallback efectivo, el contexto comercial del plan y el formulario para persistir una política explícita.
+                    El panel derecho mostrará el fallback efectivo, el contexto comercial del plan y la acción enfocada para persistir una política explícita.
                   </p>
                 </div>
               </div>
@@ -235,25 +247,19 @@ export function AdminMembershipPoliciesDashboardSkeleton() {
             </div>
           </div>
 
-          <div className="space-y-3">
-            <Skeleton className="h-4 w-28 rounded-full" />
-            {Array.from({ length: 3 }).map((_, index) => (
-              <div
-                key={index}
-                className="rounded-[1.05rem] border border-[color:color-mix(in_srgb,var(--border)_76%,white)] px-4 py-3"
-              >
-                <div className="flex items-start gap-3">
-                  <Skeleton className="mt-0.5 size-4 rounded-full" />
-                  <div className="min-w-0 flex-1 space-y-2">
-                    <Skeleton className="h-4 w-32 rounded-full" />
-                    <Skeleton className="h-4 w-full rounded-full" />
-                    <Skeleton className="h-4 w-10/12 rounded-full" />
-                  </div>
+          <div className="rounded-[1.35rem] border border-[color:color-mix(in_srgb,var(--wellstudio-blue)_14%,white)] bg-[color:color-mix(in_srgb,var(--card)_76%,white)] p-4">
+            <div className="flex flex-wrap items-start justify-between gap-4">
+              <div className="flex min-w-0 flex-1 items-start gap-3">
+                <Skeleton className="size-11 rounded-full" />
+                <div className="min-w-0 flex-1 space-y-2">
+                  <Skeleton className="h-3 w-32 rounded-full" />
+                  <Skeleton className="h-6 w-48 rounded-full" />
+                  <Skeleton className="h-4 w-full rounded-full" />
+                  <Skeleton className="h-4 w-9/12 rounded-full" />
                 </div>
               </div>
-            ))}
-            <Skeleton className="h-4 w-44 rounded-full" />
-            <Skeleton className="h-12 w-40 rounded-full" />
+              <Skeleton className="h-9 w-28 rounded-full" />
+            </div>
           </div>
         </div>
       </div>

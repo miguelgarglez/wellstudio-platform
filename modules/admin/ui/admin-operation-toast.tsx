@@ -6,7 +6,13 @@ import { AlertCircle, CheckCircle2, X } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { cn } from '@/lib/utils'
 
-type AdminOperationToastState = 'extra' | 'session' | 'revoked' | 'revoke-error' | null
+type AdminOperationToastState =
+  | 'extra'
+  | 'session'
+  | 'revoked'
+  | 'revoke-error'
+  | 'policy-saved'
+  | null
 
 type AdminOperationToastProps = {
   state: AdminOperationToastState
@@ -40,6 +46,11 @@ const TOAST_COPY: Record<
     tone: 'error',
     title: 'No hemos podido revocar la excepción',
     description: 'Recarga la vista y vuelve a intentarlo en unos segundos.',
+  },
+  'policy-saved': {
+    tone: 'success',
+    title: 'Política guardada',
+    description: 'La política explícita ya está persistida y la vista se ha recargado con el estado actualizado.',
   },
 }
 
@@ -104,7 +115,7 @@ export function AdminOperationToast({
             <p className="mt-1 text-sm leading-6 text-[color:color-mix(in_srgb,var(--foreground)_72%,white)]">
               {copy.description}
             </p>
-            {copy.tone === 'success' ? (
+            {copy.tone === 'success' && state !== 'policy-saved' ? (
               <a
                 href="#admin-override-history"
                 className="mt-2 inline-flex text-xs font-medium uppercase tracking-[0.16em] text-[var(--wellstudio-blue-deep)] underline-offset-4 hover:underline"
