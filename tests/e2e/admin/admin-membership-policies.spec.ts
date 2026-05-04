@@ -102,4 +102,15 @@ test.describe('Admin membership policies @admin @sandbox', () => {
     await detailSheet.getByRole('button', { name: 'Cerrar' }).click()
     await expect(page).not.toHaveURL(/plan=/)
   })
+
+  test('admin mobile policies list does not render empty detail before selection', async ({ page }) => {
+    await loginAsSandboxAdmin(page)
+    await page.setViewportSize({ width: 390, height: 844 })
+    await page.goto('/admin')
+
+    await expect(page.getByRole('heading', { name: 'Políticas de reserva' })).toBeVisible()
+    await expect(page.getByRole('heading', { name: 'Política efectiva por plan' })).toBeVisible()
+    await expect(page.getByRole('heading', { name: 'Selecciona un plan para editar' })).not.toBeVisible()
+    await expect(page).not.toHaveURL(/plan=/)
+  })
 })

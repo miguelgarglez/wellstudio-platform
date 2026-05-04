@@ -840,6 +840,7 @@ Patron de interfaz:
 - en desktop, admin se modela como workbench full-width: navegacion lateral compacta, header de seccion compacto, listas operativas y panel de detalle con acciones contextuales
 - evitar scrolls paralelos innecesarios dentro de una misma pantalla admin; si una accion requiere foco o formulario, preferir `Dialog`/`Sheet` sobre rails largos con overflow propio
 - en mobile/tablet, el mismo workbench mantiene la lista como superficie base y abre el detalle seleccionado en `Sheet`; cerrar la sheet limpia el parametro de seleccion principal sin borrar filtros de busqueda
+- los placeholders de detalle sin seleccion solo se renderizan visualmente en desktop; en mobile/tablet la lista debe ocupar la pantalla hasta que exista una seleccion real
 - la experiencia member puede priorizar orientacion, bienvenida y cards de resumen; admin debe priorizar densidad controlada, escaneo rapido, trazabilidad y ejecucion
 - los estados principales de una pantalla admin deben vivir en la URL siempre que condicionen seleccion, filtros o deep-linking
 - las listas admin por defecto deben ser read models server-side acotados y honestos: pueden priorizar actividad reciente u operabilidad, pero deben distinguirse de resultados de busqueda exhaustivos

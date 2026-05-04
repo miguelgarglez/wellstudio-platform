@@ -43,6 +43,17 @@ test.describe('Admin member overrides @admin @sandbox', () => {
     await expect(page).not.toHaveURL(/member=/)
   })
 
+  test('admin mobile overrides list does not render empty detail before selection', async ({ page }) => {
+    await loginAsSandboxAdmin(page)
+    await page.setViewportSize({ width: 390, height: 844 })
+    await page.goto('/admin/overrides')
+
+    await expect(page.getByRole('heading', { name: 'Excepciones de reserva' })).toBeVisible()
+    await expect(page.getByRole('heading', { name: 'Socios recientes' })).toBeVisible()
+    await expect(page.getByRole('heading', { name: 'Selecciona un socio para operar' })).not.toBeVisible()
+    await expect(page).not.toHaveURL(/member=/)
+  })
+
   test('admin opens member detail as a sheet on mobile', async ({ page }) => {
     const { email } = getSandboxCredentials()
 
