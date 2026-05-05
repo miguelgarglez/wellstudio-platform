@@ -23,7 +23,7 @@ type AdminShellProps = {
 const adminNavItems = [
   {
     href: '/admin',
-    label: 'Políticas',
+    label: 'Reglas',
     icon: ClipboardList,
   },
   {

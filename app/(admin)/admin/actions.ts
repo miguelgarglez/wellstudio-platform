@@ -21,7 +21,7 @@ export async function updateMembershipBookingPolicyAction(
 
   if (!authContext) {
     return {
-      message: 'Necesitamos una sesión admin o staff válida para guardar esta política.',
+      message: 'Necesitamos una sesión admin o staff válida para guardar esta regla.',
     }
   }
 
@@ -31,13 +31,13 @@ export async function updateMembershipBookingPolicyAction(
 
   if (!planId) {
     return {
-      message: 'Falta el plan cuya política querías editar.',
+      message: 'Falta el plan cuya regla querías editar.',
     }
   }
 
   if (!policyMode) {
     return {
-      message: 'Falta el modo de política que querías guardar.',
+      message: 'Falta el modo de regla que querías guardar.',
     }
   }
 
@@ -50,7 +50,7 @@ export async function updateMembershipBookingPolicyAction(
       })
     } catch {
       return {
-        message: 'No hemos podido persistir la política unlimited. Reintenta en unos segundos.',
+        message: 'No hemos podido persistir la regla unlimited. Reintenta en unos segundos.',
       }
     }
 
@@ -60,7 +60,7 @@ export async function updateMembershipBookingPolicyAction(
 
   if (policyMode !== 'CALENDAR_WEEK' && policyMode !== 'CALENDAR_MONTH') {
     return {
-      message: 'El modo de política recibido no es válido para este formulario.',
+      message: 'El modo de regla recibido no es válido para este formulario.',
     }
   }
 
@@ -85,7 +85,7 @@ export async function updateMembershipBookingPolicyAction(
       })
   } catch {
     return {
-      message: 'No hemos podido persistir la política periódica. Reintenta en unos segundos.',
+      message: 'No hemos podido persistir la regla periódica. Reintenta en unos segundos.',
     }
   }
 

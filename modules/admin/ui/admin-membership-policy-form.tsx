@@ -62,15 +62,15 @@ export function AdminMembershipPolicyForm({
       {isSuccessVisible ? (
         <StatusNotice
           tone="success"
-          title="Política guardada"
-          description="La política explícita ya está persistida y la vista se ha recargado con el estado actualizado."
+          title="Regla guardada"
+          description="La regla explícita ya está persistida y la vista se ha recargado con el estado actualizado."
         />
       ) : null}
 
       {state?.message ? (
         <StatusNotice
           tone="error"
-          title="No hemos podido guardar la política"
+          title="No hemos podido guardar la regla"
           description={state.message}
         />
       ) : null}
@@ -166,7 +166,7 @@ export function AdminMembershipPolicyForm({
       <div className="flex flex-wrap items-center gap-3 border-t border-[color:color-mix(in_srgb,var(--border)_72%,white)] pt-4">
         <SubmitButton />
         <p className="max-w-2xl text-sm leading-6 text-[color:color-mix(in_srgb,var(--foreground)_68%,white)]">
-          Al guardar, el plan pasa a depender de una política explícita y deja de leerse solo por fallback legacy.
+          Al guardar, el plan pasa a depender de una regla explícita y deja de leerse solo por fallback legacy.
         </p>
       </div>
     </form>
@@ -184,7 +184,7 @@ function SubmitButton() {
           Guardando…
         </>
       ) : (
-        'Guardar política'
+        'Guardar regla'
       )}
     </Button>
   )

@@ -831,8 +831,15 @@ Prioridades:
 
 Superficies admin ya implementadas:
 
-- `/admin`: politicas de reserva por membership plan
+- `/admin`: reglas de reserva por membership plan; el termino visible es "Reglas" para evitar sobreprometer una gestion completa de planes
 - `/admin/overrides`: excepciones de reserva auditables por socio sobre memberships activas; internamente siguen siendo booking overrides de dominio
+
+Decision de entrada admin:
+
+- `/admin` permanece como entrada directa a reglas de reserva mientras sea la accion admin mas concreta y frecuente
+- no crear un dashboard inicial hasta que existan 3-5 senales operativas reales y accionables; por ejemplo reglas legacy pendientes, excepciones vigentes, sesiones proximas con incidencias, actividad comercial reciente o socios que requieren atencion
+- "Gestion de planes" queda reservado para una futura superficie mas amplia que edite nombre, precio, estado, visibilidad y reglas; no debe usarse para una pantalla que solo cambia reglas de reserva
+- si se introduce una home admin futura, mover reglas a una ruta dedicada como `/admin/booking-rules` o `/admin/plans/rules` debe hacerse con redirects y actualizacion explicita de navegacion/tests
 
 Patron de interfaz:
 

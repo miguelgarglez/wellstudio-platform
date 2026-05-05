@@ -49,8 +49,8 @@ const TOAST_COPY: Record<
   },
   'policy-saved': {
     tone: 'success',
-    title: 'Política guardada',
-    description: 'La política explícita ya está persistida y la vista se ha recargado con el estado actualizado.',
+    title: 'Regla guardada',
+    description: 'La regla explícita ya está persistida y la vista se ha recargado con el estado actualizado.',
   },
 }
 

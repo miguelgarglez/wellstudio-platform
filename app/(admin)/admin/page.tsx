@@ -22,9 +22,9 @@ export default async function AdminHomePage({ searchParams }: AdminPageProps) {
 
   return (
     <AdminSectionShell
-      eyebrow="Admin · Memberships"
-      title="Políticas de reserva"
-      description="Configura la política efectiva de cada membership plan sin tocar overrides individuales ni mezclar esta superficie con el portal del socio."
+      eyebrow="Admin · Reglas"
+      title="Reglas de reserva"
+      description="Define qué puede reservar cada membership plan sin tocar excepciones individuales ni mezclar esta superficie con el portal del socio."
     >
       <Suspense fallback={<AdminMembershipPoliciesDashboardSkeleton />}>
         <AdminMembershipPoliciesSection

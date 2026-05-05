@@ -232,6 +232,9 @@ Regla de producto:
 - admin no es un portal de consumo, es una herramienta de operacion
 - en desktop debe aprovechar el ancho disponible para listas, contexto y detalle accionable
 - evitar heroes editoriales grandes en admin; usar toolbars compactas con contexto util
+- nombrar superficies admin por la accion real que habilitan, no por conceptos tecnicos internos; por ejemplo "Reglas" / "Reglas de reserva" para la configuracion de booking policy por plan
+- reservar nombres amplios como "Gestion de planes" para superficies que realmente permitan gestionar el plan completo: precio, estado, descripcion, visibilidad y reglas
+- no introducir dashboards de bienvenida sin senales accionables; una home admin solo compensa si ayuda a decidir que atender hoy
 - preferir patrones de workbench: rail de busqueda/lista, panel de detalle y acciones contextuales cerca del objeto seleccionado
 - evitar rails largos con scroll propio si el contenido principal ya hace scroll; los formularios y selecciones largas deben pasar a `Dialog`, `Sheet` o una superficie dedicada
 - en mobile/tablet, los workbenches admin no deben apilar lista y detalle obligando a scrollear para operar; el detalle seleccionado debe poder abrirse como `Sheet` contextual y cerrarse volviendo al listado

@@ -214,12 +214,12 @@ export class AuthPage {
 
   async expectAdminPoliciesVisible() {
     await expect(
-      this.page.getByRole('heading', { name: 'Políticas de reserva' }),
+      this.page.getByRole('heading', { name: 'Reglas de reserva' }),
     ).toBeVisible()
     await expect(
       this.page
         .getByLabel('Navegación admin', { exact: true })
-        .getByRole('link', { name: 'Políticas' }),
+        .getByRole('link', { name: 'Reglas' }),
     ).toBeVisible()
     await expect(
       this.page

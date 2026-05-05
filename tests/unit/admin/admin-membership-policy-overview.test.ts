@@ -26,6 +26,7 @@ describe('buildAdminMembershipPolicyPlanItem', () => {
     })
 
     expect(item.policySummaryLabel).toBe('3 / semana')
+    expect(item.policySourceLabel).toBe('Regla explícita')
     expect(item.policySourceTone).toBe('explicit')
     expect(item.editMode).toBe('CALENDAR_WEEK')
     expect(item.allowanceCount).toBe('3')

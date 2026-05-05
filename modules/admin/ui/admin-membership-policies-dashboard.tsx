@@ -39,7 +39,7 @@ export function AdminMembershipPoliciesDashboard({
             </span>
             <div className="min-w-0">
               <h2 id="admin-membership-plan-list" className="text-lg font-medium text-[var(--wellstudio-ink)]">
-                Política efectiva por plan
+                Regla efectiva por plan
               </h2>
               <p className="mt-1 text-sm leading-6 text-[color:color-mix(in_srgb,var(--foreground)_70%,white)]">
                 Revisa qué puede reservar cada plan y si depende de una regla explícita o de fallback.
@@ -134,7 +134,7 @@ export function AdminMembershipPoliciesDashboard({
                 <div className="grid gap-3 sm:grid-cols-3">
                   <DetailPill label="Facturación" value={overview.selectedPlan.billingSummary} />
                   <DetailPill label="Estado" value={overview.selectedPlan.statusLabel} />
-                  <DetailPill label="Política efectiva" value={overview.selectedPlan.policySummaryLabel} />
+                  <DetailPill label="Regla efectiva" value={overview.selectedPlan.policySummaryLabel} />
                 </div>
               </header>
 
@@ -148,7 +148,7 @@ export function AdminMembershipPoliciesDashboard({
                       Qué afecta este cambio
                     </p>
                     <p className="text-sm leading-6 text-[color:color-mix(in_srgb,var(--foreground)_72%,white)]">
-                      Al guardar, las próximas comprobaciones de reserva de este plan leerán la política explícita. No se cambian reservas existentes, overrides individuales ni reglas de otros planes.
+                      Al guardar, las próximas comprobaciones de reserva de este plan leerán la regla explícita. No se cambian reservas existentes, excepciones individuales ni reglas de otros planes.
                     </p>
                   </div>
                 </div>

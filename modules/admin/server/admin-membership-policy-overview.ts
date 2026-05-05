@@ -89,7 +89,7 @@ export function buildAdminMembershipPolicyPlanItem(plan: {
       billingInterval: plan.billingInterval,
     }),
     policySummaryLabel: formatPolicySummaryLabel(resolvedPolicy),
-    policySourceLabel: resolvedPolicy.source === 'explicit' ? 'Política explícita' : 'Fallback legacy',
+    policySourceLabel: resolvedPolicy.source === 'explicit' ? 'Regla explícita' : 'Fallback legacy',
     policySourceTone: resolvedPolicy.source,
     editMode:
       resolvedPolicy.policyType === 'PERIODIC_ALLOWANCE'

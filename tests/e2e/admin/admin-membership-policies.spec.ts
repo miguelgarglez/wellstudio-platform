@@ -50,7 +50,7 @@ test.describe('Admin membership policies @admin @sandbox', () => {
   test('admin can view and update a membership booking policy', async ({ page }) => {
     await loginAsSandboxAdmin(page)
 
-    await expect(page.getByRole('heading', { name: 'Políticas de reserva' })).toBeVisible()
+    await expect(page.getByRole('heading', { name: 'Reglas de reserva' })).toBeVisible()
 
     const planLinks = page.getByLabel('Planes de membresía').getByRole('link')
     const planCount = await planLinks.count()
@@ -65,10 +65,10 @@ test.describe('Admin membership policies @admin @sandbox', () => {
     await expect(editorSheet).toBeVisible()
     await editorSheet.getByText('Allowance semanal', { exact: true }).click()
     await editorSheet.getByLabel(/Reservas disponibles por periodo/i).fill('6')
-    await editorSheet.getByRole('button', { name: 'Guardar política' }).click()
+    await editorSheet.getByRole('button', { name: 'Guardar regla' }).click()
 
     await expect(page).toHaveURL(/\/admin\?plan=.*&updated=1$/)
-    await expect(page.getByRole('status').getByText('Política guardada')).toBeVisible()
+    await expect(page.getByRole('status').getByText('Regla guardada')).toBeVisible()
     await expect(editorSheet).not.toBeVisible()
 
     await page.getByRole('button', { name: /Editar regla de reserva/i }).click()
@@ -108,8 +108,8 @@ test.describe('Admin membership policies @admin @sandbox', () => {
     await page.setViewportSize({ width: 390, height: 844 })
     await page.goto('/admin')
 
-    await expect(page.getByRole('heading', { name: 'Políticas de reserva' })).toBeVisible()
-    await expect(page.getByRole('heading', { name: 'Política efectiva por plan' })).toBeVisible()
+    await expect(page.getByRole('heading', { name: 'Reglas de reserva' })).toBeVisible()
+    await expect(page.getByRole('heading', { name: 'Regla efectiva por plan' })).toBeVisible()
     await expect(page.getByRole('heading', { name: 'Selecciona un plan para editar' })).not.toBeVisible()
     await expect(page).not.toHaveURL(/plan=/)
   })

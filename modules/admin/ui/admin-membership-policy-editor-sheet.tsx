@@ -68,7 +68,7 @@ export function AdminMembershipPolicyEditorSheet({
               Editar regla de reserva
             </SheetTitle>
             <SheetDescription className="max-w-2xl text-base leading-7">
-              Ajusta la política explícita que leerá el motor de reservas para este membership plan. No afecta a overrides individuales ni a otros planes.
+              Ajusta la regla explícita que leerá el motor de reservas para este membership plan. No afecta a excepciones individuales ni a otros planes.
             </SheetDescription>
           </SheetHeader>
 
