@@ -1,6 +1,6 @@
 import { expect, test } from '@playwright/test'
 
-import { loginAsSandboxAdmin, loginAsSandboxMember } from '../support/auth'
+import { ensureSandboxAdminAccess, loginAsSandboxAdmin, loginAsSandboxMember } from '../support/auth'
 import { prepareSandboxAdminOverridesFixture } from '../support/admin-overrides'
 import {
   getSandboxCredentials,
@@ -19,6 +19,10 @@ test.describe('Admin member overrides @admin @sandbox', () => {
     !isSandboxAuthEnabled() || !hasSandboxCredentials() || !hasSandboxAdminCredentials(),
     'Sandbox auth credentials are not configured',
   )
+
+  test.beforeAll(async () => {
+    await ensureSandboxAdminAccess()
+  })
 
   test.beforeEach(async () => {
     await prepareSandboxAdminOverridesFixture()

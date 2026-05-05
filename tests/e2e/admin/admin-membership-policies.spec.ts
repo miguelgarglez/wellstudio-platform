@@ -24,6 +24,10 @@ test.describe('Admin membership policies @admin @sandbox', () => {
     'Sandbox auth credentials are not configured',
   )
 
+  test.beforeAll(async () => {
+    await ensureSandboxAdminAccess()
+  })
+
   test('member cannot access admin policies', async ({ page }) => {
     await loginAsSandboxMember(page)
 
@@ -36,8 +40,6 @@ test.describe('Admin membership policies @admin @sandbox', () => {
   test('admin direct login lands on admin by default', async ({ page }) => {
     const authPage = new AuthPage(page)
     const { email, password } = getSandboxAdminCredentials()
-
-    await ensureSandboxAdminAccess(email, password)
 
     await authPage.gotoLogin()
     await authPage.fillLoginForm(email, password)

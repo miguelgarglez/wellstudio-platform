@@ -68,6 +68,14 @@ E2E_ADMIN_EMAIL=e2e.admin.sandbox@wellstudio.test
 E2E_ADMIN_PASSWORD=replace-with-sandbox-password
 ```
 
+Para reconciliar la cuenta admin completa antes de QA o E2E:
+
+```bash
+pnpm sandbox:auth:admin
+```
+
+El comando valida que el proyecto Supabase coincide con `SUPABASE_SANDBOX_PROJECT_REF`, asegura la cuenta Auth confirmada y garantiza la identidad local con rol `ADMIN`.
+
 ## Cómo correr la suite sandbox
 
 1. copiar `.env.e2e.example` a `.env.e2e.local`

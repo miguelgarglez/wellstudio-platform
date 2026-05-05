@@ -61,7 +61,7 @@ Qué hace:
 También existe la variante `admin`:
 
 ```bash
-node scripts/auth/ensure-sandbox-user.mjs admin --confirm-sandbox-reset
+pnpm sandbox:auth:admin
 ```
 
 Nota importante:

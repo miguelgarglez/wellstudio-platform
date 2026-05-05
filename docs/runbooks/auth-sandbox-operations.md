@@ -33,7 +33,7 @@ No cubre todavía:
 
 - `e2e.admin.sandbox@wellstudio.test`
 - uso: acceso al backoffice de reglas de reserva por membership y excepciones de reserva por socio
-- nota: el helper E2E de admin asegura el usuario Supabase y promueve el rol `ADMIN` local bajo demanda antes de validar la shell admin
+- nota: `pnpm sandbox:auth:admin` asegura el usuario Supabase, reconcilia identidad local y garantiza el rol `ADMIN` antes de ejecutar QA/E2E admin
 - el login admin sin `redirectTo` debe resolver destino por rol y aterrizar en `/admin`
 
 ## Variables necesarias
@@ -86,8 +86,11 @@ pnpm check:auth
 ### Asegurar o resetear cuenta sandbox de scenario
 
 ```bash
-node scripts/auth/ensure-sandbox-user.mjs member --confirm-sandbox-reset
+pnpm sandbox:auth:member
+pnpm sandbox:auth:admin
 ```
+
+`sandbox:auth:admin` no solo asegura el usuario de `Supabase Auth`: tambien reconcilia la identidad local y garantiza el rol `ADMIN` en la base sandbox. Esto evita que los E2E de admin escondan SQL de provisioning dentro del helper de login.
 
 Runbook detallado relacionado:
 
@@ -111,6 +114,7 @@ Este comando prepara el dominio sandbox para QA visual y futura validación E2E 
 ### Reconciliar playground admin
 
 ```bash
+pnpm sandbox:auth:admin
 pnpm sandbox:admin-playground
 ```
 

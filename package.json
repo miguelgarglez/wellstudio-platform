@@ -32,6 +32,8 @@
     "test:e2e:smoke": "playwright test --grep @smoke",
     "test:e2e:ui": "playwright test --ui",
     "test:e2e:headed": "playwright test --headed",
+    "sandbox:auth:member": "node scripts/auth/ensure-sandbox-user.mjs member --confirm-sandbox-reset",
+    "sandbox:auth:admin": "node scripts/auth/ensure-sandbox-user.mjs admin --confirm-sandbox-reset",
     "sandbox:scenario": "node scripts/sandbox/ensure-member-scenario.mjs --confirm-sandbox-scenario",
     "sandbox:admin-playground": "node scripts/sandbox/ensure-member-scenario.mjs admin-playground --confirm-sandbox-scenario"
   },

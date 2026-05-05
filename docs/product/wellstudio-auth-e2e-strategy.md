@@ -136,7 +136,7 @@ Estado actual:
 - logout cubierto con invalidación SSR real
 - acceso posterior a ruta protegida tras logout cubierto
 - login admin por rol cubierto en la suite admin sandbox
-- provisión local explícita todavía pendiente
+- provisión local admin explícita cubierta por `pnpm sandbox:auth:admin`; la suite admin puede invocarla en setup, pero el helper de login no debe contener SQL ni llamadas admin a Supabase
 - la base de escenarios sandbox poblados ya existe para suites de portal privado
 
 ## Fase 2.5: Portal privado sandbox
@@ -211,6 +211,8 @@ La opción recomendada para WellStudio:
 1. cuentas base persistentes para smoke manual y debugging
 2. setup de test para crear o reconciliar cuentas E2E conocidas
 3. cleanup controlado solo cuando haga falta
+
+Para admin, la reconciliacion canonica es `pnpm sandbox:auth:admin`: confirma/actualiza la cuenta Auth, crea o actualiza la identidad local, conserva `MEMBER` como rol base y añade `ADMIN` de forma idempotente.
 
 ## Tags recomendados
 
