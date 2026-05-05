@@ -842,7 +842,8 @@ Patron de interfaz:
 - en mobile/tablet, el mismo workbench mantiene la lista como superficie base y abre el detalle seleccionado en `Sheet`; cerrar la sheet limpia el parametro de seleccion principal sin borrar filtros de busqueda
 - los placeholders de detalle sin seleccion solo se renderizan visualmente en desktop; en mobile/tablet la lista debe ocupar la pantalla hasta que exista una seleccion real
 - la experiencia member puede priorizar orientacion, bienvenida y cards de resumen; admin debe priorizar densidad controlada, escaneo rapido, trazabilidad y ejecucion
-- los estados principales de una pantalla admin deben vivir en la URL siempre que condicionen seleccion, filtros o deep-linking
+- los estados principales de una pantalla admin deben vivir en la URL cuando sean contexto durable, compartible o reload-safe: ruta, busqueda/filtros y seleccion del objeto principal
+- el estado efimero de operacion debe permanecer local al cliente: apertura de `Sheet`/`Dialog`, tabs internas, seleccion temporal de membership/sesion dentro de un formulario y pasos intermedios; esto evita refrescos de Server Components para acciones que deben sentirse instantaneas
 - las listas admin por defecto deben ser read models server-side acotados y honestos: pueden priorizar actividad reciente u operabilidad, pero deben distinguirse de resultados de busqueda exhaustivos
 - las acciones admin siguen siendo server actions finas que delegan en servicios de dominio; el layout no debe introducir reglas de negocio
 

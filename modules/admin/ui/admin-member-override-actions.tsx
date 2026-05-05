@@ -42,7 +42,7 @@ type AdminMemberOverrideActionsProps = {
   memberId: string
   memberships: AdminMemberMembershipSummary[]
   selectedMembershipId: string | null
-  selectedSessionId: string | null
+  onCloseOperation: () => void
   sessionCandidates: AdminSessionAccessCandidate[]
 }
 
@@ -54,11 +54,22 @@ export function AdminMemberOverrideActions({
   memberId,
   memberships,
   selectedMembershipId,
-  selectedSessionId,
+  onCloseOperation,
   sessionCandidates,
 }: AdminMemberOverrideActionsProps) {
   const router = useRouter()
   const [isRouting, startRoutingTransition] = useTransition()
+  const [sessionSelection, setSessionSelection] = useState<{
+    membershipId: string | null
+    sessionId: string | null
+  }>({
+    membershipId: null,
+    sessionId: null,
+  })
+  const selectedSessionId =
+    sessionSelection.membershipId === selectedMembershipId
+      ? sessionSelection.sessionId
+      : null
   const [extraState, extraFormAction] = useActionState<GrantExtraAllowanceActionState, FormData>(
     grantExtraAllowanceOverrideAction,
     null,
@@ -100,9 +111,11 @@ export function AdminMemberOverrideActions({
   }
 
   function closeOperationSheet() {
-    startRoutingTransition(() => {
-      router.push(buildOverridesHref({ query, memberId }))
+    setSessionSelection({
+      membershipId: selectedMembershipId,
+      sessionId: null,
     })
+    onCloseOperation()
   }
 
   function closeAllSheets() {
@@ -112,17 +125,11 @@ export function AdminMemberOverrideActions({
   }
 
   function chooseSession(sessionId: string) {
-    updateOperationState({ mode: 'session', sessionStep: 'form' })
-    startRoutingTransition(() => {
-      router.push(
-        buildOverridesHref({
-          query,
-          memberId,
-          membershipId: selectedMembershipId,
-          sessionId,
-        }),
-      )
+    setSessionSelection({
+      membershipId: selectedMembershipId,
+      sessionId,
     })
+    updateOperationState({ mode: 'session', sessionStep: 'form' })
   }
 
   return (
@@ -827,31 +834,6 @@ function StatusNotice({
       </div>
     </div>
   )
-}
-
-function buildOverridesHref(input: {
-  query: string
-  memberId: string
-  membershipId?: string | null
-  sessionId?: string | null
-}) {
-  const params = new URLSearchParams()
-
-  if (input.query) {
-    params.set('q', input.query)
-  }
-
-  params.set('member', input.memberId)
-
-  if (input.membershipId) {
-    params.set('membership', input.membershipId)
-  }
-
-  if (input.sessionId) {
-    params.set('session', input.sessionId)
-  }
-
-  return `/admin/overrides?${params.toString()}`
 }
 
 function buildOverridesListHref(query: string) {

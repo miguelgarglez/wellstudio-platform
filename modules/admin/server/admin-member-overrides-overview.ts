@@ -150,18 +150,12 @@ export type AdminMemberOverrideOverview = {
   query: string
   searchResults: AdminMemberSearchResult[]
   selectedMemberId: string | null
-  selectedMembershipId: string | null
-  selectedSessionId: string | null
   selectedMember: AdminSelectedMemberOverrideContext | null
-  selectedMembership: AdminMemberMembershipSummary | null
-  selectedSession: AdminSessionAccessCandidate | null
 }
 
 export async function getAdminMemberOverrideOverview(input: {
   query: string | null
   selectedMemberId: string | null
-  selectedMembershipId: string | null
-  selectedSessionId: string | null
 }) {
   const now = new Date()
   const query = normalizeQuery(input.query)
@@ -229,11 +223,7 @@ export async function getAdminMemberOverrideOverview(input: {
       query,
       searchResults,
       selectedMemberId: null,
-      selectedMembershipId: null,
-      selectedSessionId: null,
       selectedMember: null,
-      selectedMembership: null,
-      selectedSession: null,
     } satisfies AdminMemberOverrideOverview
   }
 
@@ -342,17 +332,11 @@ export async function getAdminMemberOverrideOverview(input: {
   const sessionCandidates = sessionCandidateRecords.map((session) =>
     buildAdminSessionAccessCandidate(session, now),
   )
-  const selectedMembership =
-    activeMemberships.find((membership) => membership.id === input.selectedMembershipId) ?? null
-  const selectedSession =
-    sessionCandidates.find((session) => session.id === input.selectedSessionId) ?? null
 
   return {
     query,
     searchResults,
     selectedMemberId: selectedMemberRecord.id,
-    selectedMembershipId: selectedMembership?.id ?? null,
-    selectedSessionId: selectedSession?.id ?? null,
     selectedMember: {
       id: selectedMemberRecord.id,
       displayName: buildMemberDisplayName({
@@ -367,8 +351,6 @@ export async function getAdminMemberOverrideOverview(input: {
       overrides,
       sessionCandidates,
     },
-    selectedMembership,
-    selectedSession,
   } satisfies AdminMemberOverrideOverview
 }
 

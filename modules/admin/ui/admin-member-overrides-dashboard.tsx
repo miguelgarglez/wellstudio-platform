@@ -1,5 +1,7 @@
+'use client'
+
 import Link from 'next/link'
-import type { CSSProperties } from 'react'
+import { useState, type CSSProperties } from 'react'
 import {
   AlertTriangle,
   ArrowRight,
@@ -31,6 +33,17 @@ export function AdminMemberOverridesDashboard({
   overview,
   updatedState,
 }: AdminMemberOverridesDashboardProps) {
+  const [operationSelection, setOperationSelection] = useState<{
+    memberId: string | null
+    membershipId: string | null
+  }>({
+    memberId: null,
+    membershipId: null,
+  })
+  const selectedMembershipId =
+    operationSelection.memberId === overview.selectedMemberId
+      ? operationSelection.membershipId
+      : null
   const isDefaultMemberList = overview.query.length === 0
   const searchPanelTitle = isDefaultMemberList ? 'Socios recientes' : 'Resultados'
   const searchPanelDescription = isDefaultMemberList
@@ -226,10 +239,14 @@ export function AdminMemberOverridesDashboard({
                       {overview.selectedMember.activeMemberships.map((membership) => (
                         <MembershipLinkCard
                           key={membership.id}
-                          query={overview.query}
-                          memberId={overview.selectedMemberId!}
                           membership={membership}
-                          selectedMembershipId={overview.selectedMembershipId}
+                          selectedMembershipId={selectedMembershipId}
+                          onOperate={() =>
+                            setOperationSelection({
+                              memberId: overview.selectedMemberId,
+                              membershipId: membership.id,
+                            })
+                          }
                         />
                       ))}
                     </div>
@@ -245,8 +262,13 @@ export function AdminMemberOverridesDashboard({
                   query={overview.query}
                   memberId={overview.selectedMember.id}
                   memberships={overview.selectedMember.activeMemberships}
-                  selectedMembershipId={overview.selectedMembershipId}
-                  selectedSessionId={overview.selectedSessionId}
+                  selectedMembershipId={selectedMembershipId}
+                  onCloseOperation={() =>
+                    setOperationSelection({
+                      memberId: overview.selectedMemberId,
+                      membershipId: null,
+                    })
+                  }
                   sessionCandidates={overview.selectedMember.sessionCandidates}
                 />
 
@@ -285,8 +307,6 @@ export function AdminMemberOverridesDashboard({
                           item={override}
                           query={overview.query}
                           memberId={overview.selectedMemberId!}
-                          membershipId={overview.selectedMembershipId}
-                          sessionId={overview.selectedSessionId}
                           highlight={index === 0 && isSuccessfulUpdatedState(updatedState)}
                         />
                       ))
@@ -420,27 +440,24 @@ export function AdminMemberOverridesDashboardSkeleton() {
 }
 
 function MembershipLinkCard({
-  query,
-  memberId,
   membership,
   selectedMembershipId,
+  onOperate,
 }: {
-  query: string
-  memberId: string
   membership: AdminMemberMembershipSummary
   selectedMembershipId: string | null
+  onOperate: () => void
 }) {
   const isSelected = membership.id === selectedMembershipId
 
   return (
-    <Link
-      href={buildOverridesHref({
-        query,
-        memberId,
-        membershipId: membership.id,
-      })}
+    <button
+      type="button"
+      onClick={onOperate}
+      aria-haspopup="dialog"
+      aria-expanded={isSelected}
       className={cn(
-        'group/membership block rounded-[1.15rem] border px-4 py-3 transition-[background-color,border-color,box-shadow,transform] duration-200 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--ring)] active:scale-[0.99] motion-safe:hover:-translate-y-0.5',
+        'group/membership block w-full rounded-[1.15rem] border px-4 py-3 text-left transition-[background-color,border-color,box-shadow,transform] duration-200 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--ring)] active:scale-[0.99] motion-safe:hover:-translate-y-0.5',
         isSelected
           ? 'border-[color:color-mix(in_srgb,var(--wellstudio-blue)_28%,white)] bg-[color:color-mix(in_srgb,var(--wellstudio-blue)_8%,white)] shadow-[0_12px_30px_rgba(20,24,30,0.08)]'
           : 'border-[color:color-mix(in_srgb,var(--border)_76%,white)] bg-[color:color-mix(in_srgb,var(--card)_74%,white)] hover:border-[color:color-mix(in_srgb,var(--wellstudio-blue)_22%,white)] hover:bg-white hover:shadow-[0_12px_30px_rgba(20,24,30,0.06)]',
@@ -486,7 +503,7 @@ function MembershipLinkCard({
         Operar
         <ArrowRight className="size-3.5 transition-transform group-hover/membership:translate-x-0.5" aria-hidden="true" />
       </span>
-    </Link>
+    </button>
   )
 }
 
@@ -494,15 +511,11 @@ function OverrideHistoryCard({
   item,
   query,
   memberId,
-  membershipId,
-  sessionId,
   highlight,
 }: {
   item: AdminBookingOverrideItem
   query: string
   memberId: string
-  membershipId: string | null
-  sessionId: string | null
   highlight: boolean
 }) {
   return (
@@ -531,8 +544,6 @@ function OverrideHistoryCard({
           <AdminRevokeOverrideDialog
             query={query}
             memberId={memberId}
-            membershipId={membershipId}
-            sessionId={sessionId}
             overrideId={item.id}
             overrideLabel={item.summaryLabel}
             triggerClassName="shrink-0 border-[color:color-mix(in_srgb,var(--destructive)_20%,white)] bg-[color:color-mix(in_srgb,var(--destructive)_8%,white)] px-3 text-destructive hover:bg-[color:color-mix(in_srgb,var(--destructive)_14%,white)]"
@@ -654,8 +665,6 @@ function InlineFact({
 function buildOverridesHref(input: {
   query: string
   memberId: string
-  membershipId?: string | null
-  sessionId?: string | null
 }) {
   const params = new URLSearchParams()
 
@@ -664,14 +673,6 @@ function buildOverridesHref(input: {
   }
 
   params.set('member', input.memberId)
-
-  if (input.membershipId) {
-    params.set('membership', input.membershipId)
-  }
-
-  if (input.sessionId) {
-    params.set('session', input.sessionId)
-  }
 
   return `/admin/overrides?${params.toString()}`
 }

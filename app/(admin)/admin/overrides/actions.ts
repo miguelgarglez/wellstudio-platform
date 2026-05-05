@@ -203,8 +203,6 @@ export async function revokeMemberOverrideAction(formData: FormData) {
 function buildOverridesRedirect(input: {
   query: string | null
   memberId: string
-  membershipId?: string | null
-  sessionId?: string | null
   updated: 'extra' | 'session' | 'revoked' | 'revoke-error'
 }) {
   const params = new URLSearchParams()
@@ -214,14 +212,6 @@ function buildOverridesRedirect(input: {
   }
 
   params.set('member', input.memberId)
-
-  if (input.membershipId) {
-    params.set('membership', input.membershipId)
-  }
-
-  if (input.sessionId) {
-    params.set('session', input.sessionId)
-  }
 
   params.set('updated', input.updated)
 

@@ -123,19 +123,17 @@ describe('getAdminMemberOverrideOverview', () => {
     const overview = await getAdminMemberOverrideOverview({
       query: 'e2e',
       selectedMemberId: 'member-1',
-      selectedMembershipId: 'membership-1',
-      selectedSessionId: 'session-1',
     })
 
     expect(overview.searchResults).toHaveLength(1)
     expect(overview.selectedMember?.activeMemberships).toHaveLength(1)
-    expect(overview.selectedMembership?.extraAllowanceEnabled).toBe(true)
+    expect(overview.selectedMember?.activeMemberships[0]?.extraAllowanceEnabled).toBe(true)
     expect(overview.selectedMember?.overrides[0]).toMatchObject({
       typeLabel: 'Reservas extra',
       statusLabel: 'Vigente',
       summaryLabel: '+2 reservas en el periodo actual',
     })
-    expect(overview.selectedSession).toMatchObject({
+    expect(overview.selectedMember?.sessionCandidates[0]).toMatchObject({
       id: 'session-1',
     })
   })
@@ -186,8 +184,6 @@ describe('getAdminMemberOverrideOverview', () => {
     const overview = await getAdminMemberOverrideOverview({
       query: null,
       selectedMemberId: null,
-      selectedMembershipId: null,
-      selectedSessionId: null,
     })
 
     expect(overview.searchResults).toMatchObject([
@@ -205,8 +201,6 @@ describe('getAdminMemberOverrideOverview', () => {
       },
     ])
     expect(overview.selectedMember).toBeNull()
-    expect(overview.selectedMembership).toBeNull()
-    expect(overview.selectedSession).toBeNull()
   })
 
   it('searches across members without hiding non-operable results', async () => {
@@ -226,8 +220,6 @@ describe('getAdminMemberOverrideOverview', () => {
     const overview = await getAdminMemberOverrideOverview({
       query: 'no',
       selectedMemberId: null,
-      selectedMembershipId: null,
-      selectedSessionId: null,
     })
 
     expect(overview.searchResults).toMatchObject([

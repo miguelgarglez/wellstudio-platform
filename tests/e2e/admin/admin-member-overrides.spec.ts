@@ -102,10 +102,11 @@ test.describe('Admin member overrides @admin @sandbox', () => {
     await expect(page.getByText('Sin resultados')).toBeVisible()
     await expect(page.getByText('e2e.member.sandbox@wellstudio.test')).toBeVisible()
 
-    const membershipLink = page.getByRole('link', { name: /E2E Membership Flow/i }).first()
-    await membershipLink.click()
+    const membershipButton = page.getByRole('button', { name: /E2E Membership Flow/i }).first()
+    await membershipButton.click()
 
-    await expect(page).toHaveURL(/membership=/)
+    await expect(page).not.toHaveURL(/membership=/)
+    await expect(page.getByRole('dialog', { name: 'Operar excepción' })).toBeVisible()
 
     await page.getByRole('dialog', { name: 'Operar excepción' }).getByLabel('Reservas extra').fill('2')
     await page.getByLabel('Razón operativa').first().fill('Compensación puntual QA')
@@ -115,16 +116,18 @@ test.describe('Admin member overrides @admin @sandbox', () => {
       .click()
 
     await expect(page).toHaveURL(/updated=extra/, { timeout: 15_000 })
+    await expect(page).not.toHaveURL(/membership=/)
+    await expect(page).not.toHaveURL(/session=/)
     await expect(page.getByText('Reservas extra concedidas')).toBeVisible()
     await expect(page.getByText('+2 reservas en el periodo actual')).toBeVisible()
 
-    await membershipLink.click()
+    await membershipButton.click()
     await page.getByRole('button', { name: 'Acceso puntual' }).click()
     const operationSheet = page.getByRole('dialog', { name: 'Operar excepción' })
     await operationSheet.getByRole('button', { name: 'Elegir sesión' }).first().click()
     await operationSheet.getByRole('button', { name: /E2E Strength Flow/i }).first().click()
 
-    await expect(page).toHaveURL(/session=/)
+    await expect(page).not.toHaveURL(/session=/)
     await page
       .getByRole('dialog', { name: 'Operar excepción' })
       .locator('#session-reason-input')
@@ -135,6 +138,8 @@ test.describe('Admin member overrides @admin @sandbox', () => {
       .click()
 
     await expect(page).toHaveURL(/updated=session/, { timeout: 15_000 })
+    await expect(page).not.toHaveURL(/membership=/)
+    await expect(page).not.toHaveURL(/session=/)
     await expect(page.getByText('Acceso puntual concedido')).toBeVisible()
     await expect(
       page.getByText('Acceso puntual para validar el flujo de override'),

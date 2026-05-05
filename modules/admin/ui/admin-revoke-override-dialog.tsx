@@ -21,8 +21,6 @@ import { cn } from '@/lib/utils'
 type AdminRevokeOverrideDialogProps = {
   query: string
   memberId: string
-  membershipId: string | null
-  sessionId: string | null
   overrideId: string
   overrideLabel: string
   triggerClassName?: string
@@ -31,8 +29,6 @@ type AdminRevokeOverrideDialogProps = {
 export function AdminRevokeOverrideDialog({
   query,
   memberId,
-  membershipId,
-  sessionId,
   overrideId,
   overrideLabel,
   triggerClassName,
@@ -60,8 +56,6 @@ export function AdminRevokeOverrideDialog({
         <form action={revokeMemberOverrideAction} className="flex flex-col gap-4">
           <input type="hidden" name="query" value={query} />
           <input type="hidden" name="memberId" value={memberId} />
-          <input type="hidden" name="membershipId" value={membershipId ?? ''} />
-          <input type="hidden" name="sessionId" value={sessionId ?? ''} />
           <input type="hidden" name="overrideId" value={overrideId} />
 
           <AlertDialogHeader className="items-start gap-3 px-5 pt-5 text-left">

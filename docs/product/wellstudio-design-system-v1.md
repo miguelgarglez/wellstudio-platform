@@ -237,7 +237,8 @@ Regla de producto:
 - en mobile/tablet, los workbenches admin no deben apilar lista y detalle obligando a scrollear para operar; el detalle seleccionado debe poder abrirse como `Sheet` contextual y cerrarse volviendo al listado
 - los placeholders de detalle sin seleccion son aceptables en desktop como ayuda del panel derecho; en mobile/tablet deben ocultarse para que la lista sea la superficie base hasta que el usuario seleccione un item
 - usar cards solo cuando la card sea la unidad de interaccion; si solo agrupa informacion, preferir filas, secciones y divisores
-- mantener URL como fuente de verdad para seleccion, filtros y paneles operativos
+- mantener URL como fuente de verdad para contexto durable y reload-safe: rutas principales, filtros/busqueda y seleccion del objeto principal de una workspace
+- mantener en estado local la interaccion efimera: apertura de sheets/dialogs, tabs internas, seleccion temporal de formulario y pasos dentro de una operacion
 - las listas admin pueden tener defaults seguros cuando evitan pantallas vacias; deben estar acotadas, explicar su criterio y no presentarse como exhaustivas
 - la busqueda admin puede seguir siendo submit-based cuando el estado server-side y la URL aportan mas robustez que una busqueda incremental
 - member app puede ser mas guiada, espaciosa y editorial; admin debe ser mas denso, escaneable y accionable
