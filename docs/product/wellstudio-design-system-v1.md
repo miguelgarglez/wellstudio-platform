@@ -227,6 +227,26 @@ Direccion:
 - menos bloques hero
 - prioridad a claridad operativa
 
+Regla de producto:
+
+- admin no es un portal de consumo, es una herramienta de operacion
+- en desktop debe aprovechar el ancho disponible para listas, contexto y detalle accionable
+- evitar heroes editoriales grandes en admin; usar toolbars compactas con contexto util
+- nombrar superficies admin por la accion real que habilitan, no por conceptos tecnicos internos; por ejemplo "Reglas" / "Reglas de reserva" para la configuracion de booking policy por plan
+- reservar nombres amplios como "Gestion de planes" para superficies que realmente permitan gestionar el plan completo: precio, estado, descripcion, visibilidad y reglas
+- no introducir dashboards de bienvenida sin senales accionables; una home admin solo compensa si ayuda a decidir que atender hoy
+- preferir patrones de workbench: rail de busqueda/lista, panel de detalle y acciones contextuales cerca del objeto seleccionado
+- evitar rails largos con scroll propio si el contenido principal ya hace scroll; los formularios y selecciones largas deben pasar a `Dialog`, `Sheet` o una superficie dedicada
+- en mobile/tablet, los workbenches admin no deben apilar lista y detalle obligando a scrollear para operar; el detalle seleccionado debe poder abrirse como `Sheet` contextual y cerrarse volviendo al listado
+- los placeholders de detalle sin seleccion son aceptables en desktop como ayuda del panel derecho; en mobile/tablet deben ocultarse para que la lista sea la superficie base hasta que el usuario seleccione un item
+- usar cards solo cuando la card sea la unidad de interaccion; si solo agrupa informacion, preferir filas, secciones y divisores
+- mantener URL como fuente de verdad para contexto durable y reload-safe: rutas principales, filtros/busqueda y seleccion del objeto principal de una workspace
+- mantener en estado local la interaccion efimera: apertura de sheets/dialogs, tabs internas, seleccion temporal de formulario y pasos dentro de una operacion
+- las listas admin pueden tener defaults seguros cuando evitan pantallas vacias; deben estar acotadas, explicar su criterio y no presentarse como exhaustivas
+- la busqueda admin puede seguir siendo submit-based cuando el estado server-side y la URL aportan mas robustez que una busqueda incremental
+- member app puede ser mas guiada, espaciosa y editorial; admin debe ser mas denso, escaneable y accionable
+- no reutilizar layouts de member en admin salvo componentes atomicos compartidos como botones, inputs, badges o tokens de marca
+
 ## Motion
 
 - usar animaciones cortas y funcionales
@@ -246,6 +266,15 @@ Direccion:
 
 - la identidad de WellStudio vive en tokens y componentes
 - `Base UI` o `Radix` son solo primitivas
+- Añadir componentes shadcn/Base UI nuevos es adecuado en cualquier superficie del producto cuando el patron mejora claridad, foco, accesibilidad o velocidad de uso, y no existe ya un componente equivalente en `components/ui`.
+- Antes de crear UI ad hoc, comprobar si el patron existe o puede entrar como primitiva compartida: `Dialog`, `Sheet`, `Popover`, `DropdownMenu`, `Tabs`, `Table`, `Command`, `Tooltip`, etc.
+- En admin, los overlays no son un lujo visual: son una herramienta de foco. Tambien pueden ser correctos en member o public cuando reduzcan carga cognitiva o expliquen una accion sin llenar la pagina.
+- Criterio para overlays:
+  - `Dialog`: acciones enfocadas con formulario corto o confirmacion no destructiva donde conviene bloquear el resto de la pantalla.
+  - `Sheet`: panel lateral para detalle secundario, historial amplio o edicion que se beneficia de conservar contexto visible.
+  - `Popover` / menus contextuales: informacion auxiliar o acciones de fila; no deben contener flujos largos.
+  - `AlertDialog`: acciones destructivas o revocaciones auditables.
+- Al añadir componentes shadcn, preferir `dry-run --diff` antes de aplicar. Si el CLI intenta sobrescribir componentes base ya personalizados, copiar/adaptar solo el componente nuevo y no pisar tokens ni variantes existentes. Si el CLI requiere instalar dependencias nuevas, avisar y pedir confirmacion antes.
 - la eleccion de primitive library no cambia la direccion visual
 
 ## Aplicacion inmediata

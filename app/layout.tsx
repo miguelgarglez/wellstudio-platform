@@ -3,6 +3,7 @@ import '@/app/globals.css'
 import { Barlow_Condensed, Manrope } from 'next/font/google'
 import { cn } from '@/lib/utils'
 import { AgentationDevtools } from '@/components/dev/agentation-devtools'
+import { resolveMetadataBase } from '@/lib/site-metadata'
 
 const manrope = Manrope({
   subsets: ['latin'],
@@ -16,8 +17,10 @@ const barlowCondensed = Barlow_Condensed({
 })
 
 export const metadata: Metadata = {
+  metadataBase: resolveMetadataBase(),
   title: 'WellStudio',
-  description: 'Plataforma WellStudio para socios, reservas y seguimiento.',
+  description:
+    'WellStudio es un centro boutique de entrenamiento de fuerza en Madrid con grupos reducidos, seguimiento profesional y acceso privado para socios.',
   icons: {
     icon: '/favicon.ico',
   },

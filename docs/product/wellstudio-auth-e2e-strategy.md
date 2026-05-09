@@ -124,6 +124,7 @@ Requiere proyecto Supabase de test y cuentas de escenario.
 Debe validar:
 
 - login correcto
+- login admin sin `redirectTo` aterriza en `/admin`
 - error por credenciales incorrectas
 - logout
 - acceso posterior a ruta protegida
@@ -132,9 +133,31 @@ Estado actual:
 
 - login correcto cubierto
 - error por credenciales incorrectas cubierto
-- logout cubierto
-- acceso posterior a ruta protegida cubierto
-- provisión local explícita todavía pendiente
+- logout cubierto con invalidación SSR real
+- acceso posterior a ruta protegida tras logout cubierto
+- login admin por rol cubierto en la suite admin sandbox
+- provisión local admin explícita cubierta por `pnpm sandbox:auth:admin`; la suite admin puede invocarla en setup, pero el helper de login no debe contener SQL ni llamadas admin a Supabase
+- la base de escenarios sandbox poblados ya existe para suites de portal privado
+
+## Fase 2.5: Portal privado sandbox
+
+Reutiliza auth sandbox + escenarios de dominio reconciliados.
+
+Debe validar:
+
+- `/app` con home poblada
+- `/app/reservations` con datos reales
+- reservar sesión disponible
+- cancelar reserva dentro de ventana
+- entrar y salir de waitlist
+
+Regla operativa:
+
+- sigue siendo `opt-in`
+- no entra en `smoke`
+- prepara el escenario automáticamente al arrancar la suite y lo reconcilia otra vez antes de cada test mutante
+- no duplica fixtures dentro de Playwright; reutiliza `pnpm sandbox:scenario member-reservations-flow`
+- por ahora el setup sandbox está pensado para una sola spec y un solo proyecto Playwright por ejecución
 
 ## Fase 3: Registro real
 
@@ -189,12 +212,15 @@ La opción recomendada para WellStudio:
 2. setup de test para crear o reconciliar cuentas E2E conocidas
 3. cleanup controlado solo cuando haga falta
 
+Para admin, la reconciliacion canonica es `pnpm sandbox:auth:admin`: confirma/actualiza la cuenta Auth, crea o actualiza la identidad local, conserva `MEMBER` como rol base y añade `ADMIN` de forma idempotente.
+
 ## Tags recomendados
 
 Usar tags en títulos de test:
 
 - `@smoke`
 - `@auth`
+- `@reservations`
 - `@sandbox`
 - `@critical`
 
@@ -203,6 +229,7 @@ Ejemplos:
 - `@smoke @auth login page renders`
 - `@smoke @auth protected member route redirects to login`
 - `@sandbox @auth member can log in with valid credentials`
+- `@sandbox @critical @reservations member can reserve an available session`
 
 ## Gates recomendados para auth
 

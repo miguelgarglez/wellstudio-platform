@@ -1,7 +1,8 @@
 import { defineConfig, devices } from '@playwright/test'
 
-const PORT = 3001
-const baseURL = `http://127.0.0.1:${PORT}`
+const PORT = Number(process.env.PLAYWRIGHT_PORT ?? 3001)
+const baseURL = process.env.PLAYWRIGHT_BASE_URL ?? `http://127.0.0.1:${PORT}`
+const shouldManageWebServer = !process.env.PLAYWRIGHT_BASE_URL
 
 export default defineConfig({
   testDir: './tests/e2e',
@@ -22,11 +23,13 @@ export default defineConfig({
       use: { ...devices['Desktop Chrome'] },
     },
   ],
-  webServer: {
-    command: `pnpm exec next dev --port ${PORT}`,
-    url: baseURL,
-    reuseExistingServer: !process.env.CI,
-    stdout: 'pipe',
-    stderr: 'pipe',
-  },
+  webServer: shouldManageWebServer
+    ? {
+        command: `pnpm exec next dev --port ${PORT}`,
+        url: baseURL,
+        reuseExistingServer: !process.env.CI,
+        stdout: 'pipe',
+        stderr: 'pipe',
+      }
+    : undefined,
 })

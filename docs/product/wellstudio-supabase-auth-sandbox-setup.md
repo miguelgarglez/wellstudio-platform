@@ -43,7 +43,7 @@ Preparar al menos estas cuentas en `sandbox`:
 
 - email: `e2e.admin.sandbox@wellstudio.test`
 - rol local esperado: `ADMIN`
-- estado esperado: cuenta válida para login
+- estado esperado: cuenta válida para login y promoción local a `ADMIN` durante la validación E2E de backoffice
 
 ## Variables de entorno
 
@@ -67,6 +67,14 @@ E2E_MEMBER_PASSWORD=replace-with-sandbox-password
 E2E_ADMIN_EMAIL=e2e.admin.sandbox@wellstudio.test
 E2E_ADMIN_PASSWORD=replace-with-sandbox-password
 ```
+
+Para reconciliar la cuenta admin completa antes de QA o E2E:
+
+```bash
+pnpm sandbox:auth:admin
+```
+
+El comando valida que el proyecto Supabase coincide con `SUPABASE_SANDBOX_PROJECT_REF`, asegura la cuenta Auth confirmada y garantiza la identidad local con rol `ADMIN`.
 
 ## Cómo correr la suite sandbox
 

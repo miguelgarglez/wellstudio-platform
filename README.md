@@ -60,13 +60,16 @@ pnpm test:e2e:smoke
 
 ## Visual feedback en desarrollo
 
-`Agentation` queda integrado de forma `dev-only` desde el layout raiz.
+`Agentation` queda integrado de forma `dev-only` mediante un bridge cliente propio.
 
 - activar/desactivar desde `NEXT_PUBLIC_AGENTATION_ENABLED`
 - el endpoint MCP por defecto es `http://localhost:4747`
+- no montar `<Agentation />` directamente en `layout` ni en otras rutas
+- la sesion local se aisla por proyecto con `project slug + origin + pathname`
 - comprobar el setup con `pnpm agentation:doctor`
 - arrancar el servidor manualmente con `pnpm agentation:mcp`
 - si SQLite da problemas locales, usar `pnpm agentation:mcp:memory`
+- diagnostico y mantenimiento: [`docs/runbooks/agentation-local-isolation.md`](./docs/runbooks/agentation-local-isolation.md)
 
 ## Deploy y entornos
 

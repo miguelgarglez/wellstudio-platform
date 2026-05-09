@@ -7,6 +7,7 @@ Mantener una suite E2E pequeña, estable y útil.
 ## Estructura recomendada
 
 - `tests/e2e/auth`: flujos de login, registro y rutas protegidas
+- `tests/e2e/reservations`: suites sandbox del hub de reservas
 - `tests/e2e/page-objects`: helpers de interacción reutilizables
 - `tests/e2e/support`: utilidades de entorno, tags y helpers no visuales
 - `tests/e2e/*.spec.ts`: smoke suite transversal si aplica
@@ -18,11 +19,14 @@ Mantener una suite E2E pequeña, estable y útil.
 - no probar happy paths críticos con mocks del navegador
 - usar page objects pequeños, no frameworks internos gigantes
 - cada bug real de auth, reservas o permisos debe dejar regresión
+- en suites sandbox mutantes, cada test debe poder reconstruir su propio escenario
+- el setup sandbox actual asume una sola spec sandbox y un solo proyecto Playwright por ejecución
 
 ## Tags
 
 - `@smoke`: debe ser rápido y apto para correr frecuentemente
 - `@auth`: toca autenticación o protección de rutas
+- `@reservations`: toca agenda, reservas, waitlist o cancelaciones
 - `@sandbox`: requiere cuentas o proyecto real de test
 - `@critical`: flujo muy sensible para negocio
 
@@ -34,3 +38,15 @@ Mantener una suite E2E pequeña, estable y útil.
 - `pnpm test:e2e:smoke`
 - `pnpm test:e2e:auth`
 - `pnpm test:e2e:auth:sandbox`
+- `pnpm test:e2e:reservations:sandbox`
+
+## Reutilizar un servidor ya levantado
+
+Si ya tienes `next dev` corriendo y no quieres que Playwright levante otro servidor del repo:
+
+```bash
+PLAYWRIGHT_BASE_URL=http://localhost:3000 pnpm test:e2e:reservations:sandbox
+```
+
+Opcionalmente también puedes cambiar el puerto que Playwright usaría para su `webServer`
+interno con `PLAYWRIGHT_PORT`.

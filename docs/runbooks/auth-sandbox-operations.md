@@ -18,7 +18,6 @@ Este runbook cubre:
 
 No cubre todavía:
 
-- promoción de rol `ADMIN` en la base propia
 - password reset E2E
 - email verification E2E
 - configuración SMTP custom
@@ -33,8 +32,9 @@ No cubre todavía:
 ### Admin
 
 - `e2e.admin.sandbox@wellstudio.test`
-- uso previsto: futuro flujo de backoffice
-- nota: crear el usuario en Supabase no basta; el rol `ADMIN` local sigue pendiente de seed/promoción
+- uso: acceso al backoffice de reglas de reserva por membership y excepciones de reserva por socio
+- nota: `pnpm sandbox:auth:admin` asegura el usuario Supabase, reconcilia identidad local y garantiza el rol `ADMIN` antes de ejecutar QA/E2E admin
+- el login admin sin `redirectTo` debe resolver destino por rol y aterrizar en `/admin`
 
 ## Variables necesarias
 
@@ -45,6 +45,8 @@ En `.env.local`:
 - `DATABASE_URL`
 - `NEXT_PUBLIC_SUPABASE_URL`
 - `NEXT_PUBLIC_SUPABASE_ANON_KEY`
+- `SUPABASE_SERVICE_ROLE_KEY` para operaciones admin locales controladas
+- `SUPABASE_SANDBOX_PROJECT_REF` para asegurar que esas operaciones solo apuntan a sandbox
 
 ### E2E sandbox
 
@@ -81,11 +83,56 @@ pnpm test:e2e:auth:sandbox
 pnpm check:auth
 ```
 
+### Asegurar o resetear cuenta sandbox de scenario
+
+```bash
+pnpm sandbox:auth:member
+pnpm sandbox:auth:admin
+```
+
+`sandbox:auth:admin` no solo asegura el usuario de `Supabase Auth`: tambien reconcilia la identidad local y garantiza el rol `ADMIN` en la base sandbox. Esto evita que los E2E de admin escondan SQL de provisioning dentro del helper de login.
+
+Runbook detallado relacionado:
+
+- `docs/runbooks/agent-browser-sandbox-validation.md`
+- `docs/runbooks/sandbox-member-reservation-scenarios.md`
+
+### Reconciliar escenario de reservas para member portal
+
+```bash
+pnpm sandbox:scenario member-reservations-flow
+```
+
+Este comando prepara el dominio sandbox para QA visual y futura validación E2E de:
+
+- plan activo
+- reserva cancelable
+- sesión reservable
+- waitlist activa
+- historial reciente
+
+### Reconciliar playground admin
+
+```bash
+pnpm sandbox:auth:admin
+pnpm sandbox:admin-playground
+```
+
+Este comando prepara datos ricos para revisar `/admin` y `/admin/overrides` con estados realistas:
+
+- planes con políticas explícitas ilimitada, semanal y mensual
+- socios buscables con memberships activas, pendientes, expiradas y ausentes
+- overrides vigentes, revocados y expirados
+- sesiones futuras publicadas para `SESSION_ACCESS`
+- contexto comercial ligero como tarjeta, pagos y créditos
+
+El playground admin es para QA manual y revisión de producto. No es un fixture determinista para assertions E2E.
+
 ## Qué cubre hoy la suite sandbox
 
 - login válido de member
 - error por credenciales inválidas
-- logout real
+- logout real con invalidación SSR correcta
 - pérdida de acceso a `/app` tras logout
 - lectura real de identidad local provisionada en `/app`
 
@@ -103,6 +150,7 @@ Runbook relacionado:
 
 - `docs/runbooks/supabase-postgres-prisma-workflow.md`
 - `docs/runbooks/resend-supabase-auth-smtp-setup.md`
+- `docs/runbooks/agent-browser-sandbox-validation.md`
 
 Esto significa que la suite actual prueba `auth real + identidad local provisionada`, pero no automatiza todavía el paso completo de verificación de email.
 
@@ -156,14 +204,13 @@ Revisar:
 
 Revisar:
 
-- que el test espera a la redirección completa a `/login`
+- si el logout está ocurriendo solo en cliente y no está invalidando la sesión SSR
+- la coherencia entre `modules/auth/ui/logout-button.tsx`, el boundary server-side de auth y `proxy.ts`
 - que no se está reutilizando una sesión previa del navegador
-- que `proxy.ts` sigue protegiendo `/app` y `/admin`
 
 ## Próxima evolución recomendada
 
 1. decidir si compensa preparar inbox de test o custom SMTP para sandbox
 2. automatizar verificación de email
-3. promover `ADMIN` local mediante seed o script controlado
-4. añadir `password reset`
-5. añadir `email verification`
+3. añadir `password reset`
+4. añadir `email verification`

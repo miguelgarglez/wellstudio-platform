@@ -1,11 +1,6 @@
 'use client'
 
-import dynamic from 'next/dynamic'
-
-const Agentation = dynamic(
-  () => import('agentation').then((mod) => mod.Agentation),
-  { ssr: false },
-)
+import { AgentationBridge } from '@/components/dev/agentation-bridge'
 
 const DEFAULT_AGENTATION_ENDPOINT = 'http://localhost:4747'
 
@@ -22,13 +17,5 @@ export function AgentationDevtools() {
     process.env.NEXT_PUBLIC_AGENTATION_ENDPOINT?.trim() ||
     DEFAULT_AGENTATION_ENDPOINT
 
-  return (
-    <Agentation
-      endpoint={endpoint}
-      className="z-[2000]"
-      onSessionCreated={(sessionId) => {
-        console.info('[Agentation] Session created:', sessionId)
-      }}
-    />
-  )
+  return <AgentationBridge endpoint={endpoint} />
 }

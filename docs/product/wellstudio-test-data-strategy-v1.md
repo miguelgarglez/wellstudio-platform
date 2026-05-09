@@ -69,12 +69,33 @@ Objetivo:
 - probar flujos reales de usuario
 - facilitar debugging manual en local o staging
 
+### 4. Sandbox playground manual
+
+Usar escenarios ricos e idempotentes para validar pantallas operativas con densidad realista, sin convertirlos en dependencia de tests automatizados.
+
+Ejemplo actual:
+
+- `admin-playground`
+
+Objetivo:
+
+- revisar UX, estados y composición con datos variados
+- evitar crear datos a mano en sandbox
+- mantener Playwright determinista y pequeño
+
+Regla:
+
+- un playground puede tener muchos estados para inspección visual
+- una suite E2E no debe asumir que ese playground existe ni assertar contra todo su volumen
+
 ## Convenciones
 
 - ids deterministas con prefijos del dominio
 - fechas fijas por defecto para evitar tests flakey
 - nombres y datos reconocibles del negocio
 - asserts sobre comportamiento, no sobre ruido incidental
+- los playgrounds manuales usan prefijos explícitos como `Admin Playground`
+- los escenarios E2E críticos se mantienen separados de los playgrounds ricos
 
 ## Antipatrones
 
@@ -92,6 +113,7 @@ Cuando entren reservations y payments, ampliar con:
 - fixtures de reservation states
 - factories persistidas con Prisma para integration
 - seeds de escenario para Playwright
+- playgrounds manuales para backoffice y revisión de producto cuando la UI necesite datos más realistas que una fixture mínima
 
 ## Fuente de verdad
 

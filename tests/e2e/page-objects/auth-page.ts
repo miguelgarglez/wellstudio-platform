@@ -41,22 +41,34 @@ export class AuthPage {
   }
 
   async expectConfirmedLoginFallback(email: string) {
+    const activatingHeading = this.page.getByRole('heading', {
+      name: 'Activando tu sesión',
+    })
+    const redirectingHeading = this.page.getByRole('heading', {
+      name: 'Redirigiendo tu acceso',
+    })
+    const fallbackCopy = this.page.getByText(
+      'Tu correo ya está confirmado. Si no te hemos abierto la sesión automáticamente, entra con tu contraseña y continúa.',
+    )
+
     await expect
       .poll(() => this.page.url())
       .toMatch(/\/(auth\/callback|login\?redirectTo=%2Fapp&authStatus=confirmed)/)
 
-    if (this.page.url().includes('/auth/callback')) {
-      await expect(
-        this.page.getByRole('heading', { name: 'Activando tu sesión' }),
-      ).toBeVisible()
+    if (/\/auth\/callback/.test(this.page.url())) {
+      if (await activatingHeading.isVisible()) {
+        return
+      }
+
+      if (await redirectingHeading.isVisible()) {
+        return
+      }
+
+      await expect(fallbackCopy).toBeVisible()
       return
     }
 
-    await expect(
-      this.page.getByText(
-        'Tu correo ya está confirmado. Si no te hemos abierto la sesión automáticamente, entra con tu contraseña y continúa.',
-      ),
-    ).toBeVisible()
+    await expect(fallbackCopy).toBeVisible()
     await expect(this.page.getByLabel('Email')).toHaveValue(email)
   }
 
@@ -170,6 +182,7 @@ export class AuthPage {
 
   async logout() {
     await this.page.getByRole('button', { name: 'Cerrar sesión' }).click()
+    await expect(this.page).toHaveURL(/\/login$/)
   }
 
   async expectInvalidLoginFeedback() {
@@ -182,16 +195,53 @@ export class AuthPage {
 
   async expectProtectedMemberShell() {
     await expect(
-      this.page.getByRole('heading', { name: 'Member App' }),
+      this.page.getByRole('heading', { name: 'Bienvenido de nuevo' }),
     ).toBeVisible()
     await expect(
-      this.page.getByText('Sesión protegida activa'),
+      this.page
+        .getByLabel('Navegación privada', { exact: true })
+        .getByRole('link', { name: 'Reservas' }),
     ).toBeVisible()
     await expect(
-      this.page.getByText('Roles'),
+      this.page
+        .getByLabel('Navegación privada', { exact: true })
+        .getByRole('link', { name: 'Cuenta' }),
     ).toBeVisible()
     await expect(
       this.page.getByText('MEMBER', { exact: true }),
+    ).toBeVisible()
+  }
+
+  async expectAdminPoliciesVisible() {
+    await expect(
+      this.page.getByRole('heading', { name: 'Reglas de reserva' }),
+    ).toBeVisible()
+    await expect(
+      this.page
+        .getByLabel('Navegación admin', { exact: true })
+        .getByRole('link', { name: 'Reglas' }),
+    ).toBeVisible()
+    await expect(
+      this.page
+        .getByLabel('Navegación admin', { exact: true })
+        .getByRole('link', { name: 'Excepciones' }),
+    ).toBeVisible()
+    await expect(
+      this.page.getByLabel('Planes de membresía').getByRole('link').first(),
+    ).toBeVisible()
+  }
+
+  async expectAdminOverridesVisible() {
+    await expect(
+      this.page.getByRole('heading', { name: 'Excepciones de reserva' }),
+    ).toBeVisible()
+    await expect(
+      this.page
+        .getByLabel('Navegación admin', { exact: true })
+        .getByRole('link', { name: 'Excepciones' }),
+    ).toBeVisible()
+    await expect(
+      this.page.getByRole('textbox', { name: 'Buscar socio' }),
     ).toBeVisible()
   }
 

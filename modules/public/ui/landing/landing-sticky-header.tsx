@@ -1,20 +1,20 @@
-'use client'
+"use client";
 
-import Link from 'next/link'
+import Link from "next/link";
 
-import { WellstudioLogoMark } from '@/components/brand/wellstudio-logo-mark'
-import { cn } from '@/lib/utils'
-import { LandingSectionMenu } from '@/modules/public/ui/landing/landing-section-menu'
+import { WellstudioLogoMark } from "@/components/brand/wellstudio-logo-mark";
+import { cn } from "@/lib/utils";
+import { LandingSectionMenu } from "@/modules/public/ui/landing/landing-section-menu";
 
 type LandingNavigationLink = {
-  href: string
-  label: string
-}
+  href: string;
+  label: string;
+};
 
 type LandingStickyHeaderProps = {
-  loginButtonClassName: string
-  links: readonly LandingNavigationLink[]
-}
+  loginButtonClassName: string;
+  links: readonly LandingNavigationLink[];
+};
 
 export function LandingStickyHeader({
   loginButtonClassName,
@@ -29,12 +29,9 @@ export function LandingStickyHeader({
             className="flex min-w-0 items-center gap-3 rounded-full focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white/50"
           >
             <WellstudioLogoMark className="size-10 rounded-[1rem] shadow-none sm:size-12 sm:rounded-[1.1rem]" />
-            <div className="min-w-0">
-              <p className="font-display text-xl uppercase tracking-[0.08em] text-white sm:text-2xl">WellStudio</p>
-              <p className="hidden truncate text-xs text-white/58 sm:block">
-                Fuerza, criterio y seguimiento real
-              </p>
-            </div>
+            <span className="block font-display text-xl uppercase tracking-[0.08em] text-white sm:text-2xl">
+              WellStudio
+            </span>
           </Link>
 
           <nav
@@ -52,10 +49,7 @@ export function LandingStickyHeader({
             ))}
           </nav>
 
-          <Link
-            href="/login"
-            className={cn(loginButtonClassName)}
-          >
+          <Link href="/login" className={cn(loginButtonClassName)}>
             Acceso socios
           </Link>
         </header>
@@ -63,5 +57,5 @@ export function LandingStickyHeader({
         <LandingSectionMenu links={links} />
       </div>
     </div>
-  )
+  );
 }

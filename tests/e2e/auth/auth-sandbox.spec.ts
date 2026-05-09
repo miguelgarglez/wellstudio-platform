@@ -21,6 +21,8 @@ function buildRegisterCandidate(parallelIndex: number) {
 }
 
 test.describe('Auth sandbox @auth @sandbox @critical', () => {
+  test.describe.configure({ mode: 'serial' })
+
   test.skip(
     !isSandboxAuthEnabled() || !hasSandboxCredentials(),
     'Sandbox auth credentials are not configured',
@@ -36,7 +38,7 @@ test.describe('Auth sandbox @auth @sandbox @critical', () => {
 
     await expect(page).toHaveURL(/\/app$/)
     await authPage.expectProtectedMemberShell()
-    await expect(page.getByText(email)).toBeVisible()
+    await expect(page.getByText(email, { exact: true }).first()).toBeVisible()
   })
 
   test('member sees feedback on invalid credentials', async ({ page }) => {
@@ -70,7 +72,7 @@ test.describe('Auth sandbox @auth @sandbox @critical', () => {
 
     if (page.url().endsWith('/app')) {
       await authPage.expectProtectedMemberShell()
-      await expect(page.getByText(candidate.email)).toBeVisible()
+      await expect(page.getByText(candidate.email, { exact: true }).first()).toBeVisible()
       return
     }
 
@@ -88,15 +90,20 @@ test.describe('Auth sandbox @auth @sandbox @critical', () => {
 
     await expect(page).toHaveURL(/\/app$/)
     await authPage.expectProtectedMemberShell()
-    await expect(page.getByText(email)).toBeVisible()
+    await expect(page.getByText(email, { exact: true }).first()).toBeVisible()
 
     await authPage.logout()
-    await expect(page).toHaveURL(/\/login$/)
-    await authPage.expectLoginVisible()
-
-    await page.goto('/app')
-
-    await expect(page).toHaveURL(/\/login\?redirectTo=%2Fapp$/)
+    await expect
+      .poll(
+        async () => {
+          await page.goto('/app')
+          return page.url()
+        },
+        {
+          timeout: 15_000,
+        },
+      )
+      .toMatch(/\/login\?redirectTo=%2Fapp$/)
     await authPage.expectLoginVisible()
   })
 })

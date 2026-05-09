@@ -1,7 +1,7 @@
 'use client'
 
-import { useMemo, useRef, useState, useTransition } from 'react'
 import Link from 'next/link'
+import { useMemo, useRef, useState, useTransition } from 'react'
 
 import { Button } from '@/components/ui/button'
 import {
@@ -21,6 +21,11 @@ import {
 } from '@/components/ui/field'
 import { Input } from '@/components/ui/input'
 import { Spinner } from '@/components/ui/spinner'
+import {
+  AUTH_FORM_DESCRIPTION_CLASS,
+  AUTH_FORM_EYEBROW_CLASS,
+  AUTH_FORM_TITLE_CLASS,
+} from '@/modules/auth/ui/auth-form-classes'
 import { createSupabaseBrowserClient } from '@/modules/auth/lib/supabase-browser-client'
 
 type LoginFormProps = {
@@ -28,10 +33,6 @@ type LoginFormProps = {
   infoMessage?: string
   redirectTo: string
 }
-
-const SUPPORT_EMAIL = 'wellstudiofit@gmail.com'
-const SUPPORT_WHATSAPP_URL =
-  'https://wa.me/34614882404?text=Hola%20WellStudio,%20necesito%20ayuda%20para%20recuperar%20mi%20acceso.'
 
 export function LoginForm({
   initialEmail,
@@ -63,31 +64,26 @@ export function LoginForm({
         return
       }
 
-      // Use a full document navigation so the next server render sees the
-      // freshly-written auth cookies reliably in production.
       window.location.assign(redirectTo)
     })
   }
 
   return (
-    <Card
-      size="sm"
-      className="border-white/70 bg-white/82 py-5 shadow-[0_18px_60px_rgba(47,75,103,0.12)] ring-1 ring-[color:color-mix(in_srgb,var(--wellstudio-blue)_12%,transparent)] backdrop-blur"
-    >
-      <CardHeader className="gap-2 px-5 sm:px-6">
-        <p className="text-xs uppercase tracking-[0.18em] text-[var(--wellstudio-blue-deep)]">
+    <Card className="overflow-visible border-transparent bg-transparent py-2 shadow-none ring-0">
+      <CardHeader className="gap-3 px-0 pb-2 pt-1">
+        <p className={AUTH_FORM_EYEBROW_CLASS}>
           Acceso socios
         </p>
-        <CardTitle className="font-display text-balance text-4xl uppercase tracking-[0.04em] text-[var(--wellstudio-ink)]">
+        <CardTitle className={AUTH_FORM_TITLE_CLASS}>
           Inicia sesión
         </CardTitle>
-        <CardDescription className="text-[0.95rem] leading-7 text-muted-foreground">
-          Accede a tus reservas, planes, pagos e historial de entrenamiento.
+        <CardDescription className={AUTH_FORM_DESCRIPTION_CLASS}>
+          Introduce tu email y contraseña para entrar en tu área privada.
         </CardDescription>
       </CardHeader>
-      <CardContent className="px-5 sm:px-6">
+      <CardContent className="px-0 pb-0">
         <form
-          className="flex flex-col gap-6"
+          className="flex flex-col gap-5"
           onSubmit={(event) => {
             event.preventDefault()
             handleSubmit(new FormData(event.currentTarget))
@@ -96,13 +92,13 @@ export function LoginForm({
           {infoMessage ? (
             <div
               aria-live="polite"
-              className="rounded-2xl border border-[color:color-mix(in_srgb,var(--wellstudio-blue)_20%,var(--border))] bg-[color:color-mix(in_srgb,var(--wellstudio-blue)_8%,white)] px-4 py-3 text-sm leading-7 text-[var(--wellstudio-blue-deep)]"
+              className="rounded-[1.25rem] border border-[color:color-mix(in_srgb,var(--wellstudio-blue)_18%,var(--border))] bg-[color:color-mix(in_srgb,var(--wellstudio-blue)_6%,white)] px-4 py-3 text-sm leading-7 text-[var(--wellstudio-blue-deep)]"
             >
               {infoMessage}
             </div>
           ) : null}
 
-          <FieldGroup>
+          <FieldGroup className="gap-4">
             <Field data-invalid={errorMessage ? true : undefined}>
               <FieldLabel htmlFor="login-email">Email</FieldLabel>
               <FieldContent>
@@ -133,7 +129,7 @@ export function LoginForm({
                   placeholder="Tu contraseña…"
                   required
                 />
-                <FieldDescription>
+                <FieldDescription className="mt-1.5">
                   Tu acceso privado para gestionar reservas y datos personales.
                 </FieldDescription>
               </FieldContent>
@@ -141,58 +137,51 @@ export function LoginForm({
             </Field>
           </FieldGroup>
 
-          <div className="rounded-2xl border border-[color:color-mix(in_srgb,var(--wellstudio-blue)_16%,var(--border))] bg-[color:color-mix(in_srgb,var(--wellstudio-blue)_4%,white)] px-4 py-3 text-sm leading-7 text-muted-foreground">
-            <p className="font-medium text-[var(--wellstudio-ink)]">
-              ¿Has olvidado tu contraseña?
+          <section
+            aria-labelledby="login-support"
+            className="border-t border-[color:color-mix(in_srgb,var(--wellstudio-blue)_10%,var(--border))] pt-3 text-sm leading-7 text-muted-foreground"
+          >
+            <p
+              id="login-support"
+              className="font-medium text-[var(--wellstudio-ink)]"
+            >
+              Si no recuerdas tu acceso
             </p>
-            <p>
-              Recíbela por email y, si algo falla, te ayudamos también por una vía más personal.
-            </p>
-            <div className="mt-2 flex flex-wrap gap-x-4 gap-y-1">
+            <div className="mt-1.5 flex flex-wrap gap-x-4 gap-y-2">
               <Link
                 href="/forgot-password"
                 className="rounded-full font-medium text-[var(--wellstudio-blue-deep)] underline-offset-4 transition-colors hover:text-[var(--wellstudio-blue)] hover:underline focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--wellstudio-blue-soft)]"
               >
                 Recuperar acceso por email
               </Link>
-              <a
-                href={SUPPORT_WHATSAPP_URL}
-                target="_blank"
-                rel="noreferrer"
-                className="rounded-full font-medium text-[var(--wellstudio-blue-deep)] underline-offset-4 transition-colors hover:text-[var(--wellstudio-blue)] hover:underline focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--wellstudio-blue-soft)]"
-              >
-                Hablar por WhatsApp
-              </a>
-              <a
-                href={`mailto:${SUPPORT_EMAIL}?subject=Recuperar%20acceso%20WellStudio`}
-                className="rounded-full font-medium text-[var(--wellstudio-blue-deep)] underline-offset-4 transition-colors hover:text-[var(--wellstudio-blue)] hover:underline focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--wellstudio-blue-soft)]"
-              >
-                Escribir por email
-              </a>
             </div>
-          </div>
+          </section>
 
-          <div className="flex flex-col gap-3">
+          <div className="flex flex-col gap-3 pt-1">
             <Button
               type="submit"
               size="lg"
               disabled={isPending}
+              className="shadow-[0_14px_36px_rgba(79,137,197,0.24)]"
             >
               {isPending ? (
                 <>
                   <Spinner data-icon="inline-start" />
-                  Entrando
+                  Entrando…
                 </>
               ) : (
                 'Entrar en WellStudio'
               )}
             </Button>
-            <Link
-              href="/register"
-              className="w-fit rounded-full text-sm font-medium text-[var(--wellstudio-blue-deep)] underline-offset-4 transition-colors hover:text-[var(--wellstudio-blue)] hover:underline focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--wellstudio-blue-soft)]"
-            >
-              Aún no tengo cuenta
-            </Link>
+            <div className="flex flex-wrap items-center gap-x-3 gap-y-1 text-sm text-muted-foreground">
+              <span>¿Todavía no tienes acceso?</span>
+              <Link
+                href="/register"
+                className="rounded-full font-medium text-[var(--wellstudio-blue-deep)] underline-offset-4 transition-colors hover:text-[var(--wellstudio-blue)] hover:underline focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--wellstudio-blue-soft)]"
+              >
+                Crear cuenta
+              </Link>
+            </div>
           </div>
         </form>
       </CardContent>

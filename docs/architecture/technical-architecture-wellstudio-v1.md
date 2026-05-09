@@ -829,6 +829,37 @@ Prioridades:
 - gestionar socios
 - revisar leads
 
+Superficies admin ya implementadas:
+
+- `/admin`: reglas de reserva por membership plan; el termino visible es "Reglas" para evitar sobreprometer una gestion completa de planes
+- `/admin/overrides`: excepciones de reserva auditables por socio sobre memberships activas; internamente siguen siendo booking overrides de dominio
+
+Decision de entrada admin:
+
+- `/admin` permanece como entrada directa a reglas de reserva mientras sea la accion admin mas concreta y frecuente
+- no crear un dashboard inicial hasta que existan 3-5 senales operativas reales y accionables; por ejemplo reglas legacy pendientes, excepciones vigentes, sesiones proximas con incidencias, actividad comercial reciente o socios que requieren atencion
+- "Gestion de planes" queda reservado para una futura superficie mas amplia que edite nombre, precio, estado, visibilidad y reglas; no debe usarse para una pantalla que solo cambia reglas de reserva
+- si se introduce una home admin futura, mover reglas a una ruta dedicada como `/admin/booking-rules` o `/admin/plans/rules` debe hacerse con redirects y actualizacion explicita de navegacion/tests
+
+Patron de interfaz:
+
+- admin usa una shell propia y no debe heredar la composicion del member portal
+- en desktop, admin se modela como workbench full-width: navegacion lateral compacta, header de seccion compacto, listas operativas y panel de detalle con acciones contextuales
+- evitar scrolls paralelos innecesarios dentro de una misma pantalla admin; si una accion requiere foco o formulario, preferir `Dialog`/`Sheet` sobre rails largos con overflow propio
+- en mobile/tablet, el mismo workbench mantiene la lista como superficie base y abre el detalle seleccionado en `Sheet`; cerrar la sheet limpia el parametro de seleccion principal sin borrar filtros de busqueda
+- los placeholders de detalle sin seleccion solo se renderizan visualmente en desktop; en mobile/tablet la lista debe ocupar la pantalla hasta que exista una seleccion real
+- la experiencia member puede priorizar orientacion, bienvenida y cards de resumen; admin debe priorizar densidad controlada, escaneo rapido, trazabilidad y ejecucion
+- los estados principales de una pantalla admin deben vivir en la URL cuando sean contexto durable, compartible o reload-safe: ruta, busqueda/filtros y seleccion del objeto principal
+- el estado efimero de operacion debe permanecer local al cliente: apertura de `Sheet`/`Dialog`, tabs internas, seleccion temporal de membership/sesion dentro de un formulario y pasos intermedios; esto evita refrescos de Server Components para acciones que deben sentirse instantaneas
+- las listas admin por defecto deben ser read models server-side acotados y honestos: pueden priorizar actividad reciente u operabilidad, pero deben distinguirse de resultados de busqueda exhaustivos
+- las acciones admin siguen siendo server actions finas que delegan en servicios de dominio; el layout no debe introducir reglas de negocio
+
+Regla de acceso:
+
+- el proxy protege `/admin/*` frente a usuarios no autenticados
+- el layout admin aplica guard server-side `ADMIN` o `STAFF`
+- login sin destino explicito resuelve destino por rol y envia `ADMIN`/`STAFF` a `/admin`
+
 No intentar en V1:
 
 - BI complejo

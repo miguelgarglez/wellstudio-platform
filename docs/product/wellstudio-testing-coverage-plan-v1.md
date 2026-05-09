@@ -92,6 +92,9 @@ Esta es la primera zona realmente critica del negocio.
 ### Unit
 
 - elegibilidad con membresia activa
+- elegibilidad con quota periodica disponible
+- agotamiento de quota semanal o mensual
+- override admin por periodo y por sesion
 - elegibilidad sin entitlement
 - elegibilidad con creditos
 - devolucion dentro de ventana
@@ -102,8 +105,10 @@ Esta es la primera zona realmente critica del negocio.
 - crear reserva
 - impedir doble reserva
 - actualizar aforo
+- registrar `manual_override` cuando una reserva entra por override admin
 - cancelar reserva
 - devolver credito
+- dejar de contar allowance tras cancelacion valida
 - crear entrada en waitlist
 
 ### E2E
@@ -139,6 +144,8 @@ No cerrar pagos sin probar al menos un flujo sandbox end-to-end.
 ### Unit / Integration
 
 - permisos de staff/admin
+- read models de politicas y overrides admin
+- server actions finas de grant/revoke de overrides
 - creacion de clase
 - edicion de clase
 - audit log en acciones sensibles
@@ -146,6 +153,10 @@ No cerrar pagos sin probar al menos un flujo sandbox end-to-end.
 ### E2E
 
 - admin entra y ve panel
+- admin directo desde login aterriza en `/admin` por rol
+- member no accede a `/admin` ni `/admin/overrides`
+- admin edita politica de reserva por plan
+- admin concede y revoca overrides por socio
 - admin crea o edita una sesion
 
 ## Matriz minima por modulo

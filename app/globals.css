@@ -133,28 +133,29 @@ a {
 
 .wellstudio-auth-shell {
   background:
-    radial-gradient(circle at top left, color-mix(in srgb, var(--wellstudio-blue) 20%, transparent), transparent 28%),
-    linear-gradient(135deg, var(--wellstudio-sand) 0%, #f8f6f2 38%, #efe8df 100%);
+    radial-gradient(circle at top left, color-mix(in srgb, var(--wellstudio-blue) 16%, transparent), transparent 26%),
+    radial-gradient(circle at bottom right, color-mix(in srgb, var(--wellstudio-blue-soft) 18%, transparent), transparent 24%),
+    linear-gradient(135deg, #faf7f2 0%, #f7f3ed 36%, #ebe4da 100%);
 }
 
-.wellstudio-brand-panel {
+.wellstudio-auth-panel-entry {
   background:
-    linear-gradient(160deg, color-mix(in srgb, var(--wellstudio-ink) 88%, #1b1d21 12%) 0%, var(--wellstudio-panel) 100%);
-  position: relative;
+    linear-gradient(160deg, color-mix(in srgb, var(--wellstudio-ink) 90%, #1c2026 10%) 0%, #13171d 58%, #101317 100%);
 }
 
-.wellstudio-brand-panel::before {
+.wellstudio-auth-panel-recovery {
   background:
-    radial-gradient(circle at 15% 20%, color-mix(in srgb, var(--wellstudio-blue) 28%, transparent), transparent 24%),
-    radial-gradient(circle at 80% 10%, color-mix(in srgb, var(--wellstudio-blue-soft) 24%, transparent), transparent 20%);
-  content: "";
-  inset: 0;
-  opacity: 0.95;
-  pointer-events: none;
-  position: absolute;
+    linear-gradient(155deg, #1a2129 0%, #10161d 62%, #0d1014 100%);
 }
 
-.wellstudio-grid-line {
+.wellstudio-auth-panel-glow {
+  background:
+    radial-gradient(circle at 16% 22%, color-mix(in srgb, var(--wellstudio-blue) 28%, transparent), transparent 24%),
+    radial-gradient(circle at 82% 12%, color-mix(in srgb, var(--wellstudio-blue-soft) 18%, transparent), transparent 18%),
+    radial-gradient(circle at 70% 76%, color-mix(in srgb, white 7%, transparent), transparent 22%);
+}
+
+.wellstudio-auth-panel-gridline {
   background: linear-gradient(90deg, transparent, color-mix(in srgb, white 18%, transparent), transparent);
 }
 
@@ -162,6 +163,303 @@ a {
   background:
     radial-gradient(circle at top left, color-mix(in srgb, var(--wellstudio-blue) 9%, transparent), transparent 28%),
     linear-gradient(180deg, var(--wellstudio-sand) 0%, #f7f4ef 100%);
+}
+
+.wellstudio-admin-shell {
+  background:
+    radial-gradient(circle at top left, color-mix(in srgb, var(--wellstudio-blue) 7%, transparent), transparent 22%),
+    linear-gradient(180deg, #f6f3ee 0%, #f4f0e8 46%, #eee8dd 100%);
+}
+
+@keyframes wellstudio-auth-rise {
+  from {
+    opacity: 0;
+    transform: translate3d(0, 18px, 0);
+  }
+
+  to {
+    opacity: 1;
+    transform: translate3d(0, 0, 0);
+  }
+}
+
+@keyframes wellstudio-member-portal-enter-forward {
+  from {
+    opacity: 0;
+    transform: translate3d(var(--member-portal-panel-distance, 22px), 0, 0);
+  }
+
+  to {
+    opacity: 1;
+    transform: translate3d(0, 0, 0);
+  }
+}
+
+@keyframes wellstudio-member-portal-enter-backward {
+  from {
+    opacity: 0;
+    transform: translate3d(calc(var(--member-portal-panel-distance, 22px) * -1), 0, 0);
+  }
+
+  to {
+    opacity: 1;
+    transform: translate3d(0, 0, 0);
+  }
+}
+
+@keyframes wellstudio-member-portal-enter-neutral {
+  from {
+    opacity: 0;
+    transform: translate3d(0, 10px, 0);
+  }
+
+  to {
+    opacity: 1;
+    transform: translate3d(0, 0, 0);
+  }
+}
+
+@keyframes wellstudio-member-portal-nav-progress {
+  from {
+    transform: translate3d(-130%, 0, 0);
+    opacity: 0;
+  }
+
+  18% {
+    opacity: 1;
+  }
+
+  to {
+    transform: translate3d(280%, 0, 0);
+    opacity: 1;
+  }
+}
+
+@keyframes wellstudio-admin-panel-enter {
+  from {
+    opacity: 0;
+    transform: translate3d(14px, 0, 0);
+  }
+
+  to {
+    opacity: 1;
+    transform: translate3d(0, 0, 0);
+  }
+}
+
+@keyframes wellstudio-admin-list-item-enter {
+  from {
+    opacity: 0;
+    transform: translate3d(0, 4px, 0);
+  }
+
+  to {
+    opacity: 1;
+    transform: translate3d(0, 0, 0);
+  }
+}
+
+@keyframes wellstudio-admin-content-enter-forward {
+  from {
+    opacity: 0;
+    transform: translate3d(var(--admin-panel-distance, 18px), 0, 0);
+  }
+
+  to {
+    opacity: 1;
+    transform: translate3d(0, 0, 0);
+  }
+}
+
+@keyframes wellstudio-admin-content-enter-backward {
+  from {
+    opacity: 0;
+    transform: translate3d(calc(var(--admin-panel-distance, 18px) * -1), 0, 0);
+  }
+
+  to {
+    opacity: 1;
+    transform: translate3d(0, 0, 0);
+  }
+}
+
+@keyframes wellstudio-admin-content-enter-neutral {
+  from {
+    opacity: 0;
+    transform: translate3d(0, 8px, 0);
+  }
+
+  to {
+    opacity: 1;
+    transform: translate3d(0, 0, 0);
+  }
+}
+
+@keyframes wellstudio-admin-toast-enter {
+  from {
+    opacity: 0;
+    transform: translate3d(0, -10px, 0) scale(0.98);
+  }
+
+  to {
+    opacity: 1;
+    transform: translate3d(0, 0, 0) scale(1);
+  }
+}
+
+@keyframes wellstudio-admin-history-highlight {
+  0% {
+    border-color: color-mix(in srgb, var(--wellstudio-blue) 42%, white);
+    box-shadow: 0 0 0 0 color-mix(in srgb, var(--wellstudio-blue) 18%, transparent);
+    background: color-mix(in srgb, var(--wellstudio-blue) 9%, white);
+  }
+
+  55% {
+    border-color: color-mix(in srgb, var(--wellstudio-blue) 32%, white);
+    box-shadow: 0 18px 42px color-mix(in srgb, var(--wellstudio-blue) 12%, transparent);
+    background: color-mix(in srgb, var(--wellstudio-blue) 6%, white);
+  }
+
+  100% {
+    border-color: color-mix(in srgb, var(--border) 76%, white);
+    box-shadow: none;
+    background: color-mix(in srgb, var(--card) 74%, white);
+  }
+}
+
+@media (min-width: 1024px) {
+  .wellstudio-admin-overrides-grid {
+    grid-template-columns: minmax(280px, 320px) minmax(0, 1fr);
+  }
+}
+
+@media (min-width: 1400px) {
+  .wellstudio-admin-overrides-grid {
+    grid-template-columns: minmax(280px, 320px) minmax(0, 1fr);
+  }
+}
+
+@media (prefers-reduced-motion: no-preference) {
+  .wellstudio-auth-animate [data-slot="auth-brand-rail"] {
+    animation: wellstudio-auth-rise 720ms cubic-bezier(0.2, 0.8, 0.2, 1) both;
+    animation-delay: var(--auth-shell-brand-rail-delay, 0ms);
+  }
+
+  .wellstudio-auth-animate [data-slot="auth-brand-copy"] {
+    animation: wellstudio-auth-rise 760ms cubic-bezier(0.2, 0.8, 0.2, 1) both;
+    animation-delay: var(--auth-shell-brand-copy-delay, 0ms);
+  }
+
+  .wellstudio-auth-animate [data-slot="auth-action-rail"] {
+    animation: wellstudio-auth-rise 760ms cubic-bezier(0.2, 0.8, 0.2, 1) both;
+    animation-delay: var(--auth-shell-action-rail-delay, 0ms);
+  }
+
+  .wellstudio-auth-animate [data-slot="auth-footer"] {
+    animation: wellstudio-auth-rise 760ms cubic-bezier(0.2, 0.8, 0.2, 1) both;
+    animation-delay: var(--auth-shell-footer-delay, 0ms);
+  }
+
+  .wellstudio-member-portal-animate {
+    will-change: transform, opacity;
+  }
+
+  .wellstudio-member-portal-animate[data-pending="true"] [data-slot="member-portal-content-inner"] {
+    opacity: 0.82;
+    transform: translate3d(0, 0, 0) scale(0.992);
+    transition:
+      opacity 150ms ease,
+      filter 180ms ease,
+      transform 180ms ease;
+    filter: saturate(0.9) contrast(0.985);
+  }
+
+  .wellstudio-member-portal-animate[data-pending="false"] [data-slot="member-portal-content-inner"] {
+    opacity: 1;
+    transform: translate3d(0, 0, 0) scale(1);
+    transition:
+      opacity 160ms ease,
+      filter 180ms ease,
+      transform 180ms ease;
+    filter: none;
+  }
+
+  .wellstudio-member-portal-animate[data-direction="forward"] {
+    animation: wellstudio-member-portal-enter-forward var(--member-portal-panel-duration, 240ms) cubic-bezier(0.2, 0.8, 0.2, 1) both;
+  }
+
+  .wellstudio-member-portal-animate[data-direction="backward"] {
+    animation: wellstudio-member-portal-enter-backward var(--member-portal-panel-duration, 240ms) cubic-bezier(0.2, 0.8, 0.2, 1) both;
+  }
+
+  .wellstudio-member-portal-animate[data-direction="neutral"] {
+    animation: wellstudio-member-portal-enter-neutral var(--member-portal-panel-duration, 240ms) cubic-bezier(0.2, 0.8, 0.2, 1) both;
+  }
+
+  .wellstudio-member-portal-animate[data-direction="hold"] {
+    animation: none;
+  }
+
+  [data-slot="member-portal-nav-progress"] > span {
+    animation: wellstudio-member-portal-nav-progress 980ms cubic-bezier(0.2, 0.8, 0.2, 1) infinite;
+  }
+
+  .wellstudio-admin-panel-animate {
+    animation: wellstudio-admin-panel-enter 220ms cubic-bezier(0.22, 0.78, 0.22, 1) both;
+  }
+
+  .wellstudio-admin-list-item {
+    animation: wellstudio-admin-list-item-enter 160ms cubic-bezier(0.2, 0.8, 0.2, 1) both;
+    animation-delay: calc(var(--admin-list-index, 0) * 24ms);
+  }
+
+  .wellstudio-admin-toast {
+    animation: wellstudio-admin-toast-enter 180ms cubic-bezier(0.2, 0.8, 0.2, 1) both;
+  }
+
+  .wellstudio-admin-history-highlight {
+    animation: wellstudio-admin-history-highlight 1800ms cubic-bezier(0.2, 0.8, 0.2, 1) both;
+  }
+
+  .wellstudio-admin-content-animate {
+    will-change: transform, opacity;
+  }
+
+  .wellstudio-admin-content-animate[data-pending="true"] [data-slot="admin-content-inner"] {
+    opacity: 0.82;
+    transform: translate3d(0, 0, 0) scale(0.992);
+    transition:
+      opacity 150ms ease,
+      filter 180ms ease,
+      transform 180ms ease;
+    filter: saturate(0.9) contrast(0.985);
+  }
+
+  .wellstudio-admin-content-animate[data-pending="false"] [data-slot="admin-content-inner"] {
+    opacity: 1;
+    transform: translate3d(0, 0, 0) scale(1);
+    transition:
+      opacity 160ms ease,
+      filter 180ms ease,
+      transform 180ms ease;
+    filter: none;
+  }
+
+  .wellstudio-admin-content-animate[data-direction="forward"] {
+    animation: wellstudio-admin-content-enter-forward var(--admin-panel-duration, 300ms) cubic-bezier(0.2, 0.8, 0.2, 1) both;
+  }
+
+  .wellstudio-admin-content-animate[data-direction="backward"] {
+    animation: wellstudio-admin-content-enter-backward var(--admin-panel-duration, 300ms) cubic-bezier(0.2, 0.8, 0.2, 1) both;
+  }
+
+  .wellstudio-admin-content-animate[data-direction="neutral"] {
+    animation: wellstudio-admin-content-enter-neutral var(--admin-panel-duration, 300ms) cubic-bezier(0.2, 0.8, 0.2, 1) both;
+  }
+
+  .wellstudio-admin-content-animate[data-direction="hold"] {
+    animation: none;
+  }
 }
 
 @media (prefers-reduced-motion: no-preference) {

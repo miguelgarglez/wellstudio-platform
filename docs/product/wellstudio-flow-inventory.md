@@ -227,7 +227,7 @@ Precondiciones:
 
 - sesion reservable
 - usuario autenticado
-- usuario elegible por suscripcion, bono o creditos
+- usuario elegible por suscripcion, cuota periodica disponible, override admin activo o creditos
 
 Happy path:
 
@@ -235,7 +235,7 @@ Happy path:
 2. el sistema valida sesion y elegibilidad
 3. el usuario confirma reserva
 4. el sistema crea `reservation`
-5. el sistema descuenta credito o marca consumo segun regla
+5. el sistema marca consumo de membership, override manual o descuenta credito segun regla efectiva
 6. el sistema actualiza plazas
 7. el sistema muestra confirmacion
 
@@ -243,6 +243,7 @@ Errores y bloqueos:
 
 - sin sesion activa
 - sin elegibilidad
+- allowance de membresia agotado para la semana o mes natural
 - aforo agotado
 - ya reservado
 - conflicto por concurrencia
@@ -275,13 +276,14 @@ Happy path:
 
 1. el sistema calcula elegibilidad
 2. el sistema detecta que el usuario no puede reservar
-3. el sistema devuelve mensaje claro
+3. el sistema distingue entre falta total de entitlement y quota periodica agotada cuando aplique
 4. el sistema redirige a contratar o comprar si aplica
 
 Errores y bloqueos:
 
 - reglas ambiguas
 - datos desactualizados de membresia
+- override expirado o revocado
 
 Postcondiciones:
 
@@ -350,7 +352,7 @@ Happy path:
 2. el sistema muestra si la cancelacion sigue permitida
 3. el usuario confirma cancelacion
 4. el sistema cancela reserva
-5. el sistema devuelve credito o ajusta consumo segun regla
+5. el sistema devuelve credito o deja de contar el consumo de allowance segun regla y ventana
 6. el sistema dispara logica de waitlist si aplica
 
 Errores y bloqueos:
@@ -358,6 +360,7 @@ Errores y bloqueos:
 - fuera de ventana de cancelacion
 - reserva ya cancelada
 - politica no devuelve credito
+- override ya expirado o allowance ya reevaluado
 
 Postcondiciones:
 
@@ -615,6 +618,15 @@ Postcondiciones:
 Nivel de certeza:
 
 - inferido con alta confianza
+
+Estado V1 implementado:
+
+- `/admin/overrides` permite buscar socios por nombre o email
+- opera solo sobre memberships activas
+- permite conceder `extra_allowance` para la ventana vigente de una politica periodica
+- permite conceder `session_access` sobre sesiones futuras publicadas
+- permite revocar overrides vigentes sin borrar historial
+- las acciones delegan en servicios de dominio y dejan trazabilidad auditable
 
 ## Decisiones pendientes antes de implementar reservas y pagos
 

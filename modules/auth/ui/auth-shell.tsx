@@ -1,119 +1,134 @@
-import type { ReactNode } from 'react'
-import Link from 'next/link'
+import type { CSSProperties, ReactNode } from "react";
+import Link from "next/link";
 
-import { WellstudioLogoMark } from '@/components/brand/wellstudio-logo-mark'
+import { cn } from "@/lib/utils";
+import { WellstudioLogoMark } from "@/components/brand/wellstudio-logo-mark";
+import type { AuthShellPanelContent } from "@/modules/auth/ui/auth-page-content";
+
+/* ─────────────────────────────────────────────────────────
+ * AUTH SHELL STORYBOARD
+ *
+ * Read top-to-bottom. Each `at` value is ms after mount.
+ *
+ *    0ms   shell surfaces appear with depth and edge highlight
+ *  120ms   brand rail fades in, y 18 → 0
+ *  220ms   brand copy settles next, now more compact
+ *  320ms   action rail fades in as the primary focus
+ *  420ms   legal footer softens into view
+ * ───────────────────────────────────────────────────────── */
+
+const TIMING = {
+  brandRail: 120, // primary brand surface appears first
+  brandCopy: 220, // narrative content settles next
+  actionRail: 320, // form rail becomes the dominant action area
+  footer: 420, // legal footer arrives last with lower emphasis
+};
 
 type AuthShellProps = {
-  eyebrow: string
-  title: string
-  description: string
-  children: ReactNode
-  footer?: ReactNode
-}
+  panel: AuthShellPanelContent;
+  children: ReactNode;
+  footer?: ReactNode;
+};
 
-export function AuthShell({
-  eyebrow,
-  title,
-  description,
-  children,
-  footer,
-}: AuthShellProps) {
+export function AuthShell({ panel, children, footer }: AuthShellProps) {
+  const animationStyle = {
+    "--auth-shell-brand-rail-delay": `${TIMING.brandRail}ms`,
+    "--auth-shell-brand-copy-delay": `${TIMING.brandCopy}ms`,
+    "--auth-shell-action-rail-delay": `${TIMING.actionRail}ms`,
+    "--auth-shell-footer-delay": `${TIMING.footer}ms`,
+  } as CSSProperties;
+
   return (
     <main
       id="main-content"
-      className="wellstudio-auth-shell min-h-screen px-4 py-6 text-foreground sm:px-6 lg:px-8"
+      data-variant={panel.variant}
+      className="wellstudio-auth-shell wellstudio-auth-animate flex min-h-screen flex-col text-foreground"
+      style={animationStyle}
     >
-      <div className="mx-auto grid min-h-[calc(100vh-3rem)] max-w-7xl overflow-hidden rounded-[2rem] border border-white/65 bg-white/75 shadow-[0_24px_80px_rgba(17,19,22,0.12)] backdrop-blur md:grid-cols-[1.15fr_0.85fr]">
-        <section className="wellstudio-brand-panel order-2 relative flex min-h-[18rem] flex-col justify-between overflow-hidden px-6 py-6 text-white sm:px-8 sm:py-8 md:order-1 lg:px-10 lg:py-10">
-          <div className="wellstudio-grid-line absolute inset-x-0 top-[7.25rem] h-px opacity-70" />
-          <div className="relative z-10 flex items-start justify-between gap-6">
-            <Link
-              href="/"
-              className="flex items-center gap-4"
-            >
-              <WellstudioLogoMark className="size-20 rounded-[1.7rem] shadow-lg sm:size-24" />
-              <div className="hidden sm:block">
-                <p className="font-display text-4xl uppercase tracking-[0.08em] text-white">
-                  WellStudio
-                </p>
-                <p className="max-w-xs text-sm text-white/70">
-                  Centro boutique centrado en fuerza, seguimiento personal y grupos reducidos.
-                </p>
-              </div>
-            </Link>
-            <nav
-              aria-label="Public navigation"
-              className="hidden items-center gap-5 text-sm text-white/72 lg:flex"
-            >
+      <section
+        data-slot="auth-brand-rail"
+        className={cn(
+          "relative overflow-hidden border-b border-black/18 text-white",
+          panel.variant === "recovery"
+            ? "wellstudio-auth-panel-recovery"
+            : "wellstudio-auth-panel-entry",
+        )}
+      >
+        <div className="wellstudio-auth-panel-glow absolute inset-0 opacity-90" />
+
+        <div className="relative z-10 mx-auto max-w-[68rem] px-4 py-5 sm:px-6 sm:py-6 lg:px-8 lg:py-9">
+          <div className="space-y-6 sm:space-y-8">
+            <header className="flex items-center justify-between gap-3 rounded-full border border-white/12 bg-[color:color-mix(in_srgb,var(--wellstudio-ink)_84%,rgba(13,15,18,0.45))] px-3 py-2.5 text-white shadow-[0_24px_60px_rgba(8,10,12,0.22)] backdrop-blur-2xl sm:gap-4 sm:px-5 sm:py-3">
               <Link
                 href="/"
-                className="rounded-full px-2 py-1 transition-colors hover:text-white focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white/60"
+                className="flex min-w-0 items-center gap-3 rounded-full focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white/50"
               >
-                Inicio
+                <WellstudioLogoMark className="size-10 rounded-[1rem] shadow-none sm:size-12 sm:rounded-[1.1rem]" />
+                <span className="block font-display text-xl uppercase tracking-[0.08em] text-white sm:text-2xl">
+                  WellStudio
+                </span>
               </Link>
-              <Link
-                href="/login"
-                className="rounded-full px-2 py-1 transition-colors hover:text-white focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white/60"
-              >
-                Acceso
-              </Link>
-              <Link
-                href="/register"
-                className="rounded-full px-2 py-1 transition-colors hover:text-white focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white/60"
-              >
-                Registro
-              </Link>
-            </nav>
-          </div>
 
-          <div className="relative z-10 mt-8 flex max-w-xl flex-col gap-6 md:mt-12">
-            <div className="flex flex-col gap-2">
-              <p className="text-sm uppercase tracking-[0.22em] text-[var(--wellstudio-blue-soft)]">
-                {eyebrow}
-              </p>
-              <h1 className="font-display text-balance text-5xl leading-none uppercase tracking-[0.04em] text-white sm:text-6xl">
-                {title}
-              </h1>
-            </div>
-            <p className="max-w-lg text-base leading-8 text-white/78 sm:text-lg">
-              {description}
-            </p>
+              <nav
+                aria-label="Public navigation"
+                className="hidden items-center gap-5 text-sm text-white/74 lg:flex"
+              >
+                <Link
+                  href="/"
+                  className="rounded-full px-2 py-1 transition-colors hover:text-white focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white/50"
+                >
+                  Inicio
+                </Link>
+                <Link
+                  href="/login"
+                  className="rounded-full px-2 py-1 transition-colors hover:text-white focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white/50"
+                >
+                  Acceso
+                </Link>
+                <Link
+                  href="/register"
+                  className="rounded-full px-2 py-1 transition-colors hover:text-white focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white/50"
+                >
+                  Registro
+                </Link>
+              </nav>
+            </header>
 
-            <div className="grid gap-3 pt-2 text-sm text-white/72 sm:grid-cols-3 md:pt-4">
-              <div className="rounded-2xl border border-white/12 bg-white/5 px-4 py-4 backdrop-blur">
-                <p className="font-display text-2xl uppercase text-white">1:1</p>
-                <p>Entrenamiento personal de seguimiento cercano.</p>
-              </div>
-              <div className="rounded-2xl border border-white/12 bg-white/5 px-4 py-4 backdrop-blur">
-                <p className="font-display text-2xl uppercase text-white">4 max</p>
-                <p>Grupos premium pensados para corrección técnica real.</p>
-              </div>
-              <div className="rounded-2xl border border-white/12 bg-white/5 px-4 py-4 backdrop-blur">
-                <p className="font-display text-2xl uppercase text-white">Madrid</p>
-                <p>Centro boutique con trato directo y foco en resultados.</p>
+            <div data-slot="auth-brand-copy" className="max-w-[46rem]">
+              <div className="space-y-2">
+                <p className="text-[0.68rem] uppercase tracking-[0.26em] text-[var(--wellstudio-blue-soft)] sm:text-xs lg:text-sm">
+                  {panel.eyebrow}
+                </p>
+                <h1 className="font-display text-balance text-[2.05rem] leading-[0.92] uppercase tracking-[0.05em] text-white sm:text-[2.9rem] lg:max-w-[20ch] lg:text-[4.15rem] xl:max-w-[22ch]">
+                  {panel.title}
+                </h1>
               </div>
             </div>
           </div>
-        </section>
+        </div>
+      </section>
 
-        <section className="order-1 flex items-start justify-center bg-[linear-gradient(180deg,rgba(255,255,255,0.74),rgba(247,245,241,0.96))] px-5 py-6 sm:px-8 sm:py-8 md:order-2 md:items-center lg:px-10">
-          <div className="flex w-full max-w-md flex-col gap-5 sm:gap-6">
-            <Link
-              href="/"
-              className="inline-flex items-center gap-3 self-start rounded-full border border-[color:color-mix(in_srgb,var(--wellstudio-blue)_18%,var(--border))] bg-white/90 px-3 py-2 text-[var(--wellstudio-ink)] shadow-sm md:hidden"
-            >
-              <WellstudioLogoMark className="size-10 rounded-2xl shadow-none" />
-              <span className="font-display text-xl uppercase tracking-[0.08em]">
-                WellStudio
-              </span>
-            </Link>
-            {children}
+      <section
+        data-slot="auth-action-rail"
+        className="relative overflow-hidden border-b border-[color:color-mix(in_srgb,var(--wellstudio-blue)_10%,var(--border))] bg-[linear-gradient(180deg,rgba(255,255,255,0.9),rgba(248,245,239,0.96))]"
+      >
+        <div className="pointer-events-none absolute inset-x-0 top-0 h-20 bg-[linear-gradient(180deg,rgba(183,206,231,0.18),transparent)]" />
+
+        <div className="relative z-10 mx-auto max-w-[68rem] px-4 py-4 sm:px-6 sm:py-6 lg:px-8 lg:py-8">
+          <div className="space-y-3">
+            <div>{children}</div>
+
             {footer ? (
-              <div className="text-sm text-muted-foreground">{footer}</div>
+              <div
+                data-slot="auth-footer"
+                className="pt-4 text-sm text-muted-foreground"
+              >
+                {footer}
+              </div>
             ) : null}
           </div>
-        </section>
-      </div>
+        </div>
+      </section>
     </main>
-  )
+  );
 }

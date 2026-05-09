@@ -1,5 +1,6 @@
+import { cache } from 'react'
 import { Prisma } from '@prisma/client'
-import type { Member, User, UserRole } from '@prisma/client'
+import type { Member, User, UserRole, UserRoleType } from '@prisma/client'
 import type { User as SupabaseUser } from '@supabase/supabase-js'
 
 import { prisma } from '@/lib/db/prisma'
@@ -28,7 +29,7 @@ type LocalIdentity = {
   roles: UserRole[]
 }
 
-export async function resolveAuthContext(): Promise<AuthContext> {
+const resolveAuthContextUncached = async (): Promise<AuthContext> => {
   const { createSupabaseServerClient } = await import('@/modules/auth/lib/supabase-server-client')
   const supabase = await createSupabaseServerClient()
   const {
@@ -54,7 +55,9 @@ export async function resolveAuthContext(): Promise<AuthContext> {
   }
 }
 
-export async function requireAuthenticatedContext(): Promise<Extract<AuthContext, { isAuthenticated: true }>> {
+export const resolveAuthContext = cache(resolveAuthContextUncached)
+
+export const requireAuthenticatedContext = cache(async (): Promise<Extract<AuthContext, { isAuthenticated: true }>> => {
   const authContext = await resolveAuthContext()
 
   if (!authContext.isAuthenticated) {
@@ -62,7 +65,26 @@ export async function requireAuthenticatedContext(): Promise<Extract<AuthContext
   }
 
   return authContext
+})
+
+export function hasAnyRole(
+  authContext: Extract<AuthContext, { isAuthenticated: true }>,
+  allowedRoles: UserRoleType[],
+) {
+  const roleSet = new Set(allowedRoles)
+
+  return authContext.roles.some((role) => roleSet.has(role.role))
 }
+
+export const requireAdminOrStaffContext = cache(async () => {
+  const authContext = await requireAuthenticatedContext()
+
+  if (!hasAnyRole(authContext, ['ADMIN', 'STAFF'])) {
+    return null
+  }
+
+  return authContext
+})
 
 export async function ensureLocalUser(authUser: SupabaseUser): Promise<LocalIdentity> {
   if (!authUser.email) {

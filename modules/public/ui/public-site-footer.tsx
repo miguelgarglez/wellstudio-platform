@@ -1,23 +1,29 @@
-import Link from 'next/link'
+import Link from "next/link";
 
-import { cn } from '@/lib/utils'
-import { PUBLIC_CONTACT_EMAIL } from '@/modules/public/content/public-contact'
+import { cn } from "@/lib/utils";
+import { PUBLIC_CONTACT_EMAIL } from "@/modules/public/content/public-contact";
 
 type PublicSiteFooterProps = {
-  className?: string
-}
+  className?: string;
+};
 
 const links = [
-  { href: '/', label: 'Inicio' },
-  { href: '/privacy-policy', label: 'Privacidad' },
-  { href: '/terms', label: 'Condiciones' },
-  { href: '/login', label: 'Acceso socios' },
-]
+  { href: "/privacy-policy", label: "Privacidad" },
+  { href: "/terms", label: "Condiciones" },
+  { href: "/login", label: "Acceso socios" },
+];
 
 export function PublicSiteFooter({ className }: PublicSiteFooterProps) {
   return (
-    <footer className={cn('flex flex-col gap-3 text-sm text-muted-foreground', className)}>
-      <p className="text-xs uppercase tracking-[0.18em] text-[var(--wellstudio-blue-deep)]">WellStudio</p>
+    <footer
+      className={cn(
+        "flex flex-col gap-3 text-sm text-muted-foreground",
+        className,
+      )}
+    >
+      <p className="text-xs uppercase tracking-[0.18em] text-[var(--wellstudio-blue-deep)]">
+        WellStudio
+      </p>
       <div className="flex flex-wrap items-center gap-x-4 gap-y-2">
         {links.map((link) => (
           <Link
@@ -36,5 +42,5 @@ export function PublicSiteFooter({ className }: PublicSiteFooterProps) {
         </a>
       </div>
     </footer>
-  )
+  );
 }
