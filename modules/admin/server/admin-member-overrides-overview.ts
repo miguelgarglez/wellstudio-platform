@@ -7,6 +7,7 @@ const SEARCH_RESULTS_LIMIT = 12
 const DEFAULT_MEMBER_RESULTS_LIMIT = 12
 const OVERRIDE_HISTORY_LIMIT = 12
 const SESSION_CANDIDATES_LIMIT = 8
+const WELLSTUDIO_TIME_ZONE = 'Europe/Madrid'
 
 type SearchMemberRecord = {
   id: string
@@ -565,6 +566,7 @@ export function buildAdminBookingOverrideItem(
   const isExpired = !isRevoked && override.expiresAt.getTime() < now.getTime()
   const statusTone = isRevoked ? 'revoked' : isExpired ? 'expired' : 'active'
   const dateTimeFormatter = new Intl.DateTimeFormat('es-ES', {
+    timeZone: WELLSTUDIO_TIME_ZONE,
     day: 'numeric',
     month: 'short',
     hour: '2-digit',
@@ -632,11 +634,13 @@ function buildSessionTimingLabels(
   now: Date,
 ) {
   const dateFormatter = new Intl.DateTimeFormat('es-ES', {
+    timeZone: WELLSTUDIO_TIME_ZONE,
     weekday: 'short',
     day: 'numeric',
     month: 'short',
   })
   const timeFormatter = new Intl.DateTimeFormat('es-ES', {
+    timeZone: WELLSTUDIO_TIME_ZONE,
     hour: '2-digit',
     minute: '2-digit',
   })
@@ -652,12 +656,8 @@ function buildRelativeDateLabel(
   now: Date,
   formatter: Intl.DateTimeFormat,
 ) {
-  const startOfToday = new Date(now)
-  startOfToday.setHours(0, 0, 0, 0)
-
-  const startOfTarget = new Date(startsAt)
-  startOfTarget.setHours(0, 0, 0, 0)
-
+  const startOfToday = getBusinessDateKey(now)
+  const startOfTarget = getBusinessDateKey(startsAt)
   const differenceInDays = Math.round(
     (startOfTarget.getTime() - startOfToday.getTime()) / (1000 * 60 * 60 * 24),
   )
@@ -671,6 +671,32 @@ function buildRelativeDateLabel(
   }
 
   return capitalizeLabel(formatter.format(startsAt))
+}
+
+const businessDatePartsFormatter = new Intl.DateTimeFormat('en-CA', {
+  timeZone: WELLSTUDIO_TIME_ZONE,
+  year: 'numeric',
+  month: '2-digit',
+  day: '2-digit',
+})
+
+function getBusinessDateKey(date: Date) {
+  const parts = businessDatePartsFormatter.formatToParts(date)
+  const year = getDatePart(parts, 'year')
+  const month = getDatePart(parts, 'month')
+  const day = getDatePart(parts, 'day')
+
+  return new Date(Date.UTC(year, month - 1, day))
+}
+
+function getDatePart(parts: Intl.DateTimeFormatPart[], type: string) {
+  const value = parts.find((part) => part.type === type)?.value
+
+  if (!value) {
+    throw new Error(`Missing ${type} date part`)
+  }
+
+  return Number(value)
 }
 
 function formatMemberStatusLabel(status: string) {
