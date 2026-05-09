@@ -259,21 +259,28 @@ model MemberNote {
 }
 
 model Lead {
-  id                String     @id @default(cuid())
-  email             String?
-  phone             String?
-  firstName         String?
-  lastName          String?
-  status            LeadStatus
-  source            String?
-  ownerUserId       String?
-  convertedMemberId String?
-  createdAt         DateTime   @default(now())
-  updatedAt         DateTime   @updatedAt
+  id                   String     @id @default(cuid())
+  email                String?
+  phone                String?
+  normalizedPhone      String?
+  firstName            String?
+  lastName             String?
+  status               LeadStatus
+  source               String?
+  utmSource            String?
+  utmMedium            String?
+  utmCampaign          String?
+  privacyAcceptedAt    DateTime?
+  privacyPolicyVersion String?
+  ownerUserId          String?
+  convertedMemberId    String?
+  createdAt            DateTime   @default(now())
+  updatedAt            DateTime   @updatedAt
 
   convertedMember Member? @relation("LeadConversion", fields: [convertedMemberId], references: [id])
 
   @@index([status, createdAt])
+  @@index([normalizedPhone, status, createdAt])
 }
 
 model Coach {

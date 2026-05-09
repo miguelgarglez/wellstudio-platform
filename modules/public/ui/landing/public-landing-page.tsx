@@ -15,7 +15,17 @@ import { LandingSummarySection } from '@/modules/public/ui/landing/landing-summa
 import { LandingTestimonialsSection } from '@/modules/public/ui/landing/landing-testimonials-section'
 import { PublicSiteFooter } from '@/modules/public/ui/public-site-footer'
 
-export function PublicLandingPage() {
+export type LandingLeadAttribution = {
+  utmSource: string
+  utmMedium: string
+  utmCampaign: string
+}
+
+type PublicLandingPageProps = {
+  leadAttribution?: LandingLeadAttribution
+}
+
+export function PublicLandingPage({ leadAttribution }: PublicLandingPageProps) {
   const { hero, intro, method, pillars, testimonials, faqSection, faq, contactSection, contact } = landingContent
 
   return (
@@ -54,6 +64,7 @@ export function PublicLandingPage() {
       <LandingContactSection
         contactSection={contactSection}
         contact={contact}
+        leadAttribution={leadAttribution}
       />
       <LandingSummarySection />
 

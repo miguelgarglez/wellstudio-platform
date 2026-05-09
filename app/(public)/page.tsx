@@ -40,6 +40,24 @@ export const metadata: Metadata = {
   },
 }
 
-export default function MarketingHomePage() {
-  return <PublicLandingPage />
+type MarketingHomePageProps = {
+  searchParams?: Promise<Record<string, string | string[] | undefined>>
+}
+
+export default async function MarketingHomePage({ searchParams }: MarketingHomePageProps) {
+  const resolvedSearchParams = searchParams ? await searchParams : {}
+
+  return (
+    <PublicLandingPage
+      leadAttribution={{
+        utmSource: readSearchParam(resolvedSearchParams.utm_source),
+        utmMedium: readSearchParam(resolvedSearchParams.utm_medium),
+        utmCampaign: readSearchParam(resolvedSearchParams.utm_campaign),
+      }}
+    />
+  )
+}
+
+function readSearchParam(value: string | string[] | undefined) {
+  return typeof value === 'string' ? value : ''
 }
