@@ -80,6 +80,7 @@ Referencias:
 - [`docs/runbooks/vercel-preview-and-production.md`](./docs/runbooks/vercel-preview-and-production.md)
 - [`docs/runbooks/supabase-postgres-prisma-workflow.md`](./docs/runbooks/supabase-postgres-prisma-workflow.md)
 - [`docs/runbooks/docker-local-and-vps.md`](./docs/runbooks/docker-local-and-vps.md)
+- [`docs/runbooks/codex-cloud-agent-setup.md`](./docs/runbooks/codex-cloud-agent-setup.md)
 
 ## Modelo mental de datos
 
