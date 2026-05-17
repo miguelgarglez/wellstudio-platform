@@ -1,4 +1,4 @@
-import { beforeEach, describe, expect, it, vi } from 'vitest'
+import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 
 const {
   memberFindManyMock,
@@ -36,10 +36,15 @@ import {
 
 describe('getAdminMemberOverrideOverview', () => {
   beforeEach(() => {
+    vi.setSystemTime(new Date('2026-05-05T09:00:00.000Z'))
     memberFindManyMock.mockReset()
     memberFindUniqueMock.mockReset()
     overrideFindManyMock.mockReset()
     classSessionFindManyMock.mockReset()
+  })
+
+  afterEach(() => {
+    vi.useRealTimers()
   })
 
   it('builds a member-centric overview with active memberships, history and session candidates', async () => {

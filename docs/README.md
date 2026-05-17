@@ -36,4 +36,5 @@ Cuando un documento deje de ser vigente:
 - `runbooks/auth-sandbox-operations.md`
 - `runbooks/supabase-postgres-prisma-workflow.md`
 - `runbooks/vercel-preview-and-production.md`
+- `runbooks/codex-cloud-agent-setup.md`
 - `runbooks/agentation-local-isolation.md`
