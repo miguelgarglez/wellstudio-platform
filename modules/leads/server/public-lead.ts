@@ -1,4 +1,8 @@
 import { prisma } from '@/lib/db/prisma'
+import {
+  resendLeadNotificationSender,
+  type LeadNotificationSender,
+} from '@/modules/leads/server/lead-notification'
 
 export const PUBLIC_LEAD_SOURCE = 'public_home'
 export const PUBLIC_LEAD_PRIVACY_POLICY_VERSION = '2026-05-06'
@@ -107,11 +111,13 @@ export async function createPublicLead(
   input: PublicLeadInput,
   dependencies: {
     repository?: PublicLeadRepository
+    notifier?: LeadNotificationSender
     now?: Date
   } = {},
 ): Promise<PublicLeadResult> {
   const now = dependencies.now ?? new Date()
   const repository = dependencies.repository ?? prismaPublicLeadRepository
+  const notifier = dependencies.notifier ?? resendLeadNotificationSender
 
   if (input.honeypot?.trim()) {
     return {
@@ -141,7 +147,7 @@ export async function createPublicLead(
     }
   }
 
-  await repository.create({
+  const lead = await repository.create({
     firstName: parsed.name,
     phone: parsed.phone,
     normalizedPhone: parsed.normalizedPhone,
@@ -153,6 +159,22 @@ export async function createPublicLead(
     privacyAcceptedAt: now,
     privacyPolicyVersion: PUBLIC_LEAD_PRIVACY_POLICY_VERSION,
   })
+
+  try {
+    await notifier.notifyPublicLeadCaptured({
+      leadId: lead.id,
+      name: parsed.name,
+      phone: parsed.phone,
+      email: parsed.email,
+      source: PUBLIC_LEAD_SOURCE,
+      capturedAt: now,
+      utmSource: parsed.utmSource,
+      utmMedium: parsed.utmMedium,
+      utmCampaign: parsed.utmCampaign,
+    })
+  } catch (error) {
+    console.error('Lead notification failed after lead creation.', error)
+  }
 
   return {
     success: true,
