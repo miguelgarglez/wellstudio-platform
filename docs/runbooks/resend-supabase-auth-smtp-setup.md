@@ -298,6 +298,28 @@ Incidencia encontrada y resuelta:
 - el registro no funcionaba mientras el email apuntaba al `{{ .ConfirmationURL }}` por defecto y `Redirect URLs` estaba vacío
 - tras alinear plantilla + allowlist, el flujo quedó correcto
 
+## Notificaciones operativas de leads
+
+Además del SMTP de Supabase Auth, la app puede enviar avisos internos cuando entra un lead nuevo desde la web pública.
+
+Configuración de entorno:
+
+- `RESEND_API_KEY`: API key de Resend usada por la app.
+- `LEAD_NOTIFICATION_FROM`: remitente verificado en el dominio autorizado, por ejemplo `Wellstudio <noreply@auth.miguelgarglez.com>` en production o `[DEV] Wellstudio <DEV-noreply@auth.miguelgarglez.com>` en preview/sandbox.
+- `LEAD_NOTIFICATION_TO`: inbox operativo que recibe el aviso.
+
+Estado actual de validación:
+
+- `miguel.garglez@gmail.com` es el inbox operativo de pruebas para validar el flujo.
+- No es el inbox operativo definitivo del gimnasio.
+
+Reglas del flujo:
+
+- solo se notifica cuando se crea un lead nuevo real
+- no se notifica en deduplicados recientes
+- no se notifica en honeypot/spam
+- si Resend falla, el lead sigue creado y el fallo queda registrado en logs
+
 ## Checklist rápido de incidencias
 
 ### No llega ningún email
