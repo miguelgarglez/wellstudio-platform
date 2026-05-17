@@ -55,7 +55,13 @@ if (process.env.E2E_AUTH_SANDBOX === 'true') {
 if (missingRequired.length > 0) {
   console.error('\nCodex cloud is missing required variables.')
   console.error(`Missing: ${missingRequired.join(', ')}`)
+  console.error(
+    '\nIf this only fails during agent tasks, move runtime values such as DATABASE_URL from Secrets to Environment variables in Codex cloud.',
+  )
   process.exit(1)
 }
 
 console.log('\nCodex cloud environment looks ready.')
+console.log(
+  'Note: values needed by pnpm build, next dev, and Playwright must be available during the agent runtime, not only during setup.',
+)
