@@ -87,7 +87,7 @@ describe('getAdminMemberOverrideOverview', () => {
         overrideType: 'EXTRA_ALLOWANCE',
         extraBookings: 2,
         startsAt: new Date('2026-05-04T00:00:00.000Z'),
-        expiresAt: new Date('2026-05-10T23:59:59.000Z'),
+        expiresAt: new Date('2026-12-10T23:59:59.000Z'),
         reason: 'Compensación puntual',
         revokedAt: null,
         createdAt: new Date('2026-04-22T10:00:00.000Z'),
