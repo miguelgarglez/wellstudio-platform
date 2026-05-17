@@ -1,4 +1,4 @@
-import { beforeEach, describe, expect, it, vi } from 'vitest'
+import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 
 const {
   memberFindManyMock,
@@ -36,10 +36,15 @@ import {
 
 describe('getAdminMemberOverrideOverview', () => {
   beforeEach(() => {
+    vi.setSystemTime(new Date('2026-05-05T09:00:00.000Z'))
     memberFindManyMock.mockReset()
     memberFindUniqueMock.mockReset()
     overrideFindManyMock.mockReset()
     classSessionFindManyMock.mockReset()
+  })
+
+  afterEach(() => {
+    vi.useRealTimers()
   })
 
   it('builds a member-centric overview with active memberships, history and session candidates', async () => {
@@ -87,7 +92,7 @@ describe('getAdminMemberOverrideOverview', () => {
         overrideType: 'EXTRA_ALLOWANCE',
         extraBookings: 2,
         startsAt: new Date('2026-05-04T00:00:00.000Z'),
-        expiresAt: new Date('2026-12-10T23:59:59.000Z'),
+        expiresAt: new Date('2026-05-10T23:59:59.000Z'),
         reason: 'Compensación puntual',
         revokedAt: null,
         createdAt: new Date('2026-04-22T10:00:00.000Z'),
