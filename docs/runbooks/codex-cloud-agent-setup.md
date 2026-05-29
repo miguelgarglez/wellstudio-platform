@@ -107,9 +107,20 @@ pnpm test:e2e:smoke
 Para tareas visuales de producto, tambien debe arrancar la app y revisar en
 browser la ruta afectada.
 
-## Secretos del entorno Codex cloud
+## Variables y secretos del entorno Codex cloud
 
-Configurar estos secretos en el entorno remoto de Codex. No commitearlos.
+Configurar estos valores en el entorno remoto de Codex. No commitearlos.
+
+Separacion practica:
+
+- **Variables del entorno**: disponibles para setup y para los comandos que
+  ejecuta el agente despues, como `pnpm build`, `next dev` y Playwright.
+- **Secretos**: pueden estar disponibles solo durante el script de setup y no
+  necesariamente durante la fase del agente. Usarlos para credenciales que no
+  debe leer el agente directamente.
+
+Para WellStudio, cualquier valor que la app necesite en runtime dentro de Codex
+cloud debe ir en **Variables del entorno**, no solo en **Secretos**.
 
 Minimos para build/runtime:
 
@@ -120,6 +131,10 @@ NEXT_PUBLIC_SUPABASE_URL=...
 NEXT_PUBLIC_SUPABASE_ANON_KEY=...
 NEXT_PUBLIC_APP_URL=http://127.0.0.1:3001
 ```
+
+Estos minimos deben configurarse como **Variables del entorno** en Codex cloud,
+porque la app los lee cuando el agente ejecuta `pnpm build`, `next dev` o
+capturas con Playwright.
 
 Recomendados para E2E sandbox:
 
@@ -134,6 +149,10 @@ E2E_ADMIN_EMAIL=e2e.admin.sandbox@wellstudio.test
 E2E_ADMIN_PASSWORD=...
 ```
 
+Para maximizar validacion remota, usar tambien valores de **sandbox** como
+variables del entorno. Esto permite que el agente prepare usuarios, ejecute E2E y
+arranque la app con el mismo runtime.
+
 Notas:
 
 - `DATABASE_URL` debe usar pooler.
@@ -143,6 +162,8 @@ Notas:
 - Si Codex no necesita resetear usuarios sandbox, se puede omitir
   `SUPABASE_SERVICE_ROLE_KEY`, pero entonces no debe ejecutar scripts
   `sandbox:auth:*`.
+- No usar credenciales de `production` como variables legibles por el agente.
+  Para Codex cloud, el entorno normal debe ser `Supabase sandbox`.
 
 ## Bootstrap recomendado
 
@@ -157,6 +178,25 @@ pnpm exec playwright install --with-deps chromium
 pnpm db:generate
 pnpm codex:doctor
 ```
+
+Prueba manual recomendada despues de crear una tarea nueva:
+
+```bash
+cd /workspace/wellstudio-platform
+pnpm codex:doctor
+pnpm build
+pnpm exec next dev --port 3000
+```
+
+En otra terminal o usando Playwright:
+
+```bash
+pnpm exec playwright screenshot --browser=chromium http://localhost:3000/non-existent-route /tmp/404-desktop.png
+```
+
+Si `pnpm codex:doctor` pasa en setup pero `pnpm build` o `next dev` falla con
+`DATABASE_URL is required`, el valor esta probablemente guardado como **Secret**
+y no como **Variable del entorno** disponible durante la fase del agente.
 
 Si el entorno no permite instalar dependencias del sistema con Playwright, usar
 el browser disponible por Codex para validacion visual y dejar constancia de que

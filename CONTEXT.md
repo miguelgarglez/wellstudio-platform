@@ -8,6 +8,10 @@ WellStudio models the operational language of a boutique fitness studio: public 
 A person who has left contact details so the studio can contact them before becoming a member.
 _Avoid_: contact request, prospect form submission
 
+**Solicitud de contacto**:
+The admin-facing UI label for a **Lead** when staff are reviewing and updating follow-up status.
+_Avoid_: CRM opportunity, sales pipeline
+
 **Operational lead notification**:
 An internal notice sent to the studio team when a new lead needs staff attention.
 _Avoid_: marketing email, newsletter, automated campaign
@@ -23,6 +27,7 @@ _Avoid_: production inbox, customer support inbox
 ## Relationships
 
 - A **Lead** may produce one **Operational lead notification** when it is newly captured.
+- A **Lead** appears in admin as a **Solicitud de contacto**.
 - An **Operational lead notification** is addressed to the **Operational inbox**.
 - A **Test operational inbox** may temporarily stand in for the **Operational inbox** during validation.
 

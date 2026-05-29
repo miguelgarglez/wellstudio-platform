@@ -2,7 +2,7 @@
 
 import type { ReactNode } from 'react'
 import Link from 'next/link'
-import { ClipboardList, ShieldPlus } from 'lucide-react'
+import { ClipboardList, Inbox, ShieldPlus } from 'lucide-react'
 import { usePathname } from 'next/navigation'
 import { useEffect, useRef, useState } from 'react'
 
@@ -30,6 +30,11 @@ const adminNavItems = [
     href: '/admin/overrides',
     label: 'Excepciones',
     icon: ShieldPlus,
+  },
+  {
+    href: '/admin/leads',
+    label: 'Solicitudes',
+    icon: Inbox,
   },
 ]
 
