@@ -12,6 +12,9 @@ type AdminOperationToastState =
   | 'revoked'
   | 'revoke-error'
   | 'policy-saved'
+  | 'lead-new'
+  | 'lead-contacted'
+  | 'lead-lost'
   | null
 
 type AdminOperationToastProps = {
@@ -51,6 +54,21 @@ const TOAST_COPY: Record<
     tone: 'success',
     title: 'Regla guardada',
     description: 'La regla explícita ya está persistida y la vista se ha recargado con el estado actualizado.',
+  },
+  'lead-new': {
+    tone: 'success',
+    title: 'Solicitud reabierta',
+    description: 'La solicitud vuelve a estar marcada como nueva para seguimiento operativo.',
+  },
+  'lead-contacted': {
+    tone: 'success',
+    title: 'Solicitud contactada',
+    description: 'El estado se ha actualizado y queda visible en la bandeja de solicitudes.',
+  },
+  'lead-lost': {
+    tone: 'success',
+    title: 'Solicitud perdida',
+    description: 'La solicitud deja de estar activa para seguimiento ordinario.',
   },
 }
 
@@ -115,7 +133,7 @@ export function AdminOperationToast({
             <p className="mt-1 text-sm leading-6 text-[color:color-mix(in_srgb,var(--foreground)_72%,white)]">
               {copy.description}
             </p>
-            {copy.tone === 'success' && state !== 'policy-saved' ? (
+            {shouldRenderOverrideHistoryLink(state, copy.tone) ? (
               <a
                 href="#admin-override-history"
                 className="mt-2 inline-flex text-xs font-medium uppercase tracking-[0.16em] text-[var(--wellstudio-blue-deep)] underline-offset-4 hover:underline"
@@ -138,4 +156,11 @@ export function AdminOperationToast({
       </div>
     </div>
   )
+}
+
+function shouldRenderOverrideHistoryLink(
+  state: Exclude<AdminOperationToastState, null>,
+  tone: 'success' | 'error',
+) {
+  return tone === 'success' && ['extra', 'session', 'revoked'].includes(state)
 }
