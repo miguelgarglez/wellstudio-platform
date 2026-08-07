@@ -1,9 +1,10 @@
 import { beforeEach, describe, expect, it, vi } from 'vitest'
 
-const { memberFindManyMock, memberFindUniqueMock, memberGroupByMock } = vi.hoisted(() => ({
+const { memberFindManyMock, memberFindUniqueMock, memberGroupByMock, membershipPlanFindManyMock } = vi.hoisted(() => ({
   memberFindManyMock: vi.fn(),
   memberFindUniqueMock: vi.fn(),
   memberGroupByMock: vi.fn(),
+  membershipPlanFindManyMock: vi.fn(),
 }))
 
 vi.mock('@/lib/db/prisma', () => ({
@@ -13,6 +14,7 @@ vi.mock('@/lib/db/prisma', () => ({
       findUnique: memberFindUniqueMock,
       groupBy: memberGroupByMock,
     },
+    membershipPlan: { findMany: membershipPlanFindManyMock },
   },
 }))
 
@@ -29,6 +31,7 @@ describe('admin members overview', () => {
     memberFindManyMock.mockResolvedValue([])
     memberFindUniqueMock.mockResolvedValue(null)
     memberGroupByMock.mockResolvedValue([])
+    membershipPlanFindManyMock.mockResolvedValue([])
   })
 
   it('normalizes unsupported filters to the safe active default', () => {
@@ -81,6 +84,20 @@ describe('admin members overview', () => {
     ])
     memberGroupByMock.mockResolvedValue([{ status: 'ACTIVE', _count: { _all: 1 } }])
     memberFindUniqueMock.mockResolvedValue(buildSelectedMember())
+    membershipPlanFindManyMock.mockResolvedValue([{
+      id: 'plan-1',
+      name: 'Plan semanal',
+      description: 'Tres reservas por semana',
+      priceAmount: 7900,
+      currency: 'EUR',
+      billingInterval: 'MONTHLY',
+      bookingPolicyType: null,
+      bookingPolicy: {
+        policyType: 'PERIODIC_ALLOWANCE',
+        periodType: 'CALENDAR_WEEK',
+        allowanceCount: 3,
+      },
+    }])
 
     const overview = await getAdminMembersOverview({
       selectedMemberId: 'member-1',
@@ -104,6 +121,13 @@ describe('admin members overview', () => {
       payments: [{ typeLabel: 'Membresía', statusLabel: 'Pagado', amountLabel: '79,00 €' }],
       notes: [{ body: 'Prefiere horario de tarde', visibilityLabel: 'INTERNAL' }],
     })
+    expect(overview.selectedMember?.memberships[0].canEndManually).toBe(true)
+    expect(overview.membershipPlans).toEqual([expect.objectContaining({
+      id: 'plan-1',
+      priceLabel: '79,00 €',
+      billingLabel: 'Mensual',
+      policyLabel: '3 / semana',
+    })])
   })
 
   it('does not expose a stale selected id when the member no longer exists', async () => {

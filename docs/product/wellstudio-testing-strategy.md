@@ -294,12 +294,14 @@ Para gestion de socios admin, el gate dirigido debe cubrir:
 
 - rechazo de `MEMBER` y acceso de `ADMIN`/`STAFF`
 - búsqueda normalizada por identidad o contacto y filtros que distinguen activos, inactivos y bloqueados
-- read model agregado con datos parciales honestos, sin autoselección ni mutaciones
+- read model agregado con datos parciales honestos, sin autoselección ni mutaciones comerciales ambiguas
 - enlaces contextuales a Excepciones y Agenda con IDs reales
 - detalle a ancho completo en mobile y retorno al listado conservando búsqueda y filtro
 - transición de estado con motivo obligatorio, estado esperado y `AuditLog`
 - un socio inactivo o bloqueado no puede adquirir nuevas plazas, pero conserva consulta y cancelación de actividad existente
 - recorrido E2E admin -> socio inactivo -> portal bloqueado -> reactivación y limpieza del fixture
+- asignación y finalización de membership interna con motivo, feedback, auditoría y restauración determinista del socio sandbox sin plan
+- rechazo unitario de duplicados activos, fechas futuras y finalización local de contratos externos
 
 ## 12. Regla final
 

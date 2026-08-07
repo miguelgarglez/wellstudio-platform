@@ -251,7 +251,8 @@ Debe permitir:
 - ver estado de cuenta
 - activar, inactivar o bloquear el acceso a nuevas plazas con motivo auditable
 - revisar reservas futuras
-- asignar o modificar planes/bonos
+- asignar o finalizar memberships internas con vigencia y motivo auditable
+- consultar bonos y creditos; su ajuste manual queda separado hasta disponer de un caso de uso basado en ledger
 
 ### 3. Gestion de leads
 
@@ -359,6 +360,8 @@ El sistema debe almacenar formularios comerciales y permitir seguimiento interno
 El equipo debe poder consultar y editar el estado basico de los socios.
 
 En V1, cambiar el estado no elimina actividad ni revoca la identidad del portal. Los estados `inactive` y `blocked` impiden adquirir nuevas plazas, incluidas reservas y waitlist, pero conservan la consulta y cancelacion de actividad existente. Toda transicion exige motivo, actor y trazabilidad.
+
+La asignacion manual de membership representa una cobertura gestionada por el centro: no crea cobros, autorrenovaciones ni suscripciones externas. Solo admite inicio inmediato o retroactivo; programar activaciones futuras requiere un workflow dedicado. Finalizar una cobertura interna conserva las reservas confirmadas y no puede usarse sobre contratos vinculados a proveedor externo.
 
 ## RF-10 Reporting basico
 

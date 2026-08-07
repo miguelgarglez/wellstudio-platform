@@ -13,6 +13,7 @@ import {
   isSandboxAuthEnabled,
   loadE2EEnvFiles,
 } from '../support/env'
+import { resetSandboxAdminPlaygroundScenario } from '../support/sandbox'
 
 loadE2EEnvFiles()
 
@@ -113,6 +114,58 @@ test.describe('Admin members @admin @sandbox', () => {
     await expect(page.getByRole('status').getByText('Socio activado')).toBeVisible()
   })
 
+  test('admin assigns and ends an internal membership with visible audit feedback', async ({ page }, testInfo) => {
+    const noPlanEmail = 'e2e.admin.playground.no-plan.sandbox@wellstudio.test'
+    await resetSandboxAdminPlaygroundScenario()
+
+    try {
+      await loginAsSandboxAdmin(page)
+      await page.goto(`/admin/members?q=${encodeURIComponent(noPlanEmail)}`)
+      await page.getByRole('link', { name: new RegExp(noPlanEmail, 'i') }).click()
+
+      await expect(page.getByText('Sin membresías registradas')).toBeVisible()
+      await page.getByRole('button', { name: 'Asignar membership' }).click()
+
+      const assignDialog = page.getByRole('dialog', { name: /Asignar membership a Alex Sin Plan/i })
+      await expect(assignDialog).toBeVisible()
+      const weeklyPlan = assignDialog.getByRole('radio', { name: /Admin Playground Weekly/i })
+      await assignDialog.locator('label').filter({ hasText: 'Admin Playground Weekly' }).click()
+      await expect(weeklyPlan).toBeChecked()
+      await assignDialog.getByLabel('Motivo de asignación').fill('Alta abonada en recepción durante E2E')
+      await waitForMotionToSettle(assignDialog)
+
+      await testInfo.attach('admin-membership-assignment-dialog', {
+        body: await page.screenshot(),
+        contentType: 'image/png',
+      })
+
+      await assignDialog.getByRole('button', { name: 'Asignar membership' }).click()
+      await expect(page).toHaveURL(/updated=membership-assigned/)
+      await expect(page.getByRole('status').getByText('Membership asignada')).toBeVisible()
+
+      const membershipCard = page.locator('article').filter({ hasText: 'Admin Playground Weekly' }).first()
+      await expect(membershipCard.getByText('Activa', { exact: true })).toBeVisible()
+      await membershipCard.getByRole('button', { name: 'Finalizar' }).click()
+
+      const endDialog = page.getByRole('dialog', { name: /Finalizar Admin Playground Weekly/i })
+      await expect(endDialog).toBeVisible()
+      await endDialog.getByLabel('Motivo de finalización').fill('Baja solicitada durante E2E')
+      await waitForMotionToSettle(endDialog)
+
+      await testInfo.attach('admin-membership-end-dialog', {
+        body: await page.screenshot(),
+        contentType: 'image/png',
+      })
+
+      await endDialog.getByRole('button', { name: 'Finalizar membership' }).click()
+      await expect(page).toHaveURL(/updated=membership-ended/)
+      await expect(page.getByRole('status').getByText('Membership finalizada')).toBeVisible()
+      await expect(page.locator('article').filter({ hasText: 'Admin Playground Weekly' }).first().getByText('Cancelada', { exact: true })).toBeVisible()
+    } finally {
+      await resetSandboxAdminPlaygroundScenario()
+    }
+  })
+
   test('mobile member detail uses the full viewport and returns to the filtered list', async ({ page }, testInfo) => {
     const { email } = getSandboxCredentials()
 
@@ -135,4 +188,33 @@ test.describe('Admin members @admin @sandbox', () => {
     await expect(page).toHaveURL(`/admin/members?q=${encodeURIComponent(email)}`)
     await expect(page).not.toHaveURL(/member=/)
   })
+
+  test('mobile membership assignment remains focused inside the member detail', async ({ page }, testInfo) => {
+    const noPlanEmail = 'e2e.admin.playground.no-plan.sandbox@wellstudio.test'
+    await resetSandboxAdminPlaygroundScenario()
+
+    await loginAsSandboxAdmin(page)
+    await page.setViewportSize({ width: 390, height: 844 })
+    await page.goto(`/admin/members?q=${encodeURIComponent(noPlanEmail)}`)
+    await page.getByRole('link', { name: new RegExp(noPlanEmail, 'i') }).click()
+    await page.getByRole('button', { name: 'Asignar membership' }).click()
+
+    const dialog = page.getByRole('dialog', { name: /Asignar membership a Alex Sin Plan/i })
+    await expect(dialog).toBeVisible()
+    await waitForMotionToSettle(dialog)
+    const box = await dialog.boundingBox()
+    expect(box?.width).toBeGreaterThanOrEqual(388)
+    await expect(dialog.getByRole('button', { name: 'Asignar membership' })).toBeVisible()
+
+    await testInfo.attach('admin-membership-assignment-mobile', {
+      body: await page.screenshot(),
+      contentType: 'image/png',
+    })
+  })
 })
+
+async function waitForMotionToSettle(locator: import('@playwright/test').Locator) {
+  await locator.evaluate((element) => Promise.all(
+    element.getAnimations({ subtree: true }).map((animation) => animation.finished.catch(() => undefined)),
+  ))
+}

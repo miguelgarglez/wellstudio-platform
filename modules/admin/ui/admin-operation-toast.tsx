@@ -34,6 +34,8 @@ type AdminOperationToastState =
   | 'member-active'
   | 'member-inactive'
   | 'member-blocked'
+  | 'membership-assigned'
+  | 'membership-ended'
   | null
 
 type AdminOperationToastProps = {
@@ -184,6 +186,16 @@ const TOAST_COPY: Record<
     tone: 'success',
     title: 'Socio bloqueado',
     description: 'La restricción operativa ya está activa y conserva acceso de consulta y cancelación.',
+  },
+  'membership-assigned': {
+    tone: 'success',
+    title: 'Membership asignada',
+    description: 'La cobertura ya está activa y la operación ha quedado auditada.',
+  },
+  'membership-ended': {
+    tone: 'success',
+    title: 'Membership finalizada',
+    description: 'La cobertura deja de admitir nuevas reservas sin cancelar actividad ya confirmada.',
   },
 }
 

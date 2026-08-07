@@ -49,7 +49,7 @@ async function AdminMembersSection({
   query: string | null
   status: string | null
   selectedMemberId: string | null
-  updatedState: 'member-active' | 'member-inactive' | 'member-blocked' | null
+  updatedState: AdminMembersUpdatedState
   noticeId: string | null
 }) {
   const overview = await getAdminMembersOverview({ query, status, selectedMemberId })
@@ -64,7 +64,19 @@ async function AdminMembersSection({
 }
 
 function parseUpdatedState(value?: string) {
-  return value === 'member-active' || value === 'member-inactive' || value === 'member-blocked'
+  return value === 'member-active' ||
+    value === 'member-inactive' ||
+    value === 'member-blocked' ||
+    value === 'membership-assigned' ||
+    value === 'membership-ended'
     ? value
     : null
 }
+
+type AdminMembersUpdatedState =
+  | 'member-active'
+  | 'member-inactive'
+  | 'member-blocked'
+  | 'membership-assigned'
+  | 'membership-ended'
+  | null

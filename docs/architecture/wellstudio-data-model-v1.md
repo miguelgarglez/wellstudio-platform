@@ -906,6 +906,9 @@ Estas reglas deberian reflejarse en codigo, constraints o ambos.
 ### Membresias y creditos
 
 - una reserva debe poder explicar de donde salio su elegibilidad
+- una asignacion manual de membership no implica pago ni autorrenovacion y debe conservar actor, motivo y vigencia en `AuditLog`
+- no debe existir mas de una membership `active` asignada manualmente al mismo socio; el caso de uso lo protege mediante transaccion serializable
+- una membership con proveedor externo no puede finalizarse mediante una mutacion local aislada
 - una membership con quota periodica debe poder explicar su uso dentro de la semana o mes natural
 - un override manual debe quedar trazado tanto en el override como en `reservation_entitlement_usages`
 - toda devolucion de credito debe dejar rastro en ledger

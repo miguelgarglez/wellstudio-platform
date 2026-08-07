@@ -46,6 +46,10 @@ import type {
   AdminMemberStatusFilter,
   AdminMembersOverview,
 } from '@/modules/admin/server/admin-members-overview'
+import {
+  AdminAssignMembershipAction,
+  AdminEndMembershipAction,
+} from '@/modules/admin/ui/admin-member-membership-actions'
 import { AdminResponsiveDetailFrame } from '@/modules/admin/ui/admin-responsive-detail-frame'
 import { AdminOperationToast } from '@/modules/admin/ui/admin-operation-toast'
 import type { AdminMemberOperableStatus } from '@/modules/members/server/admin-member-status'
@@ -64,7 +68,13 @@ export function AdminMembersDashboard({
   noticeId,
 }: {
   overview: AdminMembersOverview
-  updatedState: 'member-active' | 'member-inactive' | 'member-blocked' | null
+  updatedState:
+    | 'member-active'
+    | 'member-inactive'
+    | 'member-blocked'
+    | 'membership-assigned'
+    | 'membership-ended'
+    | null
   noticeId: string | null
 }) {
   const router = useRouter()
@@ -163,7 +173,11 @@ export function AdminMembersDashboard({
         className="lg:min-h-[46rem]"
       >
         {overview.selectedMember ? (
-          <MemberDetail member={overview.selectedMember} returnTo={detailHref} />
+          <MemberDetail
+            member={overview.selectedMember}
+            membershipPlans={overview.membershipPlans}
+            returnTo={detailHref}
+          />
         ) : (
           <MemberDetailEmptyState />
         )}
@@ -243,7 +257,15 @@ function MemberListRow({
   )
 }
 
-function MemberDetail({ member, returnTo }: { member: AdminMemberDetail; returnTo: string }) {
+function MemberDetail({
+  member,
+  membershipPlans,
+  returnTo,
+}: {
+  member: AdminMemberDetail
+  membershipPlans: AdminMembersOverview['membershipPlans']
+  returnTo: string
+}) {
   const [statusDialogOpen, setStatusDialogOpen] = useState(false)
 
   return (
@@ -297,7 +319,10 @@ function MemberDetail({ member, returnTo }: { member: AdminMemberDetail; returnT
       </section>
 
       <section className="border-t border-[color:color-mix(in_srgb,var(--border)_72%,white)] pt-5" aria-labelledby="member-coverage-heading">
-        <SectionHeading icon={ShieldCheck} eyebrow="Cobertura comercial" title="Membresías y créditos" id="member-coverage-heading" />
+        <div className="flex flex-wrap items-center justify-between gap-3">
+          <SectionHeading icon={ShieldCheck} eyebrow="Cobertura comercial" title="Membresías y créditos" id="member-coverage-heading" />
+          <AdminAssignMembershipAction member={member} plans={membershipPlans} returnTo={returnTo} />
+        </div>
         <div className="mt-3 grid gap-3 xl:grid-cols-2">
           <div className="space-y-3">
             {member.memberships.length > 0 ? member.memberships.map((membership) => (
@@ -313,6 +338,15 @@ function MemberDetail({ member, returnTo }: { member: AdminMemberDetail; returnT
                   <span>{membership.renewalLabel}</span><span>{membership.providerLabel}</span>
                   <span>{membership.usageCount} usos</span><span>{membership.overrideCount} excepciones</span>
                 </div>
+                {membership.canEndManually ? (
+                  <div className="mt-3 border-t border-[color:color-mix(in_srgb,var(--border)_62%,white)] pt-2">
+                    <AdminEndMembershipAction
+                      memberId={member.id}
+                      membership={membership}
+                      returnTo={returnTo}
+                    />
+                  </div>
+                ) : null}
               </article>
             )) : <InlineEmpty icon={CreditCard} text="Sin membresías registradas" />}
           </div>

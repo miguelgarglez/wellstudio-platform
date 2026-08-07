@@ -653,7 +653,7 @@ async function ensureMembers(tx, { plans, now }) {
           membership: profile.membership,
           now,
         })
-      : null
+      : await ensureNoMembership(tx, member.id)
 
     members[key] = {
       user,
@@ -664,6 +664,27 @@ async function ensureMembers(tx, { plans, now }) {
   }
 
   return members
+}
+
+async function ensureNoMembership(tx, memberId) {
+  const memberships = await tx.memberMembership.findMany({
+    where: { memberId },
+    select: { id: true },
+  })
+  const membershipIds = memberships.map((membership) => membership.id)
+
+  if (membershipIds.length === 0) return null
+
+  await tx.reservationEntitlementUsage.deleteMany({
+    where: { memberMembershipId: { in: membershipIds } },
+  })
+  await tx.memberMembershipBookingOverride.deleteMany({
+    where: { memberMembershipId: { in: membershipIds } },
+  })
+  await tx.memberMembership.deleteMany({
+    where: { id: { in: membershipIds } },
+  })
+  return null
 }
 
 async function ensureLocalUser(tx, { email, status, now }) {

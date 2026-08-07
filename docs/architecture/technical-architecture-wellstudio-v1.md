@@ -873,7 +873,9 @@ Patron de interfaz:
 - las listas admin por defecto deben ser read models server-side acotados y honestos: pueden priorizar actividad reciente u operabilidad, pero deben distinguirse de resultados de busqueda exhaustivos
 - las acciones admin siguen siendo server actions finas que delegan en servicios de dominio; el layout no debe introducir reglas de negocio
 - en seguimiento comercial, el detalle debe priorizar identidad, estado actual y timeline; las operaciones de nota/cambio de estado se abren en dialogos enfocados y no como formularios permanentes
-- en gestion de socios, la vista agregada es read-only salvo operaciones explicitas con caso de uso propio; el estado basico se cambia mediante un servicio auditable con motivo obligatorio, estado esperado y control de concurrencia, mientras que asignar planes o creditos sigue fuera del dossier
+- en gestion de socios, la vista agregada es read-only salvo operaciones explicitas con caso de uso propio; el estado basico y las memberships internas se operan mediante servicios auditables, mientras que asignar creditos sigue fuera del dossier hasta disponer de ajustes basados en ledger
+- la asignacion manual de membership consulta solo planes `ACTIVE`, crea cobertura `ACTIVE` sin `Payment`, proveedor ni autorrenovacion, exige vigencia y motivo, y rechaza una segunda cobertura activa; no admite fecha futura porque V1 aun no tiene un activador programado de `PENDING_ACTIVATION`
+- la finalizacion manual usa estado esperado, solo acepta `ACTIVE` o `PENDING_ACTIVATION`, conserva reservas existentes y rechaza memberships con `providerSubscriptionId`; una baja contractual externa debe ejecutarse en su integracion propietaria
 - `Member.status` es una señal operativa autoritativa para adquirir nuevas plazas: solo `ACTIVE` puede reservar o entrar en waitlist; `INACTIVE` y `BLOCKED` conservan login, historial y capacidad de cancelar reservas o abandonar waitlists existentes
 - el cambio de `Member.status` no muta Supabase Auth ni `User.status`; suspender autenticacion o cerrar una cuenta es un workflow distinto y no debe inferirse desde esta operacion
 

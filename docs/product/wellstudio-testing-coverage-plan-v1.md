@@ -148,6 +148,7 @@ No cerrar pagos sin probar al menos un flujo sandbox end-to-end.
 - read model agregado de socios, incluidos estados, cobertura comercial y actividad reciente
 - servicio de cambio de estado de socio con validación, concurrencia optimista y auditoría
 - elegibilidad de reservas y waitlist rechaza socios inactivos o bloqueados sin impedir cancelaciones existentes
+- asignación/finalización de memberships internas valida vigencia, exclusividad activa, proveedor externo y auditoría
 - server actions finas de grant/revoke de overrides
 - creacion de clase
 - edicion de clase
@@ -164,6 +165,7 @@ No cerrar pagos sin probar al menos un flujo sandbox end-to-end.
 - admin crea, edita, archiva y reactiva recursos del catalogo de Agenda
 - admin busca un socio, abre su dossier y navega al flujo contextual correspondiente
 - admin inactiva un socio, el portal bloquea nuevas plazas y la reactivación restaura la operativa
+- admin asigna y finaliza una membership interna desde el dossier, recibe feedback y el fixture sin plan se restaura al terminar
 - un recurso con sesiones futuras no puede archivarse hasta resolver sus dependencias
 
 ## Matriz minima por modulo

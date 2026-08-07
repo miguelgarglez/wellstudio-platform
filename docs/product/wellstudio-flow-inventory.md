@@ -608,7 +608,8 @@ Happy path:
 1. el admin busca un socio
 2. ve estado de membresias, creditos y reservas
 3. puede cambiar su estado basico con un motivo operativo
-4. puede realizar las demas acciones permitidas desde sus superficies de dominio
+4. puede asignar o finalizar una membership interna con vigencia y motivo
+5. puede realizar las demas acciones permitidas desde sus superficies de dominio
 
 Errores y bloqueos:
 
@@ -629,6 +630,9 @@ Estado V1 implementado:
 - la ficha de socio agrega identidad, cuenta, memberships, créditos, reservas, waitlist, pagos y notas sin habilitar mutaciones comerciales ambiguas
 - el admin puede activar, inactivar o bloquear al socio; la transición exige motivo, estado esperado y genera auditoría con actor y estados anterior/nuevo
 - un socio inactivo o bloqueado conserva acceso e historial y puede cancelar actividad existente, pero no puede reservar ni entrar en waitlist hasta volver a `active`
+- el admin puede asignar una membership interna de inicio inmediato o retroactivo sobre un plan activo; no se genera `Payment`, autorrenovacion ni contrato externo
+- el admin puede finalizar una membership interna activa o pendiente sin cancelar reservas ya confirmadas; las memberships con proveedor externo se bloquean para evitar drift contractual
+- una segunda membership activa y las activaciones futuras se rechazan de forma explicita
 - desde la ficha se enlaza con Excepciones y con la sesión concreta de Agenda conservando un único contexto operativo
 - `/admin/overrides` permite buscar socios por nombre o email
 - opera solo sobre memberships activas

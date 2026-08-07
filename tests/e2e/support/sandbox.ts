@@ -51,6 +51,14 @@ export async function resetSandboxReservationScenarioForTest() {
   await runSandboxReservationScenario(MEMBER_RESERVATIONS_FLOW_OPERATIONS.full)
 }
 
+export async function resetSandboxAdminPlaygroundScenario() {
+  const setupIssue = getSandboxReservationsSetupIssue()
+
+  if (setupIssue) throw new Error(setupIssue)
+
+  await runSandboxScenarioCommand('admin-playground')
+}
+
 export async function resetSandboxWaitlistState() {
   const setupIssue = getSandboxReservationsSetupIssue()
 
@@ -102,6 +110,20 @@ function runSandboxReservationScenario(operation: string) {
       throw new Error(
         `Failed to prepare sandbox reservations scenario "${MEMBER_RESERVATIONS_FLOW_SCENARIO}" (${operation}). ${message}`,
       )
+    }
+  })
+}
+
+function runSandboxScenarioCommand(scenario: string) {
+  return Promise.resolve().then(() => {
+    try {
+      execFileSync('pnpm', [`sandbox:${scenario}`], {
+        cwd: PROJECT_ROOT,
+        stdio: 'pipe',
+        encoding: 'utf8',
+      })
+    } catch (error) {
+      throw new Error(`Failed to prepare sandbox scenario "${scenario}". ${extractCommandFailure(error)}`)
     }
   })
 }

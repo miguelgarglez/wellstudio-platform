@@ -3,6 +3,7 @@ import type { MemberStatus, Prisma } from '@prisma/client'
 import { prisma } from '@/lib/db/prisma'
 import { normalizeEmail } from '@/modules/auth/lib/normalize-email'
 import { buildPlanWindowLabel } from '@/modules/members/server/member-commercial'
+import { resolveEffectiveMembershipBookingPolicy } from '@/modules/reservations/server/membership-booking-policy'
 
 const MEMBER_LIST_LIMIT = 30
 const DETAIL_HISTORY_LIMIT = 10
@@ -125,6 +126,7 @@ export type AdminMemberStatusFilter = 'active' | 'inactive' | 'blocked' | 'all'
 export type AdminMembersOverview = Awaited<ReturnType<typeof getAdminMembersOverview>>
 export type AdminMemberListItem = AdminMembersOverview['members'][number]
 export type AdminMemberDetail = NonNullable<AdminMembersOverview['selectedMember']>
+export type AdminMembershipPlanOption = AdminMembersOverview['membershipPlans'][number]
 
 export async function getAdminMembersOverview(input: {
   query?: string | null
@@ -155,7 +157,7 @@ export async function getAdminMembersOverview(input: {
       : undefined,
   }
 
-  const [members, statusGroups, selectedMemberRecord] = await Promise.all([
+  const [members, statusGroups, selectedMemberRecord, membershipPlans] = await Promise.all([
     prisma.member.findMany({
       where,
       orderBy: [{ updatedAt: 'desc' }, { id: 'asc' }],
@@ -192,6 +194,22 @@ export async function getAdminMembersOverview(input: {
           select: adminMemberDetailSelect,
         })
       : Promise.resolve(null),
+    prisma.membershipPlan.findMany({
+      where: { status: 'ACTIVE' },
+      orderBy: [{ name: 'asc' }, { id: 'asc' }],
+      select: {
+        id: true,
+        name: true,
+        description: true,
+        priceAmount: true,
+        currency: true,
+        billingInterval: true,
+        bookingPolicyType: true,
+        bookingPolicy: {
+          select: { policyType: true, periodType: true, allowanceCount: true },
+        },
+      },
+    }),
   ])
 
   const countsByStatus = new Map(statusGroups.map((group) => [group.status, group._count._all]))
@@ -214,6 +232,7 @@ export async function getAdminMembersOverview(input: {
     selectedMember: selectedMemberRecord
       ? mapSelectedMember(selectedMemberRecord, now)
       : null,
+    membershipPlans: membershipPlans.map(mapMembershipPlanOption),
     counts: {
       all: statusGroups.reduce((total, group) => total + group._count._all, 0),
       active: countsByStatus.get('ACTIVE') ?? 0,
@@ -262,6 +281,9 @@ function mapSelectedMember(member: AdminMemberDetailRecord, now: Date) {
       windowLabel: buildPlanWindowLabel(membership, now),
       renewalLabel: membership.autoRenews ? 'Renovación automática' : 'Sin renovación automática',
       providerLabel: membership.providerSubscriptionId ? 'Con suscripción externa' : 'Gestión interna',
+      canEndManually:
+        !membership.providerSubscriptionId &&
+        (membership.status === 'ACTIVE' || membership.status === 'PENDING_ACTIVATION'),
       usageCount: membership._count.usages,
       overrideCount: membership._count.bookingOverrides,
     })),
@@ -296,6 +318,56 @@ function mapSelectedMember(member: AdminMemberDetailRecord, now: Date) {
       visibilityLabel: note.visibility ?? 'Interna',
       createdAtLabel: formatDateTime(note.createdAt),
     })),
+  }
+}
+
+function mapMembershipPlanOption(plan: {
+  id: string
+  name: string
+  description: string | null
+  priceAmount: number
+  currency: string
+  billingInterval: string | null
+  bookingPolicyType: string | null
+  bookingPolicy: {
+    policyType: 'UNLIMITED' | 'PERIODIC_ALLOWANCE'
+    periodType: 'CALENDAR_WEEK' | 'CALENDAR_MONTH' | null
+    allowanceCount: number | null
+  } | null
+}) {
+  const policy = resolveEffectiveMembershipBookingPolicy({
+    explicitPolicy: plan.bookingPolicy,
+    legacyPolicyType: plan.bookingPolicyType,
+  })
+  const policyLabel = policy.policyType === 'UNLIMITED'
+    ? 'Ilimitada'
+    : policy.periodType === 'CALENDAR_WEEK'
+      ? `${policy.allowanceCount} / semana`
+      : `${policy.allowanceCount} / mes`
+
+  return {
+    id: plan.id,
+    name: plan.name,
+    description: plan.description,
+    priceLabel: formatMoney(plan.priceAmount, plan.currency),
+    billingLabel: billingIntervalLabel(plan.billingInterval),
+    policyLabel,
+  }
+}
+
+function billingIntervalLabel(interval: string | null) {
+  switch (interval?.trim().toUpperCase()) {
+    case 'MONTH':
+    case 'MONTHLY':
+      return 'Mensual'
+    case 'WEEK':
+    case 'WEEKLY':
+      return 'Semanal'
+    case 'YEAR':
+    case 'YEARLY':
+      return 'Anual'
+    default:
+      return 'Cobro según acuerdo'
   }
 }
 
