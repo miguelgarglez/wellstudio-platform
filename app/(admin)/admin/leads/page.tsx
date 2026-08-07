@@ -26,6 +26,7 @@ export default async function AdminLeadsPage({ searchParams }: AdminLeadsPagePro
     resolvedSearchParams?.updated === 'contacted' ||
     resolvedSearchParams?.updated === 'qualified' ||
     resolvedSearchParams?.updated === 'lost'
+    || resolvedSearchParams?.updated === 'converted'
       ? resolvedSearchParams.updated
       : null
 
@@ -58,7 +59,7 @@ async function AdminLeadsSection({
   query: string | null
   status: string | null
   selectedLeadId: string | null
-  updatedState: 'note' | 'new' | 'contacted' | 'qualified' | 'lost' | null
+  updatedState: 'note' | 'new' | 'contacted' | 'qualified' | 'lost' | 'converted' | null
   noticeId: string | null
 }) {
   const overview = await getAdminLeadOverview({

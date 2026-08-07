@@ -834,6 +834,9 @@ Transiciones permitidas en el seguimiento admin:
 - `QUALIFIED` -> `CONTACTED`, `LOST`
 - `LOST` -> `NEW`
 - `CONVERTED` no admite transiciones desde la bandeja de solicitudes
+- la conversión admin no crea identidades locales ni credenciales: vincula de forma explícita una solicitud `QUALIFIED` con un `Member` ya provisionado por Supabase Auth
+- la coincidencia por email o teléfono es evidencia visible, nunca una conversión automática; el operador confirma el socio y la transición se persiste atómicamente con actividad y auditoría
+- una solicitud convertida queda read-only y enlaza al dossier del socio; no existe undo ni merge de identidades en V1
 
 ## 14. Diseño del Admin
 

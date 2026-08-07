@@ -43,6 +43,17 @@ export type AdminLeadActivityPage = {
 export type AdminLeadDetail = AdminLeadListItem & {
   allowedTransitions: AdminLeadOperableStatus[]
   activityPage: AdminLeadActivityPage
+  memberCandidates: AdminLeadMemberCandidate[]
+  convertedMember: AdminLeadMemberCandidate | null
+}
+
+export type AdminLeadMemberCandidate = {
+  id: string
+  displayName: string
+  email: string
+  phoneLabel: string
+  statusLabel: string
+  matchLabel: string | null
 }
 
 export type AdminLeadOverview = {
@@ -65,6 +76,8 @@ type LeadRecord = {
   utmMedium: string | null
   utmCampaign: string | null
   createdAt: Date
+  normalizedPhone?: string | null
+  convertedMemberId?: string | null
 }
 
 export async function getAdminLeadOverview(input: {
@@ -116,7 +129,7 @@ export async function getAdminLeadDetail(leadId: string): Promise<AdminLeadDetai
 
   const lead = await prisma.lead.findUnique({
     where: { id: normalizedLeadId },
-    select: leadSelect,
+    select: { ...leadSelect, convertedMemberId: true },
   })
 
   if (!lead) {
@@ -127,7 +140,56 @@ export async function getAdminLeadDetail(leadId: string): Promise<AdminLeadDetai
     ...buildAdminLeadListItem(lead),
     allowedTransitions: getAllowedLeadStatusTransitions(lead.status),
     activityPage: await getAdminLeadActivitiesPage({ leadId: lead.id }),
+    memberCandidates: lead.status === 'CONVERTED' ? [] : await findLeadMemberCandidates(lead),
+    convertedMember: lead.convertedMemberId
+      ? await getLeadMemberCandidate(lead.convertedMemberId, lead)
+      : null,
   }
+}
+
+export async function searchAdminLeadMemberCandidates(input: { leadId: string; query: string }) {
+  const lead = await prisma.lead.findUnique({ where: { id: input.leadId }, select: leadSelect })
+  if (!lead || lead.status === 'CONVERTED') return []
+
+  const query = input.query.trim().slice(0, 120)
+  if (!query) return findLeadMemberCandidates(lead)
+  const digits = query.replace(/\D/g, '')
+  const members = await prisma.member.findMany({
+    where: {
+      OR: [
+        { firstName: { contains: query, mode: 'insensitive' } },
+        { lastName: { contains: query, mode: 'insensitive' } },
+        { phone: { contains: digits || query } },
+        { user: { normalizedEmail: { contains: query.toLowerCase() } } },
+      ],
+    },
+    orderBy: [{ updatedAt: 'desc' }, { id: 'asc' }],
+    take: 12,
+    select: memberCandidateSelect,
+  })
+  return members.map((member) => buildMemberCandidate(member, lead))
+}
+
+async function findLeadMemberCandidates(lead: LeadRecord) {
+  const email = lead.email?.trim().toLowerCase()
+  const phone = lead.normalizedPhone || lead.phone?.replace(/\D/g, '')
+  if (!email && !phone) return []
+  const members = await prisma.member.findMany({
+    where: {
+      OR: [
+        ...(email ? [{ user: { normalizedEmail: email } }] : []),
+        ...(phone ? [{ phone: { contains: phone } }] : []),
+      ],
+    },
+    take: 8,
+    select: memberCandidateSelect,
+  })
+  return members.map((member) => buildMemberCandidate(member, lead))
+}
+
+async function getLeadMemberCandidate(memberId: string, lead: LeadRecord) {
+  const member = await prisma.member.findUnique({ where: { id: memberId }, select: memberCandidateSelect })
+  return member ? buildMemberCandidate(member, lead) : null
 }
 
 export async function getAdminLeadActivitiesPage(input: {
@@ -361,6 +423,33 @@ const leadSelect = {
   utmMedium: true,
   utmCampaign: true,
   createdAt: true,
+  normalizedPhone: true,
 } satisfies Prisma.LeadSelect
+
+const memberCandidateSelect = {
+  id: true,
+  firstName: true,
+  lastName: true,
+  phone: true,
+  status: true,
+  user: { select: { email: true, normalizedEmail: true } },
+} satisfies Prisma.MemberSelect
+
+export function buildMemberCandidate(
+  member: Prisma.MemberGetPayload<{ select: typeof memberCandidateSelect }>,
+  lead: LeadRecord,
+): AdminLeadMemberCandidate {
+  const emailMatch = Boolean(lead.email && member.user.normalizedEmail === lead.email.trim().toLowerCase())
+  const leadPhone = lead.normalizedPhone || lead.phone?.replace(/\D/g, '')
+  const phoneMatch = Boolean(leadPhone && member.phone?.replace(/\D/g, '') === leadPhone)
+  return {
+    id: member.id,
+    displayName: `${member.firstName} ${member.lastName}`.trim(),
+    email: member.user.email,
+    phoneLabel: member.phone || 'Sin teléfono',
+    statusLabel: member.status === 'ACTIVE' ? 'Activo' : member.status === 'BLOCKED' ? 'Bloqueado' : 'Inactivo',
+    matchLabel: emailMatch && phoneMatch ? 'Email y teléfono coinciden' : emailMatch ? 'Email coincide' : phoneMatch ? 'Teléfono coincide' : null,
+  }
+}
 
 export { isOperableLeadStatus }

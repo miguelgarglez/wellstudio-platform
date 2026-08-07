@@ -14,12 +14,15 @@ import {
   Phone,
   Search,
   Send,
+  UserCheck,
   UserRound,
 } from 'lucide-react'
 
 import {
   addAdminLeadNoteAction,
+  convertAdminLeadAction,
   loadAdminLeadActivitiesAction,
+  searchAdminLeadMemberCandidatesAction,
   updateAdminLeadStatusAction,
   type AdminLeadActionState,
 } from '@/app/(admin)/admin/leads/actions'
@@ -46,13 +49,14 @@ import type {
   AdminLeadDetail,
   AdminLeadListItem,
   AdminLeadOverview,
+  AdminLeadMemberCandidate,
   AdminLeadStatusFilter,
   AdminLeadTimelineItem,
 } from '@/modules/leads/server/admin-leads-overview'
 import type { AdminLeadOperableStatus } from '@/modules/leads/server/admin-lead-operations'
 import { cn } from '@/lib/utils'
 
-type UpdatedState = 'note' | 'new' | 'contacted' | 'qualified' | 'lost' | null
+type UpdatedState = 'note' | 'new' | 'contacted' | 'qualified' | 'lost' | 'converted' | null
 
 type AdminLeadsDashboardProps = {
   overview: AdminLeadOverview
@@ -253,6 +257,7 @@ function LeadDetailSheet({
 }) {
   const [noteDialogOpen, setNoteDialogOpen] = useState(false)
   const [statusDialogOpen, setStatusDialogOpen] = useState(false)
+  const [conversionDialogOpen, setConversionDialogOpen] = useState(false)
 
   return (
     <>
@@ -290,6 +295,21 @@ function LeadDetailSheet({
                   </Button>
                 </div>
 
+                {lead.convertedMember ? (
+                  <div className="rounded-[1.25rem] border border-emerald-200 bg-emerald-50/70 p-4 sm:flex sm:items-center sm:justify-between sm:gap-4">
+                    <div>
+                      <p className="text-xs uppercase tracking-[0.2em] text-emerald-800">Socio vinculado</p>
+                      <p className="mt-1 font-medium text-[var(--wellstudio-ink)]">{lead.convertedMember.displayName}</p>
+                      <p className="mt-1 text-sm text-muted-foreground">{lead.convertedMember.email}</p>
+                    </div>
+                    <Link href={`/admin/members?member=${lead.convertedMember.id}`} className="mt-3 inline-flex h-10 items-center gap-2 rounded-full border bg-white px-4 text-sm font-medium transition-colors hover:bg-muted sm:mt-0">Abrir ficha de socio <ArrowRight className="size-4" /></Link>
+                  </div>
+                ) : lead.status === 'QUALIFIED' ? (
+                  <Button type="button" variant="outline" className="h-12 w-full rounded-full border-[color:color-mix(in_srgb,var(--wellstudio-blue)_24%,white)] bg-[color:color-mix(in_srgb,var(--wellstudio-blue)_5%,white)]" onClick={() => setConversionDialogOpen(true)}>
+                    <UserCheck className="size-4" aria-hidden="true" />Convertir en socio existente
+                  </Button>
+                ) : null}
+
                 <LeadTimeline lead={lead} />
 
                 <details className="rounded-[1.25rem] border border-[color:color-mix(in_srgb,var(--border)_72%,white)] bg-white/62 p-4">
@@ -311,9 +331,70 @@ function LeadDetailSheet({
         <>
           <AddLeadNoteDialog open={noteDialogOpen} onOpenChange={setNoteDialogOpen} lead={lead} returnTo={returnTo} />
           <ChangeLeadStatusDialog open={statusDialogOpen} onOpenChange={setStatusDialogOpen} lead={lead} returnTo={returnTo} />
+          <ConvertLeadDialog open={conversionDialogOpen} onOpenChange={setConversionDialogOpen} lead={lead} returnTo={returnTo} />
         </>
       ) : null}
     </>
+  )
+}
+
+function ConvertLeadDialog({ open, onOpenChange, lead, returnTo }: { open: boolean; onOpenChange: (open: boolean) => void; lead: AdminLeadDetail; returnTo: string }) {
+  const [state, formAction] = useActionState<AdminLeadActionState, FormData>(convertAdminLeadAction, null)
+  const [candidates, setCandidates] = useState(lead.memberCandidates)
+  const [selectedId, setSelectedId] = useState(lead.memberCandidates.length === 1 ? lead.memberCandidates[0].id : '')
+  const [query, setQuery] = useState('')
+  const [note, setNote] = useState('')
+  const [isSearching, startSearch] = useTransition()
+
+  function search() {
+    startSearch(async () => {
+      const results = await searchAdminLeadMemberCandidatesAction({ leadId: lead.id, query })
+      setCandidates(results)
+      setSelectedId(results.length === 1 ? results[0].id : '')
+    })
+  }
+
+  return (
+    <Dialog open={open} onOpenChange={onOpenChange}>
+      <DialogContent className="max-h-dvh overflow-y-auto sm:max-w-2xl">
+        <DialogHeader>
+          <p className="text-xs uppercase tracking-[0.22em] text-[var(--wellstudio-blue-deep)]">Conversión · {lead.displayName}</p>
+          <DialogTitle className="text-2xl">Vincular con un socio existente</DialogTitle>
+          <DialogDescription>Confirma la identidad. Esta acción cierra la solicitud y conserva toda su trazabilidad.</DialogDescription>
+        </DialogHeader>
+        <form action={formAction} className="space-y-4">
+          <input type="hidden" name="leadId" value={lead.id} />
+          <input type="hidden" name="memberId" value={selectedId} />
+          <input type="hidden" name="returnTo" value={returnTo} />
+          <div className="flex gap-2">
+            <Input value={query} onChange={(event) => setQuery(event.target.value)} placeholder="Buscar socio por nombre, email o teléfono" className="h-11 rounded-full" />
+            <Button type="button" variant="outline" className="h-11 rounded-full" onClick={search} disabled={isSearching}>{isSearching ? <Spinner /> : <Search className="size-4" />}Buscar</Button>
+          </div>
+          <fieldset className="space-y-2">
+            <legend className="mb-2 text-xs uppercase tracking-[0.18em] text-[var(--wellstudio-blue-deep)]">Socio que recibirá la conversión</legend>
+            {candidates.length ? candidates.map((candidate) => (
+              <MemberCandidateOption key={candidate.id} candidate={candidate} selected={selectedId === candidate.id} onSelect={() => setSelectedId(candidate.id)} />
+            )) : <p className="rounded-[1rem] border border-dashed p-4 text-sm text-muted-foreground">No hay coincidencias todavía. Busca el socio que ya creó su cuenta.</p>}
+          </fieldset>
+          {state?.field === 'memberId' || (state?.message && !state.field) ? <p role="alert" className="text-sm text-destructive">{state.message}</p> : null}
+          <LeadNoteField value={note} onChange={setNote} required={false} label="Nota de conversión opcional" error={state?.field === 'note' ? state.message : null} />
+          <DialogFooter>
+            <Button type="button" variant="outline" className="rounded-full" onClick={() => onOpenChange(false)}>Cancelar</Button>
+            <PendingButton label="Confirmar conversión" disabled={!selectedId} />
+          </DialogFooter>
+        </form>
+      </DialogContent>
+    </Dialog>
+  )
+}
+
+function MemberCandidateOption({ candidate, selected, onSelect }: { candidate: AdminLeadMemberCandidate; selected: boolean; onSelect: () => void }) {
+  return (
+    <label className={cn('block cursor-pointer rounded-[1.1rem] border p-4 transition-colors', selected ? 'border-[var(--wellstudio-blue)] bg-blue-50/70' : 'bg-white hover:bg-muted/40')}>
+      <input type="radio" className="sr-only" checked={selected} onChange={onSelect} />
+      <span className="flex items-start justify-between gap-3"><span><span className="block font-medium">{candidate.displayName}</span><span className="mt-1 block text-sm text-muted-foreground">{candidate.email} · {candidate.phoneLabel}</span></span><span className="text-xs uppercase tracking-[0.16em] text-[var(--wellstudio-blue-deep)]">{candidate.statusLabel}</span></span>
+      {candidate.matchLabel ? <span className="mt-2 inline-block rounded-full bg-emerald-50 px-2.5 py-1 text-xs text-emerald-800">{candidate.matchLabel}</span> : null}
+    </label>
   )
 }
 

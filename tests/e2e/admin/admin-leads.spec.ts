@@ -9,6 +9,7 @@ import {
 import {
   hasSandboxAdminCredentials,
   hasSandboxCredentials,
+  getSandboxCredentials,
   isSandboxAuthEnabled,
   loadE2EEnvFiles,
 } from '../support/env'
@@ -89,6 +90,25 @@ test.describe('Admin leads V2 @admin @sandbox', () => {
     await expect(page.getByRole('status').getByText('Solicitud reabierta')).toBeVisible()
     await expect(detail.getByText('Perdida → Nueva')).toBeVisible()
 
+    await detail.getByRole('button', { name: 'Cambiar estado' }).click()
+    const qualifyDialog = page.getByRole('dialog', { name: 'Cambiar estado' })
+    await qualifyDialog.getByText('Interesada', { exact: true }).click()
+    await qualifyDialog.getByRole('button', { name: 'Marcar como interesada' }).click()
+    await expect(detail.getByRole('button', { name: 'Convertir en socio existente' })).toBeVisible()
+
+    await detail.getByRole('button', { name: 'Convertir en socio existente' }).click()
+    const conversionDialog = page.getByRole('dialog', { name: 'Vincular con un socio existente' })
+    const memberEmail = getSandboxCredentials().email
+    await conversionDialog.getByPlaceholder('Buscar socio por nombre, email o teléfono').fill(memberEmail)
+    await conversionDialog.getByRole('button', { name: 'Buscar' }).click()
+    await conversionDialog.getByText(memberEmail, { exact: false }).click()
+    await conversionDialog.getByRole('button', { name: 'Confirmar conversión' }).click()
+
+    await expect(page.getByRole('status').getByText('Solicitud convertida en socio')).toBeVisible()
+    await expect(detail.getByText('Socio vinculado')).toBeVisible()
+    await expect(detail.getByRole('link', { name: 'Abrir ficha de socio' })).toBeVisible()
+    await expect(detail.getByText('Interesada → Convertida')).toBeVisible()
+
     await testInfo.attach('admin-leads-v2-desktop', {
       body: await page.screenshot({ fullPage: true }),
       contentType: 'image/png',
@@ -96,7 +116,8 @@ test.describe('Admin leads V2 @admin @sandbox', () => {
 
     await page.reload()
     await expect(detail.getByText('Solicita precios', { exact: true })).toBeVisible()
-    await expect(detail.getByText('Perdida → Nueva')).toBeVisible()
+    await expect(detail.getByText('Interesada → Convertida')).toBeVisible()
+    await expect(detail.getByText('Socio vinculado')).toBeVisible()
   })
 
   test('mobile detail is full width and preserves inbox context when closed', async ({ page }, testInfo) => {

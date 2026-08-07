@@ -269,6 +269,7 @@ Para leads admin, el gate dirigido debe cubrir:
 - nota obligatoria al marcar `LOST`
 - persistencia atomica de cambio de estado + actividad
 - notas append-only, actor snapshot y timeline tras recarga
+- conversión de solicitud interesada a un socio existente, con protección ante doble conversión/concurrencia y estado read-only tras recarga
 - deep-link de detalle y retorno a filtros en mobile
 
 Para agenda admin, el gate dirigido debe cubrir:

@@ -9,15 +9,47 @@ import {
   updateAdminLeadStatus,
   type AdminLeadActor,
 } from '@/modules/leads/server/admin-lead-operations'
+import { convertAdminLeadToMember } from '@/modules/leads/server/admin-lead-conversion'
 import {
   getAdminLeadActivitiesPage,
+  searchAdminLeadMemberCandidates,
   type AdminLeadActivityPage,
+  type AdminLeadMemberCandidate,
 } from '@/modules/leads/server/admin-leads-overview'
 
 export type AdminLeadActionState = {
   message: string
-  field?: 'note' | 'status'
+  field?: 'note' | 'status' | 'memberId'
 } | null
+
+export async function convertAdminLeadAction(
+  _previousState: AdminLeadActionState,
+  formData: FormData,
+): Promise<AdminLeadActionState> {
+  const authContext = await requireAdminOrStaffContext()
+  if (!authContext) return { message: 'Necesitamos una sesión admin o staff válida.' }
+
+  const returnTo = normalizeReturnTo(readField(formData, 'returnTo'))
+  const result = await convertAdminLeadToMember({
+    leadId: readField(formData, 'leadId') ?? '',
+    memberId: readField(formData, 'memberId') ?? '',
+    note: readField(formData, 'note'),
+    actor: buildLeadActor(authContext),
+  })
+  if (!result.success) return { message: result.message, field: result.field }
+
+  revalidatePath('/admin/leads')
+  revalidatePath('/admin/members')
+  redirect(appendUpdatedParam(returnTo, 'converted'))
+}
+
+export async function searchAdminLeadMemberCandidatesAction(input: {
+  leadId: string
+  query: string
+}): Promise<AdminLeadMemberCandidate[]> {
+  if (!await requireAdminOrStaffContext()) throw new Error('Admin or staff session required')
+  return searchAdminLeadMemberCandidates(input)
+}
 
 export async function addAdminLeadNoteAction(
   _previousState: AdminLeadActionState,

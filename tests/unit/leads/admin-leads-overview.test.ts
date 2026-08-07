@@ -22,6 +22,7 @@ vi.mock('@/lib/db/prisma', () => ({
 
 import {
   buildAdminLeadListItem,
+  buildMemberCandidate,
   formatLeadStatusLabel,
   getAdminLeadActivitiesPage,
   getAdminLeadOverview,
@@ -167,6 +168,29 @@ describe('admin leads overview', () => {
       statusLabel: 'Perdida',
       sourceLabel: 'Origen no indicado',
       attributionLabel: null,
+    })
+  })
+
+  it('explains exact identity evidence without auto-selecting a conversion', () => {
+    expect(buildMemberCandidate(
+      {
+        id: 'member-1',
+        firstName: 'Marta',
+        lastName: 'Socio',
+        phone: '612 555 105',
+        status: 'ACTIVE',
+        user: { email: 'marta@example.com', normalizedEmail: 'marta@example.com' },
+      },
+      {
+        id: 'lead-1', firstName: 'Marta', lastName: null, phone: '612555105',
+        normalizedPhone: '612555105', email: 'marta@example.com', status: 'QUALIFIED',
+        source: null, utmSource: null, utmMedium: null, utmCampaign: null,
+        createdAt: new Date('2026-05-29T18:30:00.000Z'),
+      },
+    )).toMatchObject({
+      displayName: 'Marta Socio',
+      statusLabel: 'Activo',
+      matchLabel: 'Email y teléfono coinciden',
     })
   })
 })

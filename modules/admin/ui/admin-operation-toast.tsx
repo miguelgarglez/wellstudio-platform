@@ -17,6 +17,7 @@ type AdminOperationToastState =
   | 'lead-qualified'
   | 'lead-lost'
   | 'lead-note'
+  | 'lead-converted'
   | 'session-draft'
   | 'session-published'
   | 'session-closed'
@@ -103,6 +104,11 @@ const TOAST_COPY: Record<
     tone: 'success',
     title: 'Nota añadida',
     description: 'El nuevo contexto ya forma parte del historial de la solicitud.',
+  },
+  'lead-converted': {
+    tone: 'success',
+    title: 'Solicitud convertida en socio',
+    description: 'La identidad ha quedado vinculada sin perder el historial comercial.',
   },
   'session-draft': {
     tone: 'success',
