@@ -166,6 +166,8 @@ No cerrar pagos sin probar al menos un flujo sandbox end-to-end.
 - admin busca un socio, abre su dossier y navega al flujo contextual correspondiente
 - admin inactiva un socio, el portal bloquea nuevas plazas y la reactivación restaura la operativa
 - admin asigna y finaliza una membership interna desde el dossier, recibe feedback y el fixture sin plan se restaura al terminar
+- admin ajusta el ledger de una cuenta vigente y ve el saldo actualizado con feedback
+- admin abre una cuenta de creditos interna desde mobile, confirma que no aparece un pago y el fixture se restaura al terminar
 - un recurso con sesiones futuras no puede archivarse hasta resolver sus dependencias
 
 ## Matriz minima por modulo

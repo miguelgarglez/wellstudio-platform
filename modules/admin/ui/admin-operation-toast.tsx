@@ -36,6 +36,8 @@ type AdminOperationToastState =
   | 'member-blocked'
   | 'membership-assigned'
   | 'membership-ended'
+  | 'credits-adjusted'
+  | 'credit-account-opened'
   | null
 
 type AdminOperationToastProps = {
@@ -196,6 +198,16 @@ const TOAST_COPY: Record<
     tone: 'success',
     title: 'Membership finalizada',
     description: 'La cobertura deja de admitir nuevas reservas sin cancelar actividad ya confirmada.',
+  },
+  'credits-adjusted': {
+    tone: 'success',
+    title: 'Saldo de créditos actualizado',
+    description: 'El movimiento y el saldo resultante ya constan en el ledger auditable del socio.',
+  },
+  'credit-account-opened': {
+    tone: 'success',
+    title: 'Cuenta de créditos abierta',
+    description: 'Los créditos ya están disponibles sin crear un pago o una compra ficticia.',
   },
 }
 

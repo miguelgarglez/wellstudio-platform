@@ -301,6 +301,8 @@ Para gestion de socios admin, el gate dirigido debe cubrir:
 - un socio inactivo o bloqueado no puede adquirir nuevas plazas, pero conserva consulta y cancelación de actividad existente
 - recorrido E2E admin -> socio inactivo -> portal bloqueado -> reactivación y limpieza del fixture
 - asignación y finalización de membership interna con motivo, feedback, auditoría y restauración determinista del socio sandbox sin plan
+- ajuste positivo/negativo de creditos basado en ledger, rechazo de saldo negativo y reapertura derivada de una cuenta agotada
+- apertura manual de cuenta sin `Payment`, prevención de duplicados operables y restauración determinista del sandbox
 - rechazo unitario de duplicados activos, fechas futuras y finalización local de contratos externos
 
 ## 12. Regla final

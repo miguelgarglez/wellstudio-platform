@@ -50,6 +50,7 @@ import {
   AdminAssignMembershipAction,
   AdminEndMembershipAction,
 } from '@/modules/admin/ui/admin-member-membership-actions'
+import { AdminManageCreditsAction } from '@/modules/admin/ui/admin-member-credit-actions'
 import { AdminResponsiveDetailFrame } from '@/modules/admin/ui/admin-responsive-detail-frame'
 import { AdminOperationToast } from '@/modules/admin/ui/admin-operation-toast'
 import type { AdminMemberOperableStatus } from '@/modules/members/server/admin-member-status'
@@ -74,6 +75,8 @@ export function AdminMembersDashboard({
     | 'member-blocked'
     | 'membership-assigned'
     | 'membership-ended'
+    | 'credits-adjusted'
+    | 'credit-account-opened'
     | null
   noticeId: string | null
 }) {
@@ -176,6 +179,7 @@ export function AdminMembersDashboard({
           <MemberDetail
             member={overview.selectedMember}
             membershipPlans={overview.membershipPlans}
+            creditPacks={overview.creditPacks}
             returnTo={detailHref}
           />
         ) : (
@@ -260,10 +264,12 @@ function MemberListRow({
 function MemberDetail({
   member,
   membershipPlans,
+  creditPacks,
   returnTo,
 }: {
   member: AdminMemberDetail
   membershipPlans: AdminMembersOverview['membershipPlans']
+  creditPacks: AdminMembersOverview['creditPacks']
   returnTo: string
 }) {
   const [statusDialogOpen, setStatusDialogOpen] = useState(false)
@@ -321,7 +327,14 @@ function MemberDetail({
       <section className="border-t border-[color:color-mix(in_srgb,var(--border)_72%,white)] pt-5" aria-labelledby="member-coverage-heading">
         <div className="flex flex-wrap items-center justify-between gap-3">
           <SectionHeading icon={ShieldCheck} eyebrow="Cobertura comercial" title="Membresías y créditos" id="member-coverage-heading" />
-          <AdminAssignMembershipAction member={member} plans={membershipPlans} returnTo={returnTo} />
+          <div className="flex flex-wrap items-start justify-end gap-2">
+            <AdminManageCreditsAction
+              member={member}
+              creditPacks={creditPacks}
+              returnTo={returnTo}
+            />
+            <AdminAssignMembershipAction member={member} plans={membershipPlans} returnTo={returnTo} />
+          </div>
         </div>
         <div className="mt-3 grid gap-3 xl:grid-cols-2">
           <div className="space-y-3">
@@ -358,6 +371,7 @@ function MemberDetail({
                   <span className="text-right"><strong className="block text-xl font-medium text-[var(--wellstudio-ink)]">{credit.balance}</strong><span className="text-xs text-muted-foreground">de {credit.total}</span></span>
                 </div>
                 <p className="mt-3 text-xs uppercase tracking-[0.16em] text-[var(--wellstudio-blue-deep)]">{credit.statusLabel}</p>
+                <p className="mt-2 text-xs leading-5 text-muted-foreground">{credit.lastMovementLabel}</p>
               </article>
             )) : <InlineEmpty icon={Coins} text="Sin cuentas de créditos" />}
           </div>

@@ -1,10 +1,11 @@
 import { beforeEach, describe, expect, it, vi } from 'vitest'
 
-const { memberFindManyMock, memberFindUniqueMock, memberGroupByMock, membershipPlanFindManyMock } = vi.hoisted(() => ({
+const { memberFindManyMock, memberFindUniqueMock, memberGroupByMock, membershipPlanFindManyMock, creditPackFindManyMock } = vi.hoisted(() => ({
   memberFindManyMock: vi.fn(),
   memberFindUniqueMock: vi.fn(),
   memberGroupByMock: vi.fn(),
   membershipPlanFindManyMock: vi.fn(),
+  creditPackFindManyMock: vi.fn(),
 }))
 
 vi.mock('@/lib/db/prisma', () => ({
@@ -15,6 +16,7 @@ vi.mock('@/lib/db/prisma', () => ({
       groupBy: memberGroupByMock,
     },
     membershipPlan: { findMany: membershipPlanFindManyMock },
+    creditPack: { findMany: creditPackFindManyMock },
   },
 }))
 
@@ -32,6 +34,7 @@ describe('admin members overview', () => {
     memberFindUniqueMock.mockResolvedValue(null)
     memberGroupByMock.mockResolvedValue([])
     membershipPlanFindManyMock.mockResolvedValue([])
+    creditPackFindManyMock.mockResolvedValue([])
   })
 
   it('normalizes unsupported filters to the safe active default', () => {
@@ -98,6 +101,15 @@ describe('admin members overview', () => {
         allowanceCount: 3,
       },
     }])
+    creditPackFindManyMock.mockResolvedValue([{
+      id: 'pack-1',
+      name: 'Bono 10',
+      description: 'Diez accesos flexibles',
+      creditsTotal: 10,
+      priceAmount: 11000,
+      currency: 'EUR',
+      expiresAfterDays: 90,
+    }])
 
     const overview = await getAdminMembersOverview({
       selectedMemberId: 'member-1',
@@ -127,6 +139,12 @@ describe('admin members overview', () => {
       priceLabel: '79,00 €',
       billingLabel: 'Mensual',
       policyLabel: '3 / semana',
+    })])
+    expect(overview.creditPacks).toEqual([expect.objectContaining({
+      id: 'pack-1',
+      creditsTotal: 10,
+      priceLabel: '110,00 €',
+      expiryLabel: '90 días de vigencia',
     })])
   })
 
@@ -171,8 +189,13 @@ function buildSelectedMember() {
       status: 'ACTIVE',
       openedAt: new Date('2026-08-01T00:00:00.000Z'),
       expiresAt: null,
-      creditPack: { name: 'Bono 10', creditsTotal: 10 },
-      ledgerEntries: [{ balanceAfter: 6 }],
+      creditPack: { id: 'pack-1', name: 'Bono 10', creditsTotal: 10 },
+      ledgerEntries: [{
+        balanceAfter: 6,
+        creditsDelta: -4,
+        entryType: 'RESERVATION_CONSUME',
+        createdAt: new Date('2026-08-04T10:00:00.000Z'),
+      }],
     }],
     reservations: [{
       id: 'reservation-1',

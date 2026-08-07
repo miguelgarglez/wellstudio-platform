@@ -166,6 +166,75 @@ test.describe('Admin members @admin @sandbox', () => {
     }
   })
 
+  test('admin adjusts an existing credit ledger with visible balance feedback', async ({ page }, testInfo) => {
+    const weeklyEmail = 'e2e.admin.playground.weekly.sandbox@wellstudio.test'
+    await resetSandboxAdminPlaygroundScenario()
+
+    try {
+      await loginAsSandboxAdmin(page)
+      await page.goto(`/admin/members?q=${encodeURIComponent(weeklyEmail)}`)
+      await page.getByRole('link', { name: new RegExp(weeklyEmail, 'i') }).click()
+
+      const creditCard = page.locator('article').filter({ hasText: 'Admin Playground Credits' }).first()
+      await expect(creditCard.getByText('6', { exact: true })).toBeVisible()
+      await page.getByRole('button', { name: 'Gestionar créditos' }).click()
+
+      const dialog = page.getByRole('dialog', { name: /Gestionar créditos de Marta Semanal/i })
+      await expect(dialog).toBeVisible()
+      await dialog.getByLabel('Cantidad').fill('2')
+      await dialog.getByLabel('Motivo operativo').fill('Cortesía autorizada durante E2E')
+      await waitForMotionToSettle(dialog)
+
+      await testInfo.attach('admin-credit-adjustment-dialog', {
+        body: await page.screenshot(),
+        contentType: 'image/png',
+      })
+
+      await dialog.getByRole('button', { name: 'Registrar ajuste' }).click()
+      await expect(page).toHaveURL(/updated=credits-adjusted/)
+      await expect(page.getByRole('status').getByText('Saldo de créditos actualizado')).toBeVisible()
+      await expect(page.locator('article').filter({ hasText: 'Admin Playground Credits' }).first().getByText('8', { exact: true })).toBeVisible()
+    } finally {
+      await resetSandboxAdminPlaygroundScenario()
+    }
+  })
+
+  test('admin opens a manual credit account from mobile without creating a payment', async ({ page }, testInfo) => {
+    const noPlanEmail = 'e2e.admin.playground.no-plan.sandbox@wellstudio.test'
+    await resetSandboxAdminPlaygroundScenario()
+
+    try {
+      await loginAsSandboxAdmin(page)
+      await page.setViewportSize({ width: 390, height: 844 })
+      await page.goto(`/admin/members?q=${encodeURIComponent(noPlanEmail)}`)
+      await page.getByRole('link', { name: new RegExp(noPlanEmail, 'i') }).click()
+      await expect(page.getByText('Sin cuentas de créditos')).toBeVisible()
+      await page.getByRole('button', { name: 'Gestionar créditos' }).click()
+
+      const dialog = page.getByRole('dialog', { name: /Gestionar créditos de Alex Sin Plan/i })
+      await expect(dialog).toBeVisible()
+      await waitForMotionToSettle(dialog)
+      const box = await dialog.boundingBox()
+      expect(box?.width).toBeGreaterThanOrEqual(388)
+      await dialog.getByLabel('Créditos iniciales').fill('4')
+      await dialog.getByLabel('Motivo operativo').fill('Bono de bienvenida autorizado en E2E')
+
+      await testInfo.attach('admin-credit-account-opening-mobile', {
+        body: await page.screenshot(),
+        contentType: 'image/png',
+      })
+
+      await dialog.getByRole('button', { name: 'Abrir cuenta de créditos' }).click()
+      await expect(page).toHaveURL(/updated=credit-account-opened/)
+      await expect(page.getByRole('status').getByText('Cuenta de créditos abierta')).toBeVisible()
+      const creditCard = page.locator('article').filter({ hasText: 'Admin Playground Credits' }).first()
+      await expect(creditCard.getByText('4', { exact: true })).toBeVisible()
+      await expect(page.getByText('Sin pagos registrados')).toBeVisible()
+    } finally {
+      await resetSandboxAdminPlaygroundScenario()
+    }
+  })
+
   test('mobile member detail uses the full viewport and returns to the filtered list', async ({ page }, testInfo) => {
     const { email } = getSandboxCredentials()
 

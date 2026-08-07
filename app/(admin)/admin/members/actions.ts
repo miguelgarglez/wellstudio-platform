@@ -5,6 +5,11 @@ import { redirect } from 'next/navigation'
 
 import { requireAdminOrStaffContext } from '@/modules/auth/server/identity'
 import {
+  adjustMemberCreditAccount,
+  openManualCreditAccount,
+  type AdminCreditOperationResult,
+} from '@/modules/members/server/admin-member-credits'
+import {
   assignManualMembership,
   endManualMembership,
   type AdminMembershipActor,
@@ -23,6 +28,11 @@ export type AdminMemberStatusActionState = {
 export type AdminMembershipActionState = {
   message: string
   field?: 'planId' | 'startsOn' | 'endsOn' | 'reason'
+} | null
+
+export type AdminCreditActionState = {
+  message: string
+  field?: 'creditAccountId' | 'creditPackId' | 'direction' | 'amount' | 'reason'
 } | null
 
 export async function changeAdminMemberStatusAction(
@@ -118,6 +128,55 @@ export async function endManualMembershipAction(
 
   revalidateMemberCommercialPaths()
   redirect(appendFeedback(normalizeReturnTo(read(formData, 'returnTo')), 'membership-ended'))
+}
+
+export async function manageMemberCreditsAction(
+  _previousState: AdminCreditActionState,
+  formData: FormData,
+): Promise<AdminCreditActionState> {
+  const context = await requireAdminOrStaffContext()
+  if (!context) return { message: 'Necesitamos una sesión admin o staff válida.' }
+
+  const operation = read(formData, 'operation')
+  const amount = Number(read(formData, 'amount'))
+  let result: AdminCreditOperationResult
+
+  try {
+    if (operation === 'adjust') {
+      const direction = read(formData, 'direction')
+      if (direction !== 'ADD' && direction !== 'REMOVE') {
+        return { field: 'direction', message: 'Indica si quieres añadir o retirar créditos.' }
+      }
+      result = await adjustMemberCreditAccount({
+        memberId: read(formData, 'memberId') ?? '',
+        creditAccountId: read(formData, 'creditAccountId') ?? '',
+        direction,
+        amount,
+        reason: read(formData, 'reason') ?? '',
+        actor: membershipActorFrom(context),
+      })
+    } else if (operation === 'open') {
+      result = await openManualCreditAccount({
+        memberId: read(formData, 'memberId') ?? '',
+        creditPackId: read(formData, 'creditPackId') ?? '',
+        initialCredits: amount,
+        reason: read(formData, 'reason') ?? '',
+        actor: membershipActorFrom(context),
+      })
+    } else {
+      return { message: 'Selecciona una operación de créditos válida.' }
+    }
+  } catch {
+    return { message: 'No hemos podido actualizar los créditos. Recarga la ficha y vuelve a intentarlo.' }
+  }
+
+  if (!result.success) return { message: result.message, field: result.field }
+
+  revalidateMemberCommercialPaths()
+  redirect(appendFeedback(
+    normalizeReturnTo(read(formData, 'returnTo')),
+    result.operation === 'OPENED' ? 'credit-account-opened' : 'credits-adjusted',
+  ))
 }
 
 function read(formData: FormData, key: string) {

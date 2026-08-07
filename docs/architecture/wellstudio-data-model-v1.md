@@ -913,6 +913,8 @@ Estas reglas deberian reflejarse en codigo, constraints o ambos.
 - un override manual debe quedar trazado tanto en el override como en `reservation_entitlement_usages`
 - toda devolucion de credito debe dejar rastro en ledger
 - expiracion de creditos debe quedar registrada como movimiento
+- todo ajuste admin añade una entrada `manual_adjustment` con delta, saldo resultante, motivo y referencia al actor; el estado de la cuenta se deriva como `active` o `depleted`
+- una cuenta abierta manualmente usa un bono activo como referencia y `payment_id = null`; no representa una compra ni debe duplicar otra cuenta operable del mismo bono
 
 ### Pagos
 

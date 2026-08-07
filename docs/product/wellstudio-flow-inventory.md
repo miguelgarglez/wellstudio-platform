@@ -609,7 +609,8 @@ Happy path:
 2. ve estado de membresias, creditos y reservas
 3. puede cambiar su estado basico con un motivo operativo
 4. puede asignar o finalizar una membership interna con vigencia y motivo
-5. puede realizar las demas acciones permitidas desde sus superficies de dominio
+5. puede ajustar creditos existentes o abrir una cuenta interna sin registrar un pago ficticio
+6. puede realizar las demas acciones permitidas desde sus superficies de dominio
 
 Errores y bloqueos:
 
@@ -633,6 +634,8 @@ Estado V1 implementado:
 - el admin puede asignar una membership interna de inicio inmediato o retroactivo sobre un plan activo; no se genera `Payment`, autorrenovacion ni contrato externo
 - el admin puede finalizar una membership interna activa o pendiente sin cancelar reservas ya confirmadas; las memberships con proveedor externo se bloquean para evitar drift contractual
 - una segunda membership activa y las activaciones futuras se rechazan de forma explicita
+- el admin puede añadir o retirar creditos mediante un movimiento `MANUAL_ADJUSTMENT`; el saldo no puede quedar negativo y cada delta conserva motivo, actor y saldo resultante
+- si no existe una cuenta operable, puede abrirse una cuenta interna sobre un bono activo sin crear `Payment`; no se duplica una cuenta vigente del mismo bono ni se reabren cuentas expiradas o canceladas
 - desde la ficha se enlaza con Excepciones y con la sesión concreta de Agenda conservando un único contexto operativo
 - `/admin/overrides` permite buscar socios por nombre o email
 - opera solo sobre memberships activas

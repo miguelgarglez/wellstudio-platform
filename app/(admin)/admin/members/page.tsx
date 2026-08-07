@@ -68,7 +68,9 @@ function parseUpdatedState(value?: string) {
     value === 'member-inactive' ||
     value === 'member-blocked' ||
     value === 'membership-assigned' ||
-    value === 'membership-ended'
+    value === 'membership-ended' ||
+    value === 'credits-adjusted' ||
+    value === 'credit-account-opened'
     ? value
     : null
 }
@@ -79,4 +81,6 @@ type AdminMembersUpdatedState =
   | 'member-blocked'
   | 'membership-assigned'
   | 'membership-ended'
+  | 'credits-adjusted'
+  | 'credit-account-opened'
   | null

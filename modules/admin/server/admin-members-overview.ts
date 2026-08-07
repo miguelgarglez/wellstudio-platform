@@ -43,18 +43,24 @@ const adminMemberDetailSelect = {
     },
   },
   creditAccounts: {
-    orderBy: { openedAt: 'desc' as const },
+    orderBy: [{ openedAt: 'desc' as const }, { id: 'desc' as const }],
     take: DETAIL_HISTORY_LIMIT,
     select: {
       id: true,
       status: true,
       openedAt: true,
       expiresAt: true,
-      creditPack: { select: { name: true, creditsTotal: true } },
+      creditPack: { select: { id: true, name: true, creditsTotal: true } },
       ledgerEntries: {
-        orderBy: { createdAt: 'desc' as const },
+        orderBy: [{ createdAt: 'desc' as const }, { id: 'desc' as const }],
         take: 1,
-        select: { balanceAfter: true },
+        select: {
+          id: true,
+          balanceAfter: true,
+          creditsDelta: true,
+          entryType: true,
+          createdAt: true,
+        },
       },
     },
   },
@@ -127,6 +133,7 @@ export type AdminMembersOverview = Awaited<ReturnType<typeof getAdminMembersOver
 export type AdminMemberListItem = AdminMembersOverview['members'][number]
 export type AdminMemberDetail = NonNullable<AdminMembersOverview['selectedMember']>
 export type AdminMembershipPlanOption = AdminMembersOverview['membershipPlans'][number]
+export type AdminCreditPackOption = AdminMembersOverview['creditPacks'][number]
 
 export async function getAdminMembersOverview(input: {
   query?: string | null
@@ -157,7 +164,7 @@ export async function getAdminMembersOverview(input: {
       : undefined,
   }
 
-  const [members, statusGroups, selectedMemberRecord, membershipPlans] = await Promise.all([
+  const [members, statusGroups, selectedMemberRecord, membershipPlans, creditPacks] = await Promise.all([
     prisma.member.findMany({
       where,
       orderBy: [{ updatedAt: 'desc' }, { id: 'asc' }],
@@ -210,6 +217,19 @@ export async function getAdminMembersOverview(input: {
         },
       },
     }),
+    prisma.creditPack.findMany({
+      where: { status: 'ACTIVE' },
+      orderBy: [{ name: 'asc' }, { id: 'asc' }],
+      select: {
+        id: true,
+        name: true,
+        description: true,
+        creditsTotal: true,
+        priceAmount: true,
+        currency: true,
+        expiresAfterDays: true,
+      },
+    }),
   ])
 
   const countsByStatus = new Map(statusGroups.map((group) => [group.status, group._count._all]))
@@ -233,6 +253,16 @@ export async function getAdminMembersOverview(input: {
       ? mapSelectedMember(selectedMemberRecord, now)
       : null,
     membershipPlans: membershipPlans.map(mapMembershipPlanOption),
+    creditPacks: creditPacks.map((pack) => ({
+      id: pack.id,
+      name: pack.name,
+      description: pack.description,
+      creditsTotal: pack.creditsTotal,
+      priceLabel: formatMoney(pack.priceAmount, pack.currency),
+      expiryLabel: pack.expiresAfterDays
+        ? `${pack.expiresAfterDays} días de vigencia`
+        : 'Sin caducidad',
+    })),
     counts: {
       all: statusGroups.reduce((total, group) => total + group._count._all, 0),
       active: countsByStatus.get('ACTIVE') ?? 0,
@@ -287,14 +317,25 @@ function mapSelectedMember(member: AdminMemberDetailRecord, now: Date) {
       usageCount: membership._count.usages,
       overrideCount: membership._count.bookingOverrides,
     })),
-    credits: member.creditAccounts.map((account) => ({
-      id: account.id,
-      packName: account.creditPack.name,
-      statusLabel: creditStatusLabel(account.status),
-      balance: account.ledgerEntries[0]?.balanceAfter ?? account.creditPack.creditsTotal,
-      total: account.creditPack.creditsTotal,
-      windowLabel: account.expiresAt ? `Expira ${formatDate(account.expiresAt)}` : `Abierto ${formatDate(account.openedAt)}`,
-    })),
+    credits: member.creditAccounts.map((account) => {
+      const latestEntry = account.ledgerEntries[0]
+      return {
+        id: account.id,
+        creditPackId: account.creditPack.id,
+        packName: account.creditPack.name,
+        status: account.status,
+        statusLabel: creditStatusLabel(account.status),
+        balance: latestEntry?.balanceAfter ?? account.creditPack.creditsTotal,
+        total: account.creditPack.creditsTotal,
+        windowLabel: account.expiresAt ? `Expira ${formatDate(account.expiresAt)}` : `Abierto ${formatDate(account.openedAt)}`,
+        canAdjustManually:
+          (account.status === 'ACTIVE' || account.status === 'DEPLETED') &&
+          (!account.expiresAt || account.expiresAt > now),
+        lastMovementLabel: latestEntry
+          ? `${latestEntry.creditsDelta > 0 ? '+' : ''}${latestEntry.creditsDelta} · ${creditEntryTypeLabel(latestEntry.entryType)} · ${formatDateTime(latestEntry.createdAt)}`
+          : 'Sin movimientos registrados',
+      }
+    }),
     reservations,
     upcomingReservationCount: reservations.filter((reservation) => reservation.isUpcoming).length,
     activeWaitlist: member.waitlistEntries.map((entry) => ({
@@ -399,6 +440,17 @@ function membershipStatusLabel(status: string) {
 function creditStatusLabel(status: string) {
   const labels: Record<string, string> = { ACTIVE: 'Activo', DEPLETED: 'Agotado', EXPIRED: 'Expirado', CANCELED: 'Cancelado' }
   return labels[status] ?? status
+}
+
+function creditEntryTypeLabel(entryType: string) {
+  const labels: Record<string, string> = {
+    PURCHASE: 'Compra',
+    RESERVATION_CONSUME: 'Reserva',
+    RESERVATION_REFUND: 'Devolución',
+    MANUAL_ADJUSTMENT: 'Ajuste admin',
+    EXPIRATION: 'Caducidad',
+  }
+  return labels[entryType] ?? entryType
 }
 
 function reservationStatusLabel(status: string) {

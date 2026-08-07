@@ -103,7 +103,7 @@ const ADMIN_PLAYGROUND_PLANS = {
 const ADMIN_PLAYGROUND_CREDIT_PACK = {
   name: 'Admin Playground Credits',
   slug: 'admin-playground-credits',
-  description: 'Playground credits used to make commercial state visible.',
+  description: 'Bono sandbox para validar saldos y ajustes operativos.',
   creditsTotal: 10,
   priceAmount: 4500,
 }
@@ -878,6 +878,9 @@ async function reconcileCommercialContext(tx, { members, plans, creditPack, now 
   const memberEntries = Object.values(members)
   const memberIds = memberEntries.map((entry) => entry.member.id)
 
+  await deleteSandboxManualCreditAccounts(tx, {
+    memberId: members.noMembership.member.id,
+  })
   await deleteManagedPayments(tx, { memberIds })
 
   const weeklyPayment = await createPayment(tx, {
@@ -985,6 +988,25 @@ async function reconcileCommercialContext(tx, { members, plans, creditPack, now 
     last4: '4444',
     expMonth: 8,
     expYear: now.getFullYear() + 3,
+  })
+}
+
+async function deleteSandboxManualCreditAccounts(tx, { memberId }) {
+  const accounts = await tx.memberCreditAccount.findMany({
+    where: { memberId, paymentId: null },
+    select: { id: true },
+  })
+  const accountIds = accounts.map((account) => account.id)
+  if (accountIds.length === 0) return
+
+  await tx.reservationEntitlementUsage.deleteMany({
+    where: { memberCreditAccountId: { in: accountIds } },
+  })
+  await tx.creditLedgerEntry.deleteMany({
+    where: { memberCreditAccountId: { in: accountIds } },
+  })
+  await tx.memberCreditAccount.deleteMany({
+    where: { id: { in: accountIds } },
   })
 }
 

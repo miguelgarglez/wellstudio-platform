@@ -252,7 +252,7 @@ Debe permitir:
 - activar, inactivar o bloquear el acceso a nuevas plazas con motivo auditable
 - revisar reservas futuras
 - asignar o finalizar memberships internas con vigencia y motivo auditable
-- consultar bonos y creditos; su ajuste manual queda separado hasta disponer de un caso de uso basado en ledger
+- consultar bonos y creditos, ajustar una cuenta vigente y abrir una cuenta interna mediante movimientos de ledger auditables
 
 ### 3. Gestion de leads
 
@@ -362,6 +362,8 @@ El equipo debe poder consultar y editar el estado basico de los socios.
 En V1, cambiar el estado no elimina actividad ni revoca la identidad del portal. Los estados `inactive` y `blocked` impiden adquirir nuevas plazas, incluidas reservas y waitlist, pero conservan la consulta y cancelacion de actividad existente. Toda transicion exige motivo, actor y trazabilidad.
 
 La asignacion manual de membership representa una cobertura gestionada por el centro: no crea cobros, autorrenovaciones ni suscripciones externas. Solo admite inicio inmediato o retroactivo; programar activaciones futuras requiere un workflow dedicado. Finalizar una cobertura interna conserva las reservas confirmadas y no puede usarse sobre contratos vinculados a proveedor externo.
+
+La operativa manual de creditos nunca edita un contador aislado: añade una entrada `MANUAL_ADJUSTMENT` con delta y saldo resultante. Permite añadir o retirar sin producir saldo negativo, reactivar cuentas agotadas y abrir una cuenta interna sobre un bono activo. No crea `Payment` ni duplica una cuenta vigente del mismo bono; cuentas expiradas o canceladas quedan fuera de la operativa.
 
 ## RF-10 Reporting basico
 
