@@ -35,11 +35,19 @@ export async function saveAdminSessionAction(
     locationLabel: read(formData, 'locationLabel'),
     waitlistEnabled: formData.get('waitlistEnabled') === 'on',
     publish: formData.get('publish') === 'true',
+    expectedUpdatedAt: read(formData, 'expectedUpdatedAt')
+      ? new Date(read(formData, 'expectedUpdatedAt')!)
+      : null,
+    acknowledgeMemberImpact: formData.get('acknowledgeMemberImpact') === 'on',
+    impactReason: read(formData, 'impactReason'),
     actor: actorFrom(context),
   })
 
   if (!result.success) return { message: result.message, field: result.field }
-  finish(result.sessionId, result.status.toLowerCase())
+  finish(
+    result.sessionId,
+    read(formData, 'sessionId') ? 'updated' : result.status.toLowerCase(),
+  )
 }
 
 export async function changeAdminSessionStatusAction(

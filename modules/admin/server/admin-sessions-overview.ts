@@ -29,6 +29,7 @@ export async function getAdminSessionOverview(input: {
         status: true,
         classTypeId: true,
         coachId: true,
+        updatedAt: true,
         classType: { select: { name: true } },
         coach: { select: { displayName: true } },
         reservations: {
@@ -79,6 +80,7 @@ export async function getAdminSessionOverview(input: {
     classTypeId: session.classTypeId,
     classTypeName: session.classType.name,
     coachId: session.coachId,
+    updatedAtIso: session.updatedAt.toISOString(),
     coachName: session.coach?.displayName ?? 'Sin coach',
     startsAtIso: session.startsAt.toISOString(),
     endsAtIso: session.endsAt.toISOString(),

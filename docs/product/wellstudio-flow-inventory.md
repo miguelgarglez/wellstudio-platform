@@ -585,6 +585,8 @@ Postcondiciones:
 Nivel de certeza:
 
 - implementado en `/admin/sessions` para agenda, creacion/edicion, publicacion, cierre/reapertura y cancelacion auditable
+- la edicion vive en una superficie enfocada y usa `updatedAt` como version optimista; capacidad, ubicacion y waitlist se validan como cambios operativos seguros
+- cambiar clase, coach u horario con reservas o espera exige confirmacion y razon auditable; no se promete una notificacion automatica que el sistema todavia no envia
 - la cancelacion administrativa tambien cancela reservas activas, devuelve creditos consumidos y expira la waitlist en una transaccion
 - `/admin/sessions/catalog` permite crear y editar tipos de clase y coaches, archivarlos de forma reversible y conservar su historico
 - no se puede archivar un tipo de clase ni desactivar un coach mientras tenga sesiones futuras operables; primero deben reasignarse o cancelarse

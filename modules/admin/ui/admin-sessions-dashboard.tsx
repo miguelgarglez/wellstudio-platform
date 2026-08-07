@@ -3,7 +3,7 @@
 import { useActionState, useState } from 'react'
 import Link from 'next/link'
 import { useRouter } from 'next/navigation'
-import { CalendarDays, Check, ChevronRight, Clock3, MapPin, Minus, Plus, Settings2, UserCheck, UserX, Users } from 'lucide-react'
+import { ArrowLeft, CalendarDays, Check, ChevronRight, Clock3, MapPin, Minus, Pencil, Plus, Settings2, ShieldAlert, UserCheck, UserX, Users, X } from 'lucide-react'
 import { useFormStatus } from 'react-dom'
 
 import { Button } from '@/components/ui/button'
@@ -53,6 +53,8 @@ export function AdminSessionsDashboard({ overview, updated, notice }: Props) {
   const toastState =
     updated === 'draft'
       ? 'session-draft'
+      : updated === 'updated'
+        ? 'session-updated'
       : updated === 'published'
         ? 'session-published'
         : updated === 'closed'
@@ -134,7 +136,7 @@ export function AdminSessionsDashboard({ overview, updated, notice }: Props) {
       </div>
 
       <Sheet open={isCreating} onOpenChange={setIsCreating}>
-        <SessionEditorSheet overview={overview} session={null} />
+        <CreateSessionSheet overview={overview} />
       </Sheet>
       <Sheet
         open={Boolean(overview.selectedSession)}
@@ -143,7 +145,11 @@ export function AdminSessionsDashboard({ overview, updated, notice }: Props) {
         }}
       >
         {overview.selectedSession ? (
-          <SessionEditorSheet overview={overview} session={overview.selectedSession} />
+          <SessionDetailSheet
+            overview={overview}
+            session={overview.selectedSession}
+            onClose={closeSelectedSession}
+          />
         ) : null}
       </Sheet>
     </div>
@@ -186,101 +192,61 @@ function SessionRow({ session }: { session: SessionItem }) {
   )
 }
 
-function SessionEditorSheet({ overview, session }: { overview: AdminSessionOverview; session: SessionItem | null }) {
-  const [saveState, saveAction] = useActionState(saveAdminSessionAction, null)
-  const [statusState, statusAction] = useActionState(changeAdminSessionStatusAction, null)
-  const canEdit = !session || session.isEditable
-  const defaultClassType = session
-    ? overview.classTypes.find((item) => item.id === session.classTypeId)
-    : overview.classTypes[0]
-
+function CreateSessionSheet({ overview }: { overview: AdminSessionOverview }) {
   return (
     <SheetContent
       side="right"
-      className="w-full gap-0 overflow-hidden border-[color:color-mix(in_srgb,var(--border)_80%,white)] bg-[color:color-mix(in_srgb,var(--background)_94%,white)] data-[side=right]:w-full data-[side=right]:sm:max-w-none data-[side=right]:lg:w-[min(52rem,calc(100vw-2rem))] data-[side=right]:lg:rounded-l-[1.65rem]"
+      className="w-full gap-0 overflow-hidden border-[color:color-mix(in_srgb,var(--border)_80%,white)] bg-[color:color-mix(in_srgb,var(--background)_94%,white)] data-[side=right]:w-full data-[side=right]:sm:max-w-none data-[side=right]:lg:w-[min(42rem,calc(100vw-2rem))] data-[side=right]:lg:rounded-l-[1.65rem]"
     >
-      <SheetHeader className="border-b border-border/70 p-5 pr-14 sm:p-6 sm:pr-14">
-        <p className="text-xs uppercase tracking-[0.24em] text-[var(--wellstudio-blue-deep)]">Operación admin</p>
-        <div className="flex flex-wrap items-center gap-2">
-          <SheetTitle className="text-2xl font-medium text-[var(--wellstudio-ink)]">
-            {session ? session.classTypeName : 'Nueva sesión'}
-          </SheetTitle>
-          {session ? <StatusBadge status={session.status} /> : null}
-        </div>
-        <SheetDescription className="text-base leading-7">
-          {session
-            ? 'Edita el contexto operativo o cambia el estado de esta sesión con trazabilidad.'
-            : 'Prepara una sesión interna como borrador o publícala directamente en la agenda del socio.'}
-        </SheetDescription>
-      </SheetHeader>
-
+      <SessionSheetHeader title="Nueva sesión">
+        Prepara una sesión interna como borrador o publícala directamente en la agenda del socio.
+      </SessionSheetHeader>
       <div className="min-h-0 flex-1 overflow-y-auto px-5 py-5 sm:px-6 sm:py-6">
-        {session ? <SessionSummary session={session} /> : null}
-        {session ? <AttendanceRoster session={session} /> : null}
-        {canEdit ? (
-          <form action={saveAction} className="mt-5 space-y-5">
-            {session ? <input type="hidden" name="sessionId" value={session.id} /> : null}
-            <div className="grid gap-4 sm:grid-cols-2">
-              <Field label="Tipo de clase" error={saveState?.field === 'classTypeId' ? saveState.message : undefined}>
-                <select
-                  name="classTypeId"
-                  defaultValue={session?.classTypeId ?? defaultClassType?.id ?? ''}
-                  required
-                  className={selectClassName}
-                >
-                  <option value="" disabled>Selecciona una clase</option>
-                  {overview.classTypes.map((item) => (
-                    <option key={item.id} value={item.id}>{item.name} · {item.durationMinutes} min</option>
-                  ))}
-                </select>
-              </Field>
-              <Field label="Coach" error={saveState?.field === 'coachId' ? saveState.message : undefined}>
-                <select name="coachId" defaultValue={session?.coachId ?? ''} className={selectClassName}>
-                  <option value="">Sin coach asignado</option>
-                  {overview.coaches.map((coach) => (
-                    <option key={coach.id} value={coach.id}>{coach.displayName}</option>
-                  ))}
-                </select>
-              </Field>
-              <Field label="Inicio" error={saveState?.field === 'startsAt' ? saveState.message : undefined}>
-                <Input name="startsAt" type="datetime-local" required defaultValue={session ? toLocalInput(session.startsAtIso) : nextRoundedHour()} />
-              </Field>
-              <Field label="Capacidad" error={saveState?.field === 'capacity' ? saveState.message : undefined}>
-                <Input name="capacity" type="number" min={1} step={1} required defaultValue={session?.capacity ?? defaultClassType?.capacityDefault ?? 8} />
-              </Field>
-            </div>
-            <Field label="Ubicación" error={saveState?.field === 'locationLabel' ? saveState.message : undefined}>
-              <Input name="locationLabel" maxLength={120} placeholder="Ej. Sala principal" defaultValue={session?.locationLabel ?? ''} />
-            </Field>
-            <label className="flex cursor-pointer items-start gap-3 rounded-[1rem] border border-border/70 bg-white/60 p-4">
-              <input name="waitlistEnabled" type="checkbox" defaultChecked={session?.waitlistEnabled ?? defaultClassType?.waitlistEnabled ?? true} className="mt-1 size-4 accent-[var(--wellstudio-blue)]" />
-              <span><span className="block font-medium">Habilitar lista de espera</span><span className="mt-1 block text-sm leading-6 text-muted-foreground">Permite ordenar demanda cuando se completa la capacidad.</span></span>
-            </label>
-            {saveState && !saveState.field ? <ActionError state={saveState} /> : null}
-            {session && session.status !== 'DRAFT' ? (
-              <SubmitButton
-                name="publish"
-                value={session.status === 'PUBLISHED' ? 'true' : 'false'}
-                className="w-full"
-              >
-                Guardar cambios
-              </SubmitButton>
-            ) : (
-              <div className="grid gap-2 sm:grid-cols-2">
-                <SubmitButton name="publish" value="false" variant="outline">
-                  Guardar borrador
-                </SubmitButton>
-                <SubmitButton name="publish" value="true">Guardar y publicar</SubmitButton>
-              </div>
-            )}
-          </form>
-        ) : (
-          <div className="mt-5 rounded-[1.15rem] border border-border/70 bg-muted/35 p-4 text-sm leading-6 text-muted-foreground">
-            Esta sesión conserva su historial, pero ya no admite cambios operativos.
-          </div>
-        )}
+        <SessionForm overview={overview} session={null} />
+      </div>
+    </SheetContent>
+  )
+}
 
-        {session && canEdit ? (
+function SessionDetailSheet({ overview, session, onClose }: { overview: AdminSessionOverview; session: SessionItem; onClose: () => void }) {
+  const [statusState, statusAction] = useActionState(changeAdminSessionStatusAction, null)
+  const [isEditing, setIsEditing] = useState(false)
+
+  return (
+    <>
+      <SheetContent
+        side="right"
+        className="w-full gap-0 overflow-hidden border-[color:color-mix(in_srgb,var(--border)_80%,white)] bg-[color:color-mix(in_srgb,var(--background)_94%,white)] data-[side=right]:w-full data-[side=right]:sm:max-w-none data-[side=right]:lg:w-[min(52rem,calc(100vw-2rem))] data-[side=right]:lg:rounded-l-[1.65rem]"
+      >
+        <SessionSheetHeader title={session.classTypeName} badge={<StatusBadge status={session.status} />}>
+          Revisa ocupación, asistencia y estado antes de ejecutar una acción operativa.
+        </SessionSheetHeader>
+        <div className="min-h-0 flex-1 overflow-y-auto px-5 py-5 sm:px-6 sm:py-6">
+          <SessionSummary session={session} />
+          {session.isEditable ? (
+            <button
+              type="button"
+              onClick={() => setIsEditing(true)}
+              className="group mt-5 flex w-full items-center justify-between gap-4 rounded-[1.15rem] border border-[color:color-mix(in_srgb,var(--wellstudio-blue)_18%,white)] bg-white/70 p-4 text-left transition-[border-color,background-color,box-shadow,transform] duration-200 hover:-translate-y-0.5 hover:border-[color:color-mix(in_srgb,var(--wellstudio-blue)_38%,white)] hover:bg-white hover:shadow-[0_14px_34px_rgba(18,20,24,0.07)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--ring)]"
+            >
+              <span className="flex min-w-0 items-center gap-3">
+                <span className="inline-flex size-10 shrink-0 items-center justify-center rounded-full bg-[color:color-mix(in_srgb,var(--wellstudio-blue)_10%,white)] text-[var(--wellstudio-blue-deep)]">
+                  <Pencil className="size-4" aria-hidden="true" />
+                </span>
+                <span>
+                  <span className="block font-medium text-[var(--wellstudio-ink)]">Editar datos de sesión</span>
+                  <span className="mt-1 block text-sm leading-6 text-muted-foreground">Horario, coach, capacidad, ubicación y lista de espera.</span>
+                </span>
+              </span>
+              <ChevronRight className="size-4 shrink-0 text-[var(--wellstudio-blue-deep)] transition-transform duration-200 group-hover:translate-x-0.5" aria-hidden="true" />
+            </button>
+          ) : (
+            <div className="mt-5 rounded-[1.15rem] border border-border/70 bg-muted/35 p-4 text-sm leading-6 text-muted-foreground">
+              Esta sesión conserva su historial, pero ya no admite cambios operativos.
+            </div>
+          )}
+          <AttendanceRoster session={session} />
+          {session.isEditable ? (
           <div className="mt-7 border-t border-border/70 pt-6">
             <h3 className="font-medium text-[var(--wellstudio-ink)]">Estado de reservas</h3>
             <p className="mt-1 text-sm leading-6 text-muted-foreground">Cierra temporalmente, vuelve a abrir o cancela con una razón auditable.</p>
@@ -294,8 +260,125 @@ function SessionEditorSheet({ overview, session }: { overview: AdminSessionOverv
             <CancelSessionDialog session={session} />
           </div>
         ) : null}
+        </div>
+      </SheetContent>
+      <Sheet open={isEditing} onOpenChange={setIsEditing}>
+        <EditSessionSheet
+          overview={overview}
+          session={session}
+          onBack={() => setIsEditing(false)}
+          onClose={onClose}
+        />
+      </Sheet>
+    </>
+  )
+}
+
+function EditSessionSheet({ overview, session, onBack, onClose }: { overview: AdminSessionOverview; session: SessionItem; onBack: () => void; onClose: () => void }) {
+  return (
+    <SheetContent
+      side="right"
+      showCloseButton={false}
+      className="w-full gap-0 overflow-hidden border-[color:color-mix(in_srgb,var(--border)_80%,white)] bg-[color:color-mix(in_srgb,var(--background)_94%,white)] data-[side=right]:w-full data-[side=right]:sm:max-w-none data-[side=right]:lg:w-[min(44rem,calc(100vw-2rem))] data-[side=right]:lg:rounded-l-[1.65rem]"
+    >
+      <SheetHeader className="border-b border-border/70 p-5 sm:p-6">
+        <div className="mb-2 flex items-center justify-between gap-3">
+          <Button type="button" variant="ghost" size="icon-sm" onClick={onBack} aria-label="Volver al detalle de sesión">
+            <ArrowLeft aria-hidden="true" />
+          </Button>
+          <p className="text-xs uppercase tracking-[0.24em] text-[var(--wellstudio-blue-deep)]">Operación admin</p>
+          <Button type="button" variant="ghost" size="icon-sm" onClick={onClose} aria-label="Cerrar operación">
+            <X aria-hidden="true" />
+          </Button>
+        </div>
+        <SheetTitle className="text-2xl font-medium text-[var(--wellstudio-ink)]">Editar {session.classTypeName}</SheetTitle>
+        <SheetDescription className="text-base leading-7">Los cambios se validan contra la versión actual antes de reemplazar datos de agenda.</SheetDescription>
+      </SheetHeader>
+      <div className="min-h-0 flex-1 overflow-y-auto px-5 py-5 sm:px-6 sm:py-6">
+        <SessionForm overview={overview} session={session} />
       </div>
     </SheetContent>
+  )
+}
+
+function SessionSheetHeader({ title, badge, children }: { title: string; badge?: React.ReactNode; children: React.ReactNode }) {
+  return (
+    <SheetHeader className="border-b border-border/70 p-5 pr-14 sm:p-6 sm:pr-14">
+      <p className="text-xs uppercase tracking-[0.24em] text-[var(--wellstudio-blue-deep)]">Operación admin</p>
+      <div className="flex flex-wrap items-center gap-2">
+        <SheetTitle className="text-2xl font-medium text-[var(--wellstudio-ink)]">{title}</SheetTitle>
+        {badge}
+      </div>
+      <SheetDescription className="text-base leading-7">{children}</SheetDescription>
+    </SheetHeader>
+  )
+}
+
+function SessionForm({ overview, session }: { overview: AdminSessionOverview; session: SessionItem | null }) {
+  const [saveState, saveAction] = useActionState(saveAdminSessionAction, null)
+  const defaultClassType = session
+    ? overview.classTypes.find((item) => item.id === session.classTypeId)
+    : overview.classTypes[0]
+  const hasDemand = Boolean(session && (session.reservedCount > 0 || session.waitlistCount > 0))
+
+  return (
+    <form action={saveAction} className="space-y-5">
+      {session ? <><input type="hidden" name="sessionId" value={session.id} /><input type="hidden" name="expectedUpdatedAt" value={session.updatedAtIso} /></> : null}
+      <div className="grid gap-4 sm:grid-cols-2">
+        <Field label="Tipo de clase" error={saveState?.field === 'classTypeId' ? saveState.message : undefined}>
+          <select name="classTypeId" defaultValue={session?.classTypeId ?? defaultClassType?.id ?? ''} required className={selectClassName}>
+            <option value="" disabled>Selecciona una clase</option>
+            {overview.classTypes.map((item) => <option key={item.id} value={item.id}>{item.name} · {item.durationMinutes} min</option>)}
+          </select>
+        </Field>
+        <Field label="Coach" error={saveState?.field === 'coachId' ? saveState.message : undefined}>
+          <select name="coachId" defaultValue={session?.coachId ?? ''} className={selectClassName}>
+            <option value="">Sin coach asignado</option>
+            {overview.coaches.map((coach) => <option key={coach.id} value={coach.id}>{coach.displayName}</option>)}
+          </select>
+        </Field>
+        <Field label="Inicio" error={saveState?.field === 'startsAt' ? saveState.message : undefined}>
+          <Input name="startsAt" type="datetime-local" required defaultValue={session ? toLocalInput(session.startsAtIso) : nextRoundedHour()} />
+        </Field>
+        <Field label="Capacidad" error={saveState?.field === 'capacity' ? saveState.message : undefined}>
+          <Input name="capacity" type="number" min={Math.max(1, session?.reservedCount ?? 1)} step={1} required defaultValue={session?.capacity ?? defaultClassType?.capacityDefault ?? 8} />
+        </Field>
+      </div>
+      <Field label="Ubicación" error={saveState?.field === 'locationLabel' ? saveState.message : undefined}>
+        <Input name="locationLabel" maxLength={120} placeholder="Ej. Sala principal" defaultValue={session?.locationLabel ?? ''} />
+      </Field>
+      <label className="flex cursor-pointer items-start gap-3 rounded-[1rem] border border-border/70 bg-white/60 p-4">
+        <input name="waitlistEnabled" type="checkbox" defaultChecked={session?.waitlistEnabled ?? defaultClassType?.waitlistEnabled ?? true} className="mt-1 size-4 accent-[var(--wellstudio-blue)]" />
+        <span><span className="block font-medium">Habilitar lista de espera</span><span className="mt-1 block text-sm leading-6 text-muted-foreground">Permite ordenar demanda cuando se completa la capacidad.</span></span>
+      </label>
+      {hasDemand ? (
+        <div className="rounded-[1.1rem] border border-amber-700/15 bg-amber-50/70 p-4">
+          <div className="flex gap-3">
+            <ShieldAlert className="mt-0.5 size-5 shrink-0 text-amber-800" aria-hidden="true" />
+            <div>
+              <p className="font-medium text-amber-950">Esta sesión ya tiene demanda</p>
+              <p className="mt-1 text-sm leading-6 text-amber-950/70">Cambiar clase, coach u horario afecta a {session!.reservedCount} reserva{session!.reservedCount === 1 ? '' : 's'} y {session!.waitlistCount} persona{session!.waitlistCount === 1 ? '' : 's'} en espera. WellStudio todavía no les envía una notificación automática.</p>
+            </div>
+          </div>
+          <Field label="Razón operativa" error={saveState?.field === 'impactReason' ? saveState.message : undefined}>
+            <textarea name="impactReason" maxLength={500} rows={3} className="mt-3 w-full resize-y rounded-2xl border border-input bg-white px-4 py-3 text-sm outline-none focus-visible:border-ring focus-visible:ring-3 focus-visible:ring-ring/30" placeholder="Ej. Cambio de coach comunicado por teléfono" />
+          </Field>
+          <label className="mt-3 flex cursor-pointer items-start gap-3 text-sm leading-6 text-amber-950/80">
+            <input name="acknowledgeMemberImpact" type="checkbox" className="mt-1 size-4 accent-amber-800" />
+            <span>He revisado el impacto y gestionaré la comunicación con las personas afectadas.</span>
+          </label>
+        </div>
+      ) : null}
+      {saveState && (!saveState.field || saveState.field === 'status') ? <ActionError state={saveState} /> : null}
+      {session ? (
+        <SubmitButton name="publish" value={session.status === 'PUBLISHED' ? 'true' : 'false'} className="w-full">Guardar cambios</SubmitButton>
+      ) : (
+        <div className="grid gap-2 sm:grid-cols-2">
+          <SubmitButton name="publish" value="false" variant="outline">Guardar borrador</SubmitButton>
+          <SubmitButton name="publish" value="true">Guardar y publicar</SubmitButton>
+        </div>
+      )}
+    </form>
   )
 }
 

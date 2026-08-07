@@ -20,6 +20,7 @@ type AdminOperationToastState =
   | 'lead-converted'
   | 'session-draft'
   | 'session-published'
+  | 'session-updated'
   | 'session-closed'
   | 'session-canceled'
   | 'attendance-attended'
@@ -120,6 +121,11 @@ const TOAST_COPY: Record<
     tone: 'success',
     title: 'Sesión publicada',
     description: 'La sesión ya está visible en la agenda del socio y admite reservas.',
+  },
+  'session-updated': {
+    tone: 'success',
+    title: 'Sesión actualizada',
+    description: 'Los cambios ya están persistidos y la agenda muestra la versión actual.',
   },
   'session-closed': {
     tone: 'success',

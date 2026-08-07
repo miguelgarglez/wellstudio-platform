@@ -16,6 +16,7 @@ export type AdminSessionField =
   | 'startsAt'
   | 'capacity'
   | 'locationLabel'
+  | 'impactReason'
   | 'reason'
   | 'status'
 
@@ -33,6 +34,9 @@ export type SaveAdminSessionInput = {
   locationLabel?: string | null
   waitlistEnabled: boolean
   publish: boolean
+  expectedUpdatedAt?: Date | null
+  acknowledgeMemberImpact?: boolean
+  impactReason?: string | null
   actor: AdminSessionActor
   now?: Date
 }
@@ -78,7 +82,24 @@ export async function saveAdminClassSession(
     const existing = input.sessionId
       ? await tx.classSession.findUnique({
           where: { id: input.sessionId },
-          select: { id: true, status: true, reservedCount: true },
+          select: {
+            id: true,
+            classTypeId: true,
+            coachId: true,
+            startsAt: true,
+            endsAt: true,
+            capacity: true,
+            locationLabel: true,
+            waitlistEnabled: true,
+            status: true,
+            reservedCount: true,
+            updatedAt: true,
+            _count: {
+              select: {
+                waitlistEntries: { where: { status: { in: [...ACTIVE_WAITLIST_STATUSES] } } },
+              },
+            },
+          },
         })
       : null
 
@@ -88,11 +109,47 @@ export async function saveAdminClassSession(
     if (existing && !ACTIVE_SESSION_STATUSES.includes(existing.status)) {
       return failure('Esta sesión ya no admite cambios.', 'status')
     }
+    if (
+      existing &&
+      (!input.expectedUpdatedAt ||
+        Number.isNaN(input.expectedUpdatedAt.getTime()) ||
+        existing.updatedAt.getTime() !== input.expectedUpdatedAt.getTime())
+    ) {
+      return failure(
+        'La sesión cambió mientras la editabas. Cierra este panel y revisa la versión actual antes de volver a guardar.',
+        'status',
+      )
+    }
     if (existing && input.capacity < existing.reservedCount) {
       return failure(
         `La capacidad no puede bajar de ${existing.reservedCount}, que es la ocupación actual.`,
         'capacity',
       )
+    }
+
+    const materialChange = existing
+      ? hasMaterialSessionChange(existing, {
+          classTypeId: classType.id,
+          coachId: input.coachId || null,
+          startsAt: input.startsAt,
+        })
+      : false
+    const hasDemand = existing
+      ? existing.reservedCount > 0 || existing._count.waitlistEntries > 0
+      : false
+    const impactReason = input.impactReason?.trim() ?? ''
+
+    if (materialChange && hasDemand && !input.acknowledgeMemberImpact) {
+      return failure(
+        'Confirma que has revisado el impacto sobre socios con reserva o en espera.',
+        'impactReason',
+      )
+    }
+    if (materialChange && hasDemand && impactReason.length < 5) {
+      return failure('Indica una razón operativa de al menos 5 caracteres.', 'impactReason')
+    }
+    if (impactReason.length > 500) {
+      return failure('La razón operativa no puede superar 500 caracteres.', 'impactReason')
     }
 
     if (input.coachId) {
@@ -112,36 +169,46 @@ export async function saveAdminClassSession(
     }
 
     const status: ClassSessionStatus = input.publish ? 'PUBLISHED' : existing?.status ?? 'DRAFT'
-    const session = existing
-      ? await tx.classSession.update({
-          where: { id: existing.id },
-          data: {
-            classTypeId: classType.id,
-            coachId: input.coachId || null,
-            startsAt: input.startsAt,
-            endsAt,
-            capacity: input.capacity,
-            locationLabel: input.locationLabel?.trim() || null,
-            waitlistEnabled: input.waitlistEnabled,
-            status,
-            publishedAt: status === 'PUBLISHED' ? now : undefined,
-          },
-          select: { id: true, status: true },
-        })
-      : await tx.classSession.create({
-          data: {
-            classTypeId: classType.id,
-            coachId: input.coachId || null,
-            startsAt: input.startsAt,
-            endsAt,
-            capacity: input.capacity,
-            locationLabel: input.locationLabel?.trim() || null,
-            waitlistEnabled: input.waitlistEnabled,
-            status,
-            publishedAt: status === 'PUBLISHED' ? now : null,
-          },
-          select: { id: true, status: true },
-        })
+    let session: { id: string; status: ClassSessionStatus }
+    if (existing) {
+      const updated = await tx.classSession.updateMany({
+        where: { id: existing.id, updatedAt: existing.updatedAt },
+        data: {
+          classTypeId: classType.id,
+          coachId: input.coachId || null,
+          startsAt: input.startsAt,
+          endsAt,
+          capacity: input.capacity,
+          locationLabel: input.locationLabel?.trim() || null,
+          waitlistEnabled: input.waitlistEnabled,
+          status,
+          publishedAt:
+            existing.status === 'DRAFT' && status === 'PUBLISHED' ? now : undefined,
+        },
+      })
+      if (updated.count !== 1) {
+        return failure(
+          'La sesión cambió mientras la editabas. Cierra este panel y revisa la versión actual antes de volver a guardar.',
+          'status',
+        )
+      }
+      session = { id: existing.id, status }
+    } else {
+      session = await tx.classSession.create({
+        data: {
+          classTypeId: classType.id,
+          coachId: input.coachId || null,
+          startsAt: input.startsAt,
+          endsAt,
+          capacity: input.capacity,
+          locationLabel: input.locationLabel?.trim() || null,
+          waitlistEnabled: input.waitlistEnabled,
+          status,
+          publishedAt: status === 'PUBLISHED' ? now : null,
+        },
+        select: { id: true, status: true },
+      })
+    }
 
     await createSessionAudit(tx, {
       actor: input.actor,
@@ -154,12 +221,34 @@ export async function saveAdminClassSession(
         startsAt: input.startsAt.toISOString(),
         endsAt: endsAt.toISOString(),
         capacity: input.capacity,
+        locationLabel: input.locationLabel?.trim() || null,
+        waitlistEnabled: Number(input.waitlistEnabled),
         status: session.status,
+        previousClassTypeId: existing?.classTypeId ?? null,
+        previousCoachId: existing?.coachId ?? null,
+        previousStartsAt: existing?.startsAt.toISOString() ?? null,
+        previousEndsAt: existing?.endsAt.toISOString() ?? null,
+        previousCapacity: existing?.capacity ?? null,
+        previousLocationLabel: existing?.locationLabel ?? null,
+        previousWaitlistEnabled: existing ? Number(existing.waitlistEnabled) : null,
+        materialChange: Number(materialChange),
+        impactReason: materialChange && hasDemand ? impactReason : null,
       },
     })
 
     return { success: true, sessionId: session.id, status: session.status }
   }, { isolationLevel: Prisma.TransactionIsolationLevel.Serializable })
+}
+
+export function hasMaterialSessionChange(
+  current: { classTypeId: string; coachId: string | null; startsAt: Date },
+  next: { classTypeId: string; coachId: string | null; startsAt: Date },
+) {
+  return (
+    current.classTypeId !== next.classTypeId ||
+    current.coachId !== next.coachId ||
+    current.startsAt.getTime() !== next.startsAt.getTime()
+  )
 }
 
 export async function changeAdminClassSessionStatus(input: {

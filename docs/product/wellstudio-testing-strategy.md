@@ -280,6 +280,8 @@ Para agenda admin, el gate dirigido debe cubrir:
 - transiciones deliberadas `DRAFT -> PUBLISHED -> CLOSED -> PUBLISHED`
 - cancelacion atomica: reservas canceladas, creditos devueltos, waitlist expirada, ocupacion a cero y `AuditLog`
 - creacion, cambio de estado y persistencia tras recarga en E2E
+- edicion enfocada con feedback, persistencia tras recarga y rechazo de versiones obsoletas
+- confirmacion y razon auditada al cambiar clase, coach u horario con reservas o waitlist activa
 - detalle de sesion a ancho completo en mobile
 - check-in cerrado hasta dos horas antes del inicio
 - consistencia entre `Reservation.status` y `attendanceStatus`

@@ -125,6 +125,19 @@ test.describe('Admin sessions @admin @sandbox', () => {
     const detail = page.getByRole('dialog', { name: ADMIN_SESSIONS_E2E_CLASS })
     await expect(detail.getByText('Publicada', { exact: true })).toBeVisible()
 
+    await detail.getByRole('button', { name: 'Editar datos de sesión' }).click()
+    const editSheet = page.getByRole('dialog', { name: `Editar ${ADMIN_SESSIONS_E2E_CLASS}` })
+    await editSheet.getByRole('spinbutton', { name: 'Capacidad' }).fill('12')
+    await editSheet.getByRole('textbox', { name: 'Ubicación' }).fill('Sala E2E actualizada')
+    await editSheet.getByRole('button', { name: 'Guardar cambios' }).click()
+
+    await expect(page.getByRole('status').getByText('Sesión actualizada')).toBeVisible()
+    await expect(detail.getByText('0/12')).toBeVisible()
+    await expect(detail.getByText(/Sala E2E actualizada/)).toBeVisible()
+    await page.reload()
+    await expect(detail.getByText('0/12')).toBeVisible()
+    await expect(detail.getByText(/Sala E2E actualizada/)).toBeVisible()
+
     await detail.getByRole('button', { name: 'Cerrar reservas' }).click()
     await expect(page.getByRole('status').getByText('Reservas cerradas')).toBeVisible()
     await expect(detail.getByText('Cerrada', { exact: true })).toBeVisible()
@@ -189,10 +202,23 @@ test.describe('Admin sessions @admin @sandbox', () => {
     await page.goto('/admin/sessions')
 
     await expect(page.getByRole('navigation', { name: 'Navegación admin móvil' }).getByText('Agenda')).toBeVisible()
-    await page.getByRole('link', { name: new RegExp(ADMIN_SESSIONS_E2E_CLASS) }).click()
+    await page.getByRole('button', { name: 'Nueva sesión' }).click()
+    const createSheet = page.getByRole('dialog', { name: 'Nueva sesión' })
+    await createSheet.getByRole('combobox', { name: 'Tipo de clase' }).selectOption({ label: 'E2E Agenda Flow · 50 min' })
+    await createSheet.getByRole('textbox', { name: 'Inicio' }).fill(futureLocalDateTime())
+    await createSheet.getByRole('spinbutton', { name: 'Capacidad' }).fill('8')
+    await createSheet.getByRole('button', { name: 'Guardar borrador' }).click()
+    await expect(page.getByRole('status').getByText('Borrador guardado')).toBeVisible()
+
     const detail = page.getByRole('dialog', { name: ADMIN_SESSIONS_E2E_CLASS })
     const box = await detail.boundingBox()
     expect(box?.width).toBeGreaterThanOrEqual(388)
+    await detail.getByRole('button', { name: 'Editar datos de sesión' }).click()
+    const editSheet = page.getByRole('dialog', { name: `Editar ${ADMIN_SESSIONS_E2E_CLASS}` })
+    const editBox = await editSheet.boundingBox()
+    expect(editBox?.width).toBeGreaterThanOrEqual(388)
+    await expect(editSheet.getByRole('button', { name: 'Volver al detalle de sesión' })).toBeVisible()
+    await expect(editSheet.getByRole('button', { name: 'Cerrar operación' })).toBeVisible()
     await page.waitForTimeout(300)
 
     await testInfo.attach('admin-sessions-mobile', {
