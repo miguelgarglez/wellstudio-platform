@@ -304,6 +304,7 @@ Para gestion de socios admin, el gate dirigido debe cubrir:
 - asignación y finalización de membership interna con motivo, feedback, auditoría y restauración determinista del socio sandbox sin plan
 - ajuste positivo/negativo de creditos basado en ledger, rechazo de saldo negativo y reapertura derivada de una cuenta agotada
 - apertura manual de cuenta sin `Payment`, prevención de duplicados operables y restauración determinista del sandbox
+- nota interna append-only con validación, autor, auditoría, feedback y persistencia tras recarga; el fixture elimina solo notas marcadas por E2E
 - rechazo unitario de duplicados activos, fechas futuras y finalización local de contratos externos
 
 ## 12. Regla final

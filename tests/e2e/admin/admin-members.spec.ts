@@ -1,6 +1,7 @@
 import { expect, test } from '@playwright/test'
 
 import { prepareSandboxAdminOverridesFixture } from '../support/admin-overrides'
+import { ADMIN_MEMBER_NOTE_E2E_PREFIX, cleanupSandboxAdminMemberNotes } from '../support/admin-members'
 import {
   ensureSandboxAdminAccess,
   loginAsSandboxAdmin,
@@ -32,6 +33,7 @@ test.describe('Admin members @admin @sandbox', () => {
 
   test.afterEach(async () => {
     await prepareSandboxAdminOverridesFixture()
+    await cleanupSandboxAdminMemberNotes()
   })
 
   test('member cannot access the operational member directory', async ({ page }) => {
@@ -65,6 +67,40 @@ test.describe('Admin members @admin @sandbox', () => {
 
     await testInfo.attach('admin-members-desktop', {
       body: await page.screenshot({ fullPage: true }),
+      contentType: 'image/png',
+    })
+  })
+
+  test('admin appends internal member context and keeps it after reload', async ({ page }, testInfo) => {
+    const { email } = getSandboxCredentials()
+    const note = `${ADMIN_MEMBER_NOTE_E2E_PREFIX} Prefiere contacto por la tarde`
+
+    await loginAsSandboxAdmin(page)
+    await page.goto(`/admin/members?q=${encodeURIComponent(email)}`)
+    await page.getByRole('link', { name: new RegExp(email, 'i') }).click()
+    await page.getByRole('button', { name: 'Añadir nota' }).click()
+
+    const dialog = page.getByRole('dialog', { name: 'Añadir nota al dossier' })
+    await dialog.getByLabel('Nota interna').fill(note)
+    await page.waitForTimeout(250)
+    await testInfo.attach('admin-member-note-dialog', {
+      body: await page.screenshot(),
+      contentType: 'image/png',
+    })
+    await dialog.getByRole('button', { name: 'Guardar nota' }).click()
+
+    await expect(page.getByRole('status').getByText('Nota interna añadida')).toBeVisible()
+    await expect(page.getByText(note, { exact: true })).toBeVisible()
+    await page.reload()
+    await expect(page.getByText(note, { exact: true })).toBeVisible()
+
+    await page.setViewportSize({ width: 390, height: 844 })
+    await page.waitForTimeout(300)
+    const mobileNote = page.getByText(note, { exact: true })
+    await mobileNote.scrollIntoViewIfNeeded()
+    await expect(mobileNote).toBeVisible()
+    await testInfo.attach('admin-member-note-mobile', {
+      body: await page.screenshot(),
       contentType: 'image/png',
     })
   })

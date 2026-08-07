@@ -39,6 +39,7 @@ type AdminOperationToastState =
   | 'membership-ended'
   | 'credits-adjusted'
   | 'credit-account-opened'
+  | 'member-note-added'
   | null
 
 type AdminOperationToastProps = {
@@ -214,6 +215,11 @@ const TOAST_COPY: Record<
     tone: 'success',
     title: 'Cuenta de créditos abierta',
     description: 'Los créditos ya están disponibles sin crear un pago o una compra ficticia.',
+  },
+  'member-note-added': {
+    tone: 'success',
+    title: 'Nota interna añadida',
+    description: 'El contexto ya aparece en el dossier y queda asociado al operador.',
   },
 }
 

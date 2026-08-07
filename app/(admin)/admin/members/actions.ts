@@ -19,6 +19,7 @@ import {
   changeAdminMemberStatus,
   type AdminMemberStatusActor,
 } from '@/modules/members/server/admin-member-status'
+import { addAdminMemberNote } from '@/modules/members/server/admin-member-notes'
 
 export type AdminMemberStatusActionState = {
   message: string
@@ -34,6 +35,29 @@ export type AdminCreditActionState = {
   message: string
   field?: 'creditAccountId' | 'creditPackId' | 'direction' | 'amount' | 'reason'
 } | null
+
+export type AdminMemberNoteActionState = {
+  message: string
+  field?: 'body'
+} | null
+
+export async function addAdminMemberNoteAction(
+  _previousState: AdminMemberNoteActionState,
+  formData: FormData,
+): Promise<AdminMemberNoteActionState> {
+  const context = await requireAdminOrStaffContext()
+  if (!context) return { message: 'Necesitamos una sesión admin o staff válida.' }
+
+  const result = await addAdminMemberNote({
+    memberId: read(formData, 'memberId') ?? '',
+    body: read(formData, 'body') ?? '',
+    actor: actorFrom(context),
+  })
+  if (!result.success) return { message: result.message, field: result.field }
+
+  revalidatePath('/admin/members')
+  redirect(appendFeedback(normalizeReturnTo(read(formData, 'returnTo')), 'member-note-added'))
+}
 
 export async function changeAdminMemberStatusAction(
   _previousState: AdminMemberStatusActionState,

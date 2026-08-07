@@ -26,7 +26,9 @@ import {
 } from 'lucide-react'
 
 import {
+  addAdminMemberNoteAction,
   changeAdminMemberStatusAction,
+  type AdminMemberNoteActionState,
   type AdminMemberStatusActionState,
 } from '@/app/(admin)/admin/members/actions'
 import { Button, buttonVariants } from '@/components/ui/button'
@@ -77,6 +79,7 @@ export function AdminMembersDashboard({
     | 'membership-ended'
     | 'credits-adjusted'
     | 'credit-account-opened'
+    | 'member-note-added'
     | null
   noticeId: string | null
 }) {
@@ -273,6 +276,7 @@ function MemberDetail({
   returnTo: string
 }) {
   const [statusDialogOpen, setStatusDialogOpen] = useState(false)
+  const [noteDialogOpen, setNoteDialogOpen] = useState(false)
 
   return (
     <div className="space-y-6">
@@ -412,7 +416,12 @@ function MemberDetail({
         </section>
 
         <section aria-labelledby="member-notes-heading">
-          <SectionHeading icon={MessageSquareText} eyebrow="Contexto interno" title="Notas recientes" id="member-notes-heading" />
+          <div className="flex items-center justify-between gap-3">
+            <SectionHeading icon={MessageSquareText} eyebrow="Contexto interno" title="Notas recientes" id="member-notes-heading" />
+            <Button type="button" variant="outline" size="sm" className="shrink-0 rounded-full bg-white" onClick={() => setNoteDialogOpen(true)}>
+              <MessageSquareText className="size-3.5" aria-hidden="true" />Añadir nota
+            </Button>
+          </div>
           <div className="mt-3 space-y-2">
             {member.notes.length > 0 ? member.notes.map((note) => (
               <article key={note.id} className="rounded-[1rem] border border-[color:color-mix(in_srgb,var(--border)_72%,white)] bg-white/70 p-3">
@@ -431,8 +440,53 @@ function MemberDetail({
         member={member}
         returnTo={returnTo}
       />
+      <MemberNoteDialog
+        open={noteDialogOpen}
+        onOpenChange={setNoteDialogOpen}
+        member={member}
+        returnTo={returnTo}
+      />
     </div>
   )
+}
+
+function MemberNoteDialog({ open, onOpenChange, member, returnTo }: { open: boolean; onOpenChange: (open: boolean) => void; member: AdminMemberDetail; returnTo: string }) {
+  const [state, formAction] = useActionState<AdminMemberNoteActionState, FormData>(addAdminMemberNoteAction, null)
+  const [body, setBody] = useState('')
+
+  return (
+    <Dialog open={open} onOpenChange={onOpenChange}>
+      <DialogContent className="sm:max-w-xl">
+        <DialogHeader>
+          <p className="text-xs uppercase tracking-[0.22em] text-[var(--wellstudio-blue-deep)]">Contexto interno · {member.displayName}</p>
+          <DialogTitle className="text-2xl">Añadir nota al dossier</DialogTitle>
+          <DialogDescription>Guarda solo contexto operativo útil. No incluyas información médica, datos sensibles ni detalles que el equipo no necesite.</DialogDescription>
+        </DialogHeader>
+        <form action={formAction} className="space-y-4">
+          <input type="hidden" name="memberId" value={member.id} />
+          <input type="hidden" name="returnTo" value={returnTo} />
+          <div>
+            <div className="mb-2 flex items-center justify-between gap-3">
+              <label htmlFor="admin-member-note" className="text-sm font-medium">Nota interna</label>
+              <span className="text-xs tabular-nums text-muted-foreground">{body.length} / 1000</span>
+            </div>
+            <textarea id="admin-member-note" name="body" value={body} onChange={(event) => setBody(event.target.value)} required maxLength={1000} rows={6} aria-invalid={state?.field === 'body'} className="w-full resize-y rounded-[1.15rem] border border-input bg-white px-4 py-3 text-sm leading-6 outline-none transition-shadow placeholder:text-muted-foreground focus-visible:border-ring focus-visible:ring-3 focus-visible:ring-ring/50 aria-invalid:border-destructive aria-invalid:ring-3 aria-invalid:ring-destructive/20" placeholder="Ej. prefiere recibir llamadas por la tarde…" />
+            {state?.field === 'body' ? <p role="alert" className="mt-2 text-sm text-destructive">{state.message}</p> : null}
+          </div>
+          {state?.message && !state.field ? <p role="alert" className="text-sm text-destructive">{state.message}</p> : null}
+          <DialogFooter>
+            <Button type="button" variant="outline" className="rounded-full" onClick={() => onOpenChange(false)}>Cancelar</Button>
+            <MemberNoteSubmitButton disabled={!body.trim()} />
+          </DialogFooter>
+        </form>
+      </DialogContent>
+    </Dialog>
+  )
+}
+
+function MemberNoteSubmitButton({ disabled }: { disabled: boolean }) {
+  const { pending } = useFormStatus()
+  return <Button type="submit" className="rounded-full" disabled={pending || disabled}>{pending ? <><Spinner data-icon="inline-start" />Guardando…</> : 'Guardar nota'}</Button>
 }
 
 const memberStatusOptions: Array<{
