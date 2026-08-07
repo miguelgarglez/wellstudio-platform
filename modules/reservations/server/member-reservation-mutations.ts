@@ -840,6 +840,7 @@ export async function refundCreditUsage(
     creditsUsed: number
     reservationId: string
     now: Date
+    notes?: string
   },
 ) {
   const creditAccount = await tx.memberCreditAccount.findUnique({
@@ -882,7 +883,9 @@ export async function refundCreditUsage(
       balanceAfter: nextBalance,
       referenceType: 'reservation',
       referenceId: input.reservationId,
-      notes: 'Credit refunded after member cancellation inside the allowed window',
+      notes:
+        input.notes ??
+        'Credit refunded after member cancellation inside the allowed window',
     },
   })
 

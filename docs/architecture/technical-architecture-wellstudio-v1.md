@@ -1106,3 +1106,13 @@ Lo mas importante no es elegir la tecnologia perfecta, sino mantener tres princi
 - reglas de negocio en backend
 
 La mejor decision de V1 es no replicar la fragmentacion actual. Marketing, member app y admin pueden compartir codebase, pero no deben compartir experiencia ni logica improvisada.
+
+## Implementacion de agenda admin
+
+- ruta: `/admin/sessions`, dentro del boundary `ADMIN`/`STAFF`
+- lectura server-side: `modules/admin/server/admin-sessions-overview.ts`
+- reglas y mutaciones: `modules/classes/server/admin-class-sessions.ts`
+- server actions finas: parsean `FormData`, resuelven actor y delegan al dominio
+- seleccion durable: `?session=<id>`; apertura temporal de creacion en estado cliente
+- fechas de `datetime-local`: se interpretan explicitamente en `Europe/Madrid` antes de persistir UTC
+- cancelacion: transaccion serializable y auditoria, reutilizando la devolucion de credito del modulo de reservas

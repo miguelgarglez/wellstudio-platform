@@ -1015,3 +1015,9 @@ Para WellStudio V1, la propuesta mas solida y a la vez razonable es:
 - auditoria de acciones sensibles desde el principio
 
 Eso deja una base suficientemente seria para construir sin caer ni en un schema improvisado ni en sobreingenieria enterprise.
+
+### Operativa de sesiones admin
+
+La superficie `/admin/sessions` opera sobre `ClassSession` sin duplicar estado de agenda. Los cambios sensibles generan `AuditLog` con actor y contexto.
+
+La cancelacion administrativa es una unica transaccion: cambia la sesion a `CANCELED`, cancela reservas `BOOKED`, devuelve consumos `CREDIT`, expira entradas `WAITING`/`NOTIFIED` y fija `reservedCount` a cero. No elimina filas ni promociona waitlist durante una cancelacion masiva.

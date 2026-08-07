@@ -17,6 +17,10 @@ type AdminOperationToastState =
   | 'lead-qualified'
   | 'lead-lost'
   | 'lead-note'
+  | 'session-draft'
+  | 'session-published'
+  | 'session-closed'
+  | 'session-canceled'
   | null
 
 type AdminOperationToastProps = {
@@ -82,6 +86,26 @@ const TOAST_COPY: Record<
     tone: 'success',
     title: 'Nota añadida',
     description: 'El nuevo contexto ya forma parte del historial de la solicitud.',
+  },
+  'session-draft': {
+    tone: 'success',
+    title: 'Borrador guardado',
+    description: 'La sesión queda en agenda interna y todavía no es reservable.',
+  },
+  'session-published': {
+    tone: 'success',
+    title: 'Sesión publicada',
+    description: 'La sesión ya está visible en la agenda del socio y admite reservas.',
+  },
+  'session-closed': {
+    tone: 'success',
+    title: 'Reservas cerradas',
+    description: 'La sesión se conserva en agenda, pero ya no admite nuevas reservas.',
+  },
+  'session-canceled': {
+    tone: 'success',
+    title: 'Sesión cancelada',
+    description: 'Reservas y waitlist se han cerrado, con devoluciones y auditoría aplicadas.',
   },
 }
 

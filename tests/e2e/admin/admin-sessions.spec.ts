@@ -1,0 +1,110 @@
+import { expect, test } from '@playwright/test'
+
+import {
+  ADMIN_SESSIONS_E2E_CLASS,
+  prepareSandboxAdminSessionsFixture,
+} from '../support/admin-sessions'
+import {
+  ensureSandboxAdminAccess,
+  loginAsSandboxAdmin,
+  loginAsSandboxMember,
+} from '../support/auth'
+import {
+  hasSandboxAdminCredentials,
+  hasSandboxCredentials,
+  isSandboxAuthEnabled,
+  loadE2EEnvFiles,
+} from '../support/env'
+
+loadE2EEnvFiles()
+
+test.describe('Admin sessions @admin @sandbox', () => {
+  test.describe.configure({ mode: 'serial' })
+
+  test.skip(
+    !isSandboxAuthEnabled() || !hasSandboxCredentials() || !hasSandboxAdminCredentials(),
+    'Sandbox auth credentials are not configured',
+  )
+
+  test.beforeAll(async () => {
+    await ensureSandboxAdminAccess()
+    await prepareSandboxAdminSessionsFixture()
+  })
+
+  test('member cannot access the operational agenda', async ({ page }) => {
+    await loginAsSandboxMember(page)
+    const response = await page.goto('/admin/sessions')
+    expect(response?.status()).toBe(404)
+  })
+
+  test('admin creates, closes, reopens and cancels an audited session', async ({ page }, testInfo) => {
+    await loginAsSandboxAdmin(page)
+    await page.goto('/admin/sessions')
+
+    await expect(page.getByRole('heading', { name: 'Agenda de sesiones' })).toBeVisible()
+    await page.getByRole('button', { name: 'Nueva sesión' }).click()
+
+    const createSheet = page.getByRole('dialog', { name: 'Nueva sesión' })
+    await createSheet.getByRole('combobox', { name: 'Tipo de clase' }).selectOption({ label: 'E2E Agenda Flow · 50 min' })
+    await createSheet.getByRole('combobox', { name: 'Coach' }).selectOption({ label: 'E2E Agenda Coach' })
+    await createSheet.getByRole('textbox', { name: 'Inicio' }).fill(futureLocalDateTime())
+    await createSheet.getByRole('spinbutton', { name: 'Capacidad' }).fill('9')
+    await createSheet.getByRole('textbox', { name: 'Ubicación' }).fill('Sala E2E')
+    await createSheet.getByRole('button', { name: 'Guardar y publicar' }).click()
+
+    await expect(page.getByRole('status').getByText('Sesión publicada')).toBeVisible()
+    const detail = page.getByRole('dialog', { name: ADMIN_SESSIONS_E2E_CLASS })
+    await expect(detail.getByText('Publicada', { exact: true })).toBeVisible()
+
+    await detail.getByRole('button', { name: 'Cerrar reservas' }).click()
+    await expect(page.getByRole('status').getByText('Reservas cerradas')).toBeVisible()
+    await expect(detail.getByText('Cerrada', { exact: true })).toBeVisible()
+
+    await detail.getByRole('button', { name: 'Reabrir reservas' }).click()
+    await expect(page.getByRole('status').getByText('Sesión publicada')).toBeVisible()
+
+    await testInfo.attach('admin-sessions-desktop', {
+      body: await page.screenshot({ fullPage: true }),
+      contentType: 'image/png',
+    })
+
+    await detail.getByRole('button', { name: 'Revisar cancelación' }).click()
+    const cancelDialog = page.getByRole('alertdialog', { name: new RegExp(`Cancelar ${ADMIN_SESSIONS_E2E_CLASS}`) })
+    await cancelDialog.getByLabel('Razón de cancelación').fill('Cancelación controlada por E2E')
+    await cancelDialog.getByRole('button', { name: 'Confirmar cancelación' }).click()
+    await expect(page.getByRole('status').getByText('Sesión cancelada')).toBeVisible()
+    await expect(detail.getByText('Cancelada', { exact: true })).toBeVisible()
+
+    await page.reload()
+    await expect(detail.getByText('Cancelada', { exact: true })).toBeVisible()
+  })
+
+  test('mobile agenda keeps navigation compact and detail full width', async ({ page }, testInfo) => {
+    await loginAsSandboxAdmin(page)
+    await page.setViewportSize({ width: 390, height: 844 })
+    await page.goto('/admin/sessions')
+
+    await expect(page.getByRole('navigation', { name: 'Navegación admin móvil' }).getByText('Agenda')).toBeVisible()
+    await page.getByRole('link', { name: new RegExp(ADMIN_SESSIONS_E2E_CLASS) }).click()
+    const detail = page.getByRole('dialog', { name: ADMIN_SESSIONS_E2E_CLASS })
+    const box = await detail.boundingBox()
+    expect(box?.width).toBeGreaterThanOrEqual(388)
+    await page.waitForTimeout(300)
+
+    await testInfo.attach('admin-sessions-mobile', {
+      body: await page.screenshot(),
+      contentType: 'image/png',
+    })
+  })
+})
+
+function futureLocalDateTime() {
+  const date = new Date(Date.now() + 5 * 86_400_000)
+  const parts = new Intl.DateTimeFormat('sv-SE', {
+    timeZone: 'Europe/Madrid',
+    year: 'numeric',
+    month: '2-digit',
+    day: '2-digit',
+  }).format(date)
+  return `${parts}T18:00`
+}

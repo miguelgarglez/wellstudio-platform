@@ -584,7 +584,8 @@ Postcondiciones:
 
 Nivel de certeza:
 
-- inferido con alta confianza
+- implementado en `/admin/sessions` para agenda, creacion/edicion, publicacion, cierre/reapertura y cancelacion auditable
+- la cancelacion administrativa tambien cancela reservas activas, devuelve creditos consumidos y expira la waitlist en una transaccion
 
 ## 16. Admin gestiona socios y reservas
 

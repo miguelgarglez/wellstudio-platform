@@ -2,7 +2,7 @@
 
 import type { ReactNode } from 'react'
 import Link from 'next/link'
-import { ClipboardList, Inbox, ShieldPlus } from 'lucide-react'
+import { CalendarDays, ClipboardList, Inbox, ShieldPlus } from 'lucide-react'
 import { usePathname } from 'next/navigation'
 import { useEffect, useRef, useState } from 'react'
 
@@ -35,6 +35,11 @@ const adminNavItems = [
     href: '/admin/leads',
     label: 'Solicitudes',
     icon: Inbox,
+  },
+  {
+    href: '/admin/sessions',
+    label: 'Agenda',
+    icon: CalendarDays,
   },
 ]
 
@@ -225,7 +230,7 @@ export function AdminShell({ children, summary }: AdminShellProps) {
                 onClick={() => handleAdminNavigation(item.href)}
                 aria-current={isActive ? 'page' : undefined}
                 className={cn(
-                  'relative flex w-28 min-w-0 flex-col items-center gap-1 overflow-hidden rounded-[1.45rem] px-3 py-2 text-center text-xs font-medium transition-[background-color,color,box-shadow] duration-200 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--ring)] sm:w-32',
+                  'relative flex w-[4.7rem] min-w-0 flex-col items-center gap-1 overflow-hidden rounded-[1.45rem] px-2 py-2 text-center text-[11px] font-medium transition-[background-color,color,box-shadow] duration-200 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--ring)] sm:w-28 sm:px-3 sm:text-xs',
                   isActive
                     ? 'bg-[color:color-mix(in_srgb,var(--wellstudio-blue)_18%,white)] text-[var(--wellstudio-ink)]'
                     : 'text-[color:color-mix(in_srgb,var(--foreground)_70%,white)]',

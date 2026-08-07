@@ -271,6 +271,16 @@ Para leads admin, el gate dirigido debe cubrir:
 - notas append-only, actor snapshot y timeline tras recarga
 - deep-link de detalle y retorno a filtros en mobile
 
+Para agenda admin, el gate dirigido debe cubrir:
+
+- permisos `ADMIN`/`STAFF` y rechazo de `MEMBER`
+- fechas interpretadas en `Europe/Madrid`, incluido cambio estacional
+- capacidad nunca inferior a la ocupacion y ausencia de solapes por coach
+- transiciones deliberadas `DRAFT -> PUBLISHED -> CLOSED -> PUBLISHED`
+- cancelacion atomica: reservas canceladas, creditos devueltos, waitlist expirada, ocupacion a cero y `AuditLog`
+- creacion, cambio de estado y persistencia tras recarga en E2E
+- detalle de sesion a ancho completo en mobile
+
 ## 12. Regla final
 
 En WellStudio, lo que rompe negocio no es un boton desalineado.
