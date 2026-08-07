@@ -158,6 +158,8 @@ No cerrar pagos sin probar al menos un flujo sandbox end-to-end.
 - admin edita politica de reserva por plan
 - admin concede y revoca overrides por socio
 - admin crea o edita una sesion
+- admin crea, edita, archiva y reactiva recursos del catalogo de Agenda
+- un recurso con sesiones futuras no puede archivarse hasta resolver sus dependencias
 
 ## Matriz minima por modulo
 

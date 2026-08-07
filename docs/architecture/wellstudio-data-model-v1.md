@@ -1022,4 +1022,8 @@ La superficie `/admin/sessions` opera sobre `ClassSession` sin duplicar estado d
 
 La cancelacion administrativa es una unica transaccion: cambia la sesion a `CANCELED`, cancela reservas `BOOKED`, devuelve consumos `CREDIT`, expira entradas `WAITING`/`NOTIFIED` y fija `reservedCount` a cero. No elimina filas ni promociona waitlist durante una cancelacion masiva.
 
+El catalogo operativo vive en `/admin/sessions/catalog` y administra `ClassType` y `Coach` sin duplicar esos conceptos en modelos de UI. Crear, editar, archivar, desactivar o reactivar genera `AuditLog`. El archivado nunca elimina historico y se bloquea mientras existan sesiones futuras operables (`DRAFT`, `PUBLISHED` o `CLOSED`) que dependan del recurso.
+
+Los `slug` de `ClassType` se generan al crear y permanecen estables durante cambios posteriores de nombre. Esto evita romper enlaces o referencias externas por una correccion editorial.
+
 La asistencia reutiliza el doble estado ya existente de `Reservation`: `PENDING` se corresponde con reserva `BOOKED`, `ATTENDED` con `ATTENDED` y `NO_SHOW` con `NO_SHOW`. Cada cambio genera `AuditLog` y compara el estado esperado para evitar sobrescribir silenciosamente la operacion de otro miembro del staff. Una `ClassSession` solo pasa a `COMPLETED` despues de terminar y cuando no quedan reservas `BOOKED`.

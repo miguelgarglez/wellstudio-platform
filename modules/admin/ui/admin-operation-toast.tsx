@@ -25,6 +25,12 @@ type AdminOperationToastState =
   | 'attendance-no-show'
   | 'attendance-pending'
   | 'session-completed'
+  | 'class-type-saved'
+  | 'class-type-archived'
+  | 'class-type-active'
+  | 'coach-saved'
+  | 'coach-archived'
+  | 'coach-active'
   | null
 
 type AdminOperationToastProps = {
@@ -130,6 +136,36 @@ const TOAST_COPY: Record<
     tone: 'success',
     title: 'Sesión completada',
     description: 'El roster está resuelto y la sesión queda cerrada como histórico.',
+  },
+  'class-type-saved': {
+    tone: 'success',
+    title: 'Tipo de clase guardado',
+    description: 'La configuración ya está disponible al programar nuevas sesiones.',
+  },
+  'class-type-archived': {
+    tone: 'success',
+    title: 'Tipo de clase archivado',
+    description: 'Se conserva el histórico, pero ya no aparece al crear sesiones.',
+  },
+  'class-type-active': {
+    tone: 'success',
+    title: 'Tipo de clase reactivado',
+    description: 'Vuelve a estar disponible en la operativa de Agenda.',
+  },
+  'coach-saved': {
+    tone: 'success',
+    title: 'Coach guardado',
+    description: 'El perfil ya puede asignarse a nuevas sesiones.',
+  },
+  'coach-archived': {
+    tone: 'success',
+    title: 'Coach desactivado',
+    description: 'Se conserva su histórico, pero ya no puede recibir nuevas asignaciones.',
+  },
+  'coach-active': {
+    tone: 'success',
+    title: 'Coach reactivado',
+    description: 'Vuelve a estar disponible al programar sesiones.',
   },
 }
 

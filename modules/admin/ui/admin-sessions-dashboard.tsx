@@ -3,10 +3,11 @@
 import { useActionState, useState } from 'react'
 import Link from 'next/link'
 import { useRouter } from 'next/navigation'
-import { CalendarDays, Check, ChevronRight, Clock3, MapPin, Minus, Plus, UserCheck, UserX, Users } from 'lucide-react'
+import { CalendarDays, Check, ChevronRight, Clock3, MapPin, Minus, Plus, Settings2, UserCheck, UserX, Users } from 'lucide-react'
 import { useFormStatus } from 'react-dom'
 
 import { Button } from '@/components/ui/button'
+import { buttonVariants } from '@/components/ui/button-variants'
 import { Input } from '@/components/ui/input'
 import {
   AlertDialog,
@@ -87,10 +88,16 @@ export function AdminSessionsDashboard({ overview, updated, notice }: Props) {
               {overview.counts.published} publicadas · {overview.counts.drafts} borradores · {overview.counts.closed} cerradas
             </p>
           </div>
-          <Button className="sm:w-auto" onClick={() => setIsCreating(true)}>
-            <Plus aria-hidden="true" />
-            Nueva sesión
-          </Button>
+          <div className="flex flex-col gap-2 sm:flex-row">
+            <Link href="/admin/sessions/catalog" className={buttonVariants({ variant: 'outline' })}>
+              <Settings2 aria-hidden="true" />
+              Catálogo
+            </Link>
+            <Button className="sm:w-auto" onClick={() => setIsCreating(true)}>
+              <Plus aria-hidden="true" />
+              Nueva sesión
+            </Button>
+          </div>
         </div>
 
         {groupedSessions.length ? (

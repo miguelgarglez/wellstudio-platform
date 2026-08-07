@@ -230,6 +230,9 @@ Direccion:
 Regla de producto:
 
 - admin no es un portal de consumo, es una herramienta de operacion
+- la configuracion ocasional que alimenta una operativa debe vivir como subruta contextual, no competir siempre en la navegacion principal; por ejemplo, el catalogo de tipos de clase y coaches se abre desde Agenda
+- los formularios de alta y edicion de catalogos admin deben usar overlays focalizados; la lista principal conserva contexto y densidad, mientras la `Sheet` evita formularios permanentes y layout shifts
+- archivar recursos con historico es una accion reversible y no destructiva; la UI debe explicar dependencias futuras que bloqueen la operacion antes de pedir confirmacion
 - en desktop debe aprovechar el ancho disponible para listas, contexto y detalle accionable
 - evitar heroes editoriales grandes en admin; usar toolbars compactas con contexto util
 - nombrar superficies admin por la accion real que habilitan, no por conceptos tecnicos internos; por ejemplo "Reglas" / "Reglas de reserva" para la configuracion de booking policy por plan

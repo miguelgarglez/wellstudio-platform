@@ -285,6 +285,10 @@ Para agenda admin, el gate dirigido debe cubrir:
 - rechazo de escrituras obsoletas mediante estado esperado
 - correcciones auditables y prohibicion de reintroducir pendientes tras completar
 - finalizacion bloqueada hasta resolver todo el roster y persistencia tras recarga
+- catalogo protegido frente a `MEMBER`, con altas y ediciones validadas server-side
+- `slug` unico y estable, duplicados legibles y auditoria de cambios de tipos de clase y coaches
+- archivado reversible y bloqueo cuando existan sesiones futuras dependientes
+- sheet de catalogo a ancho completo en mobile y feedback persistido tras cada accion
 
 ## 12. Regla final
 

@@ -586,6 +586,8 @@ Nivel de certeza:
 
 - implementado en `/admin/sessions` para agenda, creacion/edicion, publicacion, cierre/reapertura y cancelacion auditable
 - la cancelacion administrativa tambien cancela reservas activas, devuelve creditos consumidos y expira la waitlist en una transaccion
+- `/admin/sessions/catalog` permite crear y editar tipos de clase y coaches, archivarlos de forma reversible y conservar su historico
+- no se puede archivar un tipo de clase ni desactivar un coach mientras tenga sesiones futuras operables; primero deben reasignarse o cancelarse
 
 ## 16. Admin gestiona socios y reservas
 
