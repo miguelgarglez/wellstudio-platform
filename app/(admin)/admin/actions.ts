@@ -55,7 +55,8 @@ export async function updateMembershipBookingPolicyAction(
     }
 
     revalidatePath('/admin')
-    redirect(`/admin?plan=${encodeURIComponent(planId)}&updated=1`)
+    revalidatePath('/admin/rules')
+    redirect(`/admin/rules?plan=${encodeURIComponent(planId)}&updated=1`)
   }
 
   if (policyMode !== 'CALENDAR_WEEK' && policyMode !== 'CALENDAR_MONTH') {
@@ -90,7 +91,8 @@ export async function updateMembershipBookingPolicyAction(
   }
 
   revalidatePath('/admin')
-  redirect(`/admin?plan=${encodeURIComponent(planId)}&updated=1`)
+  revalidatePath('/admin/rules')
+  redirect(`/admin/rules?plan=${encodeURIComponent(planId)}&updated=1`)
 }
 
 function readRequiredField(formData: FormData, key: string) {

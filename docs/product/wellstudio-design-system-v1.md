@@ -237,7 +237,8 @@ Regla de producto:
 - evitar heroes editoriales grandes en admin; usar toolbars compactas con contexto util
 - nombrar superficies admin por la accion real que habilitan, no por conceptos tecnicos internos; por ejemplo "Reglas" / "Reglas de reserva" para la configuracion de booking policy por plan
 - reservar nombres amplios como "Gestion de planes" para superficies que realmente permitan gestionar el plan completo: precio, estado, descripcion, visibilidad y reglas
-- no introducir dashboards de bienvenida sin senales accionables; una home admin solo compensa si ayuda a decidir que atender hoy
+- una home admin solo compensa si ayuda a decidir que atender hoy: debe mostrar señales reales, nombrar su ventana temporal y enlazar a la superficie donde se resuelven
+- no usar el resumen operativo para simular BI: evitar tendencias, conversiones o comparativas sin una definicion de metrica y una ventana de datos fiable
 - preferir patrones de workbench: rail de busqueda/lista, panel de detalle y acciones contextuales cerca del objeto seleccionado
 - el dossier operativo de un socio debe ordenar primero identidad y acceso, despues cobertura comercial y por ultimo actividad e historico; no presentar todos los datos con el mismo peso visual
 - una vista agregada read-only debe enlazar a la superficie que gobierna cada accion en vez de duplicar formularios o reglas de dominio dentro del detalle

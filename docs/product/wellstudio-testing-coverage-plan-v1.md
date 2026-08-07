@@ -158,6 +158,8 @@ No cerrar pagos sin probar al menos un flujo sandbox end-to-end.
 
 - admin entra y ve panel
 - admin directo desde login aterriza en `/admin` por rol
+- admin ve en `/admin` un resumen operativo responsive y navega desde cada señal a su superficie propietaria
+- deep links legacy de reglas en `/admin?plan=...` redirigen a `/admin/rules?plan=...`
 - member no accede a `/admin`, `/admin/overrides` ni `/admin/members`
 - admin edita politica de reserva por plan
 - admin concede y revoca overrides por socio

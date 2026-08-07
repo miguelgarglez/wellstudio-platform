@@ -32,7 +32,7 @@ export async function loginAsSandboxAdmin(page: Page) {
   await page.waitForLoadState('domcontentloaded')
 
   await page.goto('/admin')
-  await authPage.expectAdminPoliciesVisible()
+  await authPage.expectAdminHomeVisible()
 }
 
 export async function ensureSandboxAdminAccess() {

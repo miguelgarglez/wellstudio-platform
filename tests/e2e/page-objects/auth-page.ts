@@ -212,23 +212,24 @@ export class AuthPage {
     ).toBeVisible()
   }
 
-  async expectAdminPoliciesVisible() {
+  async expectAdminHomeVisible() {
     await expect(
-      this.page.getByRole('heading', { name: 'Reglas de reserva' }),
+      this.page.getByRole('heading', { name: 'Control de hoy' }),
+    ).toBeVisible()
+    const navLabel = (this.page.viewportSize()?.width ?? 1280) < 1280
+      ? 'Navegación admin móvil'
+      : 'Navegación admin'
+    await expect(
+      this.page
+        .getByLabel(navLabel, { exact: true })
+        .getByRole('link', { name: 'Resumen' }),
     ).toBeVisible()
     await expect(
       this.page
-        .getByLabel('Navegación admin', { exact: true })
-        .getByRole('link', { name: 'Reglas' }),
-    ).toBeVisible()
-    await expect(
-      this.page
-        .getByLabel('Navegación admin', { exact: true })
+        .getByLabel(navLabel, { exact: true })
         .getByRole('link', { name: 'Excepciones' }),
     ).toBeVisible()
-    await expect(
-      this.page.getByLabel('Planes de membresía').getByRole('link').first(),
-    ).toBeVisible()
+    await expect(this.page.getByRole('heading', { name: 'Clases de hoy' })).toBeVisible()
   }
 
   async expectAdminOverridesVisible() {

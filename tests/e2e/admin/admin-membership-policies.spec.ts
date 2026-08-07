@@ -31,10 +31,10 @@ test.describe('Admin membership policies @admin @sandbox', () => {
   test('member cannot access admin policies', async ({ page }) => {
     await loginAsSandboxMember(page)
 
-    const response = await page.goto('/admin')
+    const response = await page.goto('/admin/rules')
 
     expect(response?.status()).toBe(404)
-    await expect(page.getByText('This page could not be found.')).toBeVisible()
+    await expect(page.getByRole('heading', { name: 'Esta página no está disponible' })).toBeVisible()
   })
 
   test('admin direct login lands on admin by default', async ({ page }) => {
@@ -46,11 +46,12 @@ test.describe('Admin membership policies @admin @sandbox', () => {
     await authPage.submitLogin()
 
     await expect(page).toHaveURL(/\/admin$/)
-    await authPage.expectAdminPoliciesVisible()
+    await authPage.expectAdminHomeVisible()
   })
 
   test('admin can view and update a membership booking policy', async ({ page }) => {
     await loginAsSandboxAdmin(page)
+    await page.goto('/admin/rules')
 
     await expect(page.getByRole('heading', { name: 'Reglas de reserva' })).toBeVisible()
 
@@ -60,7 +61,7 @@ test.describe('Admin membership policies @admin @sandbox', () => {
 
     await planLinks.first().click()
 
-    await expect(page).toHaveURL(/\/admin\?plan=/)
+    await expect(page).toHaveURL(/\/admin\/rules\?plan=/)
     await page.getByRole('button', { name: /Editar regla de reserva/i }).click()
 
     const editorSheet = page.getByRole('dialog', { name: 'Editar regla de reserva' })
@@ -69,7 +70,7 @@ test.describe('Admin membership policies @admin @sandbox', () => {
     await editorSheet.getByLabel(/Reservas disponibles por periodo/i).fill('6')
     await editorSheet.getByRole('button', { name: 'Guardar regla' }).click()
 
-    await expect(page).toHaveURL(/\/admin\?plan=.*&updated=1$/)
+    await expect(page).toHaveURL(/\/admin\/rules\?plan=.*&updated=1$/)
     await expect(page.getByRole('status').getByText('Regla guardada')).toBeVisible()
     await expect(editorSheet).not.toBeVisible()
 
@@ -84,6 +85,7 @@ test.describe('Admin membership policies @admin @sandbox', () => {
 
   test('admin opens policy detail as a sheet on mobile', async ({ page }) => {
     await loginAsSandboxAdmin(page)
+    await page.goto('/admin/rules')
     await page.setViewportSize({ width: 390, height: 844 })
 
     const planLinks = page.getByLabel('Planes de membresía').getByRole('link')
@@ -92,7 +94,7 @@ test.describe('Admin membership policies @admin @sandbox', () => {
 
     await planLinks.first().click()
 
-    await expect(page).toHaveURL(/\/admin\?plan=/)
+    await expect(page).toHaveURL(/\/admin\/rules\?plan=/)
 
     const detailSheet = page.getByRole('dialog').filter({
       hasText: 'Plan seleccionado',
@@ -108,7 +110,7 @@ test.describe('Admin membership policies @admin @sandbox', () => {
   test('admin mobile policies list does not render empty detail before selection', async ({ page }) => {
     await loginAsSandboxAdmin(page)
     await page.setViewportSize({ width: 390, height: 844 })
-    await page.goto('/admin')
+    await page.goto('/admin/rules')
 
     await expect(page.getByRole('heading', { name: 'Reglas de reserva' })).toBeVisible()
     await expect(page.getByRole('heading', { name: 'Regla efectiva por plan' })).toBeVisible()

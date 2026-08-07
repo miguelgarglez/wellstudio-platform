@@ -369,6 +369,8 @@ La operativa manual de creditos nunca edita un contador aislado: añade una entr
 
 El sistema debe mostrar metricas basicas de ocupacion, leads y actividad.
 
+La entrada admin V1 ofrece un resumen operativo server-side con sesiones y ocupacion del dia, solicitudes nuevas, socios activos sin cobertura vigente, reglas en fallback y excepciones activas. Cada señal enlaza a su workspace propietaria. Este resumen no calcula todavía conversion, tendencia ni reporting historico; esas metricas requieren ventanas y denominadores definidos antes de presentarse como fiables.
+
 ## 13. Requisitos No Funcionales
 
 - diseno responsive con foco en movil

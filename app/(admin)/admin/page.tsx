@@ -1,54 +1,38 @@
 import { Suspense } from 'react'
+import { redirect } from 'next/navigation'
 
-import { getAdminMembershipPolicyOverview } from '@/modules/admin/server/admin-membership-policy-overview'
-import {
-  AdminMembershipPoliciesDashboard,
-  AdminMembershipPoliciesDashboardSkeleton,
-} from '@/modules/admin/ui/admin-membership-policies-dashboard'
+import { getAdminHomeOverview } from '@/modules/admin/server/admin-home-overview'
+import { AdminHomeDashboard, AdminHomeDashboardSkeleton } from '@/modules/admin/ui/admin-home-dashboard'
 import { AdminSectionShell } from '@/modules/admin/ui/admin-section-shell'
 
-type AdminPageProps = {
-  searchParams?: Promise<{
-    plan?: string
-    updated?: string
-  }>
+type AdminHomePageProps = {
+  searchParams?: Promise<{ plan?: string; updated?: string }>
 }
 
-export default async function AdminHomePage({ searchParams }: AdminPageProps) {
+export default async function AdminHomePage({ searchParams }: AdminHomePageProps) {
   const resolvedSearchParams = searchParams ? await searchParams : undefined
-  const selectedPlanId =
-    typeof resolvedSearchParams?.plan === 'string' ? resolvedSearchParams.plan : null
-  const isSaveSuccessVisible = resolvedSearchParams?.updated === '1'
+
+  // Preserve deep links created while booking rules lived at /admin.
+  if (typeof resolvedSearchParams?.plan === 'string') {
+    const params = new URLSearchParams({ plan: resolvedSearchParams.plan })
+    if (resolvedSearchParams.updated === '1') params.set('updated', '1')
+    redirect(`/admin/rules?${params.toString()}`)
+  }
 
   return (
     <AdminSectionShell
-      eyebrow="Admin · Reglas"
-      title="Reglas de reserva"
-      description="Define qué puede reservar cada membership plan sin tocar excepciones individuales ni mezclar esta superficie con el portal del socio."
+      eyebrow="Admin · Resumen"
+      title="Control de hoy"
+      description="Una lectura breve de la jornada y de las señales que requieren una decisión. Cada bloque abre la superficie donde se resuelve."
     >
-      <Suspense fallback={<AdminMembershipPoliciesDashboardSkeleton />}>
-        <AdminMembershipPoliciesSection
-          selectedPlanId={selectedPlanId}
-          isSaveSuccessVisible={isSaveSuccessVisible}
-        />
+      <Suspense fallback={<AdminHomeDashboardSkeleton />}>
+        <AdminHomeSection />
       </Suspense>
     </AdminSectionShell>
   )
 }
 
-async function AdminMembershipPoliciesSection({
-  selectedPlanId,
-  isSaveSuccessVisible,
-}: {
-  selectedPlanId: string | null
-  isSaveSuccessVisible: boolean
-}) {
-  const overview = await getAdminMembershipPolicyOverview(selectedPlanId)
-
-  return (
-    <AdminMembershipPoliciesDashboard
-      overview={overview}
-      isSaveSuccessVisible={isSaveSuccessVisible}
-    />
-  )
+async function AdminHomeSection() {
+  const overview = await getAdminHomeOverview()
+  return <AdminHomeDashboard overview={overview} />
 }

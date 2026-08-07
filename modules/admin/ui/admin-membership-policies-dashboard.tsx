@@ -56,7 +56,7 @@ export function AdminMembershipPoliciesDashboard({
               return (
                 <li key={plan.id}>
                   <Link
-                    href={`/admin?plan=${encodeURIComponent(plan.id)}`}
+                    href={`/admin/rules?plan=${encodeURIComponent(plan.id)}`}
                     className={cn(
                       'group block rounded-[1.05rem] border px-3 py-3 transition-[background-color,border-color,box-shadow,transform] duration-200 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--ring)]',
                       isSelected
@@ -97,7 +97,7 @@ export function AdminMembershipPoliciesDashboard({
 
       <AdminResponsiveDetailFrame
         isOpen={Boolean(overview.selectedPlan)}
-        closeHref="/admin"
+        closeHref="/admin/rules"
         labelledBy="admin-membership-plan-detail"
         className="pb-7 sm:pb-8"
         mobileFeedback={

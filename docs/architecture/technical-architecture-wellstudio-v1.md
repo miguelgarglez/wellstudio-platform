@@ -849,16 +849,18 @@ Prioridades:
 
 Superficies admin ya implementadas:
 
-- `/admin`: reglas de reserva por membership plan; el termino visible es "Reglas" para evitar sobreprometer una gestion completa de planes
+- `/admin`: resumen operativo de la jornada y de señales accionables; no es BI ni una home de bienvenida
+- `/admin/rules`: reglas de reserva por membership plan; el termino visible es "Reglas" para evitar sobreprometer una gestion completa de planes
 - `/admin/overrides`: excepciones de reserva auditables por socio sobre memberships activas; internamente siguen siendo booking overrides de dominio
 - `/admin/members`: directorio y dossier operativo; agrega datos de varios modulos mediante un read model server-side, permite cambios auditables del estado basico y delega el resto de acciones en superficies de dominio existentes
 
 Decision de entrada admin:
 
-- `/admin` permanece como entrada directa a reglas de reserva mientras sea la accion admin mas concreta y frecuente
-- no crear un dashboard inicial hasta que existan 3-5 senales operativas reales y accionables; por ejemplo reglas legacy pendientes, excepciones vigentes, sesiones proximas con incidencias, actividad comercial reciente o socios que requieren atencion
+- `/admin` es la entrada operativa porque ya existen señales reales y accionables de agenda, solicitudes, socios, reglas y excepciones
+- el resumen agrega lecturas server-side acotadas y enlaza a la superficie propietaria de cada accion; no duplica formularios ni reglas de dominio
+- las metricas V1 son estado presente y operativa del dia: no deben presentarse como conversion, tendencia o analitica historica sin denominadores y ventanas fiables
 - "Gestion de planes" queda reservado para una futura superficie mas amplia que edite nombre, precio, estado, visibilidad y reglas; no debe usarse para una pantalla que solo cambia reglas de reserva
-- si se introduce una home admin futura, mover reglas a una ruta dedicada como `/admin/booking-rules` o `/admin/plans/rules` debe hacerse con redirects y actualizacion explicita de navegacion/tests
+- los deep links legacy `/admin?plan=...` redirigen a `/admin/rules?plan=...`; navegacion y E2E usan la ruta dedicada
 
 Patron de interfaz:
 

@@ -644,6 +644,8 @@ Estado V1 implementado:
 - permite revocar overrides vigentes sin borrar historial
 - las acciones delegan en servicios de dominio y dejan trazabilidad auditable
 - `/admin/sessions` muestra el roster y permite registrar asistencia o no-show desde dos horas antes
+- `/admin` agrega la jornada y las señales operativas presentes sin duplicar acciones: sesiones de hoy, solicitudes nuevas, socios sin cobertura vigente, reglas legacy y excepciones activas
+- `/admin/rules` conserva la configuracion de reglas por plan; `/admin?plan=...` se mantiene como compatibilidad y redirige al deep link nuevo
 - cada correccion usa estado esperado para detectar concurrencia y genera `AuditLog`
 - una sesion terminada solo puede completarse cuando no quedan asistencias pendientes
 
