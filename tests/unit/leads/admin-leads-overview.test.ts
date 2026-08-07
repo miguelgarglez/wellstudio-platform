@@ -1,15 +1,21 @@
 import { beforeEach, describe, expect, it, vi } from 'vitest'
 
-const { leadFindManyMock, leadCountMock } = vi.hoisted(() => ({
+const { leadFindManyMock, leadFindUniqueMock, leadCountMock, activityFindManyMock } = vi.hoisted(() => ({
   leadFindManyMock: vi.fn(),
+  leadFindUniqueMock: vi.fn(),
   leadCountMock: vi.fn(),
+  activityFindManyMock: vi.fn(),
 }))
 
 vi.mock('@/lib/db/prisma', () => ({
   prisma: {
     lead: {
       findMany: leadFindManyMock,
+      findUnique: leadFindUniqueMock,
       count: leadCountMock,
+    },
+    leadActivity: {
+      findMany: activityFindManyMock,
     },
   },
 }))
@@ -17,6 +23,7 @@ vi.mock('@/lib/db/prisma', () => ({
 import {
   buildAdminLeadListItem,
   formatLeadStatusLabel,
+  getAdminLeadActivitiesPage,
   getAdminLeadOverview,
   normalizeStatusFilter,
 } from '@/modules/leads/server/admin-leads-overview'
@@ -24,7 +31,9 @@ import {
 describe('admin leads overview', () => {
   beforeEach(() => {
     leadFindManyMock.mockReset()
+    leadFindUniqueMock.mockReset()
     leadCountMock.mockReset()
+    activityFindManyMock.mockReset()
   })
 
   it('lists recent contact requests with visible labels and counts', async () => {
@@ -47,6 +56,7 @@ describe('admin leads overview', () => {
       .mockResolvedValueOnce(10)
       .mockResolvedValueOnce(4)
       .mockResolvedValueOnce(5)
+      .mockResolvedValueOnce(2)
       .mockResolvedValueOnce(1)
 
     const overview = await getAdminLeadOverview({
@@ -72,6 +82,7 @@ describe('admin leads overview', () => {
       all: 10,
       new: 4,
       contacted: 5,
+      qualified: 2,
       lost: 1,
     })
     expect(overview.leads[0]).toMatchObject({
@@ -85,15 +96,53 @@ describe('admin leads overview', () => {
     })
   })
 
-  it('normalizes unsupported filters to all', () => {
-    expect(normalizeStatusFilter('converted')).toBe('all')
-    expect(normalizeStatusFilter(null)).toBe('all')
+  it('defaults the inbox to new and keeps explicit all', () => {
+    expect(normalizeStatusFilter('converted')).toBe('new')
+    expect(normalizeStatusFilter(null)).toBe('new')
+    expect(normalizeStatusFilter('all')).toBe('all')
     expect(normalizeStatusFilter('lost')).toBe('lost')
   })
 
   it('maps readonly statuses without making them operational labels', () => {
-    expect(formatLeadStatusLabel('QUALIFIED')).toBe('Cualificada')
+    expect(formatLeadStatusLabel('QUALIFIED')).toBe('Interesada')
     expect(formatLeadStatusLabel('CONVERTED')).toBe('Convertida')
+  })
+
+  it('maps activity history newest first and derives the creation event', async () => {
+    leadFindUniqueMock.mockResolvedValue({
+      id: 'lead-1',
+      createdAt: new Date('2026-05-29T18:00:00.000Z'),
+    })
+    activityFindManyMock.mockResolvedValue([
+      {
+        id: 'activity-2',
+        type: 'STATUS_CHANGED',
+        fromStatus: 'NEW',
+        toStatus: 'CONTACTED',
+        note: 'Primer contacto realizado',
+        actorDisplayName: 'Ana Admin',
+        createdAt: new Date('2026-05-29T19:00:00.000Z'),
+      },
+      {
+        id: 'activity-1',
+        type: 'NOTE',
+        fromStatus: null,
+        toStatus: null,
+        note: 'Solicita precios',
+        actorDisplayName: 'Ana Admin',
+        createdAt: new Date('2026-05-29T18:30:00.000Z'),
+      },
+    ])
+
+    const page = await getAdminLeadActivitiesPage({ leadId: 'lead-1' })
+
+    expect(page.nextCursor).toBeNull()
+    expect(page.items.map((item) => item.kind)).toEqual(['status', 'note', 'created'])
+    expect(page.items[0]).toMatchObject({
+      title: 'Nueva → Contactada',
+      note: 'Primer contacto realizado',
+      actorLabel: 'Ana Admin',
+    })
   })
 
   it('uses honest fallbacks for partial lead data', () => {

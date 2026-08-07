@@ -817,6 +817,24 @@ Recomendacion:
   - campaign
   - free text notes
 
+Implementacion operativa de seguimiento:
+
+- `Lead` conserva el estado actual y los datos de captacion; `LeadActivity` mantiene el historial append-only de notas y cambios de estado
+- una nota libre tiene un maximo de 1000 caracteres y no admite HTML, Markdown ni adjuntos
+- cada actividad guarda `actorUserId` y un snapshot `actorDisplayName`; si el usuario se elimina, el historial sigue siendo legible
+- un cambio de estado y su nota opcional se persisten atomicamente como un unico evento `STATUS_CHANGED`
+- marcar una solicitud como perdida exige motivo; `CONVERTED` es de solo lectura en esta superficie
+- la recepcion inicial se deriva de `Lead.createdAt` y no se duplica como fila de actividad
+- el historial se pagina en orden descendente con cursor estable por `createdAt` e `id`
+
+Transiciones permitidas en el seguimiento admin:
+
+- `NEW` -> `CONTACTED`, `QUALIFIED`, `LOST`
+- `CONTACTED` -> `NEW`, `QUALIFIED`, `LOST`
+- `QUALIFIED` -> `CONTACTED`, `LOST`
+- `LOST` -> `NEW`
+- `CONVERTED` no admite transiciones desde la bandeja de solicitudes
+
 ## 14. Diseño del Admin
 
 El admin de V1 debe ser operativo, no corporativo.
@@ -853,6 +871,7 @@ Patron de interfaz:
 - el estado efimero de operacion debe permanecer local al cliente: apertura de `Sheet`/`Dialog`, tabs internas, seleccion temporal de membership/sesion dentro de un formulario y pasos intermedios; esto evita refrescos de Server Components para acciones que deben sentirse instantaneas
 - las listas admin por defecto deben ser read models server-side acotados y honestos: pueden priorizar actividad reciente u operabilidad, pero deben distinguirse de resultados de busqueda exhaustivos
 - las acciones admin siguen siendo server actions finas que delegan en servicios de dominio; el layout no debe introducir reglas de negocio
+- en seguimiento comercial, el detalle debe priorizar identidad, estado actual y timeline; las operaciones de nota/cambio de estado se abren en dialogos enfocados y no como formularios permanentes
 
 Regla de acceso:
 

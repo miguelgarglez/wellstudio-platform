@@ -8,7 +8,9 @@ type AdminLeadsPageProps = {
   searchParams?: Promise<{
     q?: string
     status?: string
+    lead?: string
     updated?: string
+    notice?: string
   }>
 }
 
@@ -16,9 +18,13 @@ export default async function AdminLeadsPage({ searchParams }: AdminLeadsPagePro
   const resolvedSearchParams = searchParams ? await searchParams : undefined
   const query = typeof resolvedSearchParams?.q === 'string' ? resolvedSearchParams.q : null
   const status = typeof resolvedSearchParams?.status === 'string' ? resolvedSearchParams.status : null
+  const selectedLeadId = typeof resolvedSearchParams?.lead === 'string' ? resolvedSearchParams.lead : null
+  const noticeId = typeof resolvedSearchParams?.notice === 'string' ? resolvedSearchParams.notice : null
   const updatedState =
+    resolvedSearchParams?.updated === 'note' ||
     resolvedSearchParams?.updated === 'new' ||
     resolvedSearchParams?.updated === 'contacted' ||
+    resolvedSearchParams?.updated === 'qualified' ||
     resolvedSearchParams?.updated === 'lost'
       ? resolvedSearchParams.updated
       : null
@@ -33,7 +39,9 @@ export default async function AdminLeadsPage({ searchParams }: AdminLeadsPagePro
         <AdminLeadsSection
           query={query}
           status={status}
+          selectedLeadId={selectedLeadId}
           updatedState={updatedState}
+          noticeId={noticeId}
         />
       </Suspense>
     </AdminSectionShell>
@@ -43,21 +51,27 @@ export default async function AdminLeadsPage({ searchParams }: AdminLeadsPagePro
 async function AdminLeadsSection({
   query,
   status,
+  selectedLeadId,
   updatedState,
+  noticeId,
 }: {
   query: string | null
   status: string | null
-  updatedState: 'new' | 'contacted' | 'lost' | null
+  selectedLeadId: string | null
+  updatedState: 'note' | 'new' | 'contacted' | 'qualified' | 'lost' | null
+  noticeId: string | null
 }) {
   const overview = await getAdminLeadOverview({
     query,
     status,
+    selectedLeadId,
   })
 
   return (
     <AdminLeadsDashboard
       overview={overview}
       updatedState={updatedState}
+      noticeId={noticeId}
     />
   )
 }

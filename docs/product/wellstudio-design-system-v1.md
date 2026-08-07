@@ -244,6 +244,8 @@ Regla de producto:
 - mantener en estado local la interaccion efimera: apertura de sheets/dialogs, tabs internas, seleccion temporal de formulario y pasos dentro de una operacion
 - las listas admin pueden tener defaults seguros cuando evitan pantallas vacias; deben estar acotadas, explicar su criterio y no presentarse como exhaustivas
 - la busqueda admin puede seguir siendo submit-based cuando el estado server-side y la URL aportan mas robustez que una busqueda incremental
+- en una bandeja operativa, mostrar como maximo las acciones primarias necesarias en el detalle; formularios de notas o cambios de estado deben abrirse en `Dialog` enfocados para reducir carga visual
+- los historiales auditables se presentan como timeline escaneable, ordenado de mas reciente a mas antiguo, con actor, fecha y contexto; la paginacion por cursor se revela bajo demanda
 - member app puede ser mas guiada, espaciosa y editorial; admin debe ser mas denso, escaneable y accionable
 - no reutilizar layouts de member en admin salvo componentes atomicos compartidos como botones, inputs, badges o tokens de marca
 

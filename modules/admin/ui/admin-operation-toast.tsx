@@ -14,12 +14,15 @@ type AdminOperationToastState =
   | 'policy-saved'
   | 'lead-new'
   | 'lead-contacted'
+  | 'lead-qualified'
   | 'lead-lost'
+  | 'lead-note'
   | null
 
 type AdminOperationToastProps = {
   state: AdminOperationToastState
   variant?: 'fixed' | 'inline'
+  instanceKey?: string | null
 }
 
 const TOAST_COPY: Record<
@@ -65,24 +68,51 @@ const TOAST_COPY: Record<
     title: 'Solicitud contactada',
     description: 'El estado se ha actualizado y queda visible en la bandeja de solicitudes.',
   },
+  'lead-qualified': {
+    tone: 'success',
+    title: 'Solicitud marcada como interesada',
+    description: 'El seguimiento continúa y el cambio ya aparece en su historial.',
+  },
   'lead-lost': {
     tone: 'success',
     title: 'Solicitud perdida',
     description: 'La solicitud deja de estar activa para seguimiento ordinario.',
+  },
+  'lead-note': {
+    tone: 'success',
+    title: 'Nota añadida',
+    description: 'El nuevo contexto ya forma parte del historial de la solicitud.',
   },
 }
 
 export function AdminOperationToast({
   state,
   variant = 'fixed',
+  instanceKey,
 }: AdminOperationToastProps) {
+  if (!state) {
+    return null
+  }
+
+  return (
+    <VisibleAdminOperationToast
+      key={`${state}:${instanceKey ?? 'default'}`}
+      state={state}
+      variant={variant}
+    />
+  )
+}
+
+function VisibleAdminOperationToast({
+  state,
+  variant,
+}: {
+  state: Exclude<AdminOperationToastState, null>
+  variant: NonNullable<AdminOperationToastProps['variant']>
+}) {
   const [isVisible, setIsVisible] = useState(true)
 
   useEffect(() => {
-    if (!state) {
-      return
-    }
-
     const timeout = window.setTimeout(() => {
       setIsVisible(false)
     }, 5200)
@@ -92,7 +122,7 @@ export function AdminOperationToast({
     }
   }, [state])
 
-  if (!state || !isVisible) {
+  if (!isVisible) {
     return null
   }
 

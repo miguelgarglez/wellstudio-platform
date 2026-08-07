@@ -228,6 +228,30 @@ Estados recomendados:
 - `converted`
 - `lost`
 
+### lead_activities
+
+Responsabilidad:
+
+- conservar trazabilidad append-only del seguimiento comercial sin sobrecargar `leads`
+
+Campos clave:
+
+- `id`
+- `lead_id`
+- `type`: `note` o `status_changed`
+- `from_status` y `to_status` para cambios de estado
+- `note` nullable en cambios de estado y obligatoria en actividades de nota
+- `actor_user_id` nullable para preservar el evento si desaparece el usuario
+- `actor_display_name` como snapshot legible del operador
+- `created_at`
+
+Invariantes:
+
+- una actividad `note` no contiene estados
+- una actividad `status_changed` contiene estados distintos de origen y destino
+- las notas tienen entre 1 y 1000 caracteres despues de trim
+- las actividades no se editan ni se eliminan desde producto
+
 ## 4.3 Coaches and schedule
 
 ### coaches

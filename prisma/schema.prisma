@@ -169,6 +169,11 @@ enum LeadStatus {
   LOST
 }
 
+enum LeadActivityType {
+  NOTE
+  STATUS_CHANGED
+}
+
 enum ConsentType {
   TERMS
   PRIVACY
@@ -192,6 +197,7 @@ model User {
   consents                UserConsent[]
   coachProfile            Coach?
   auditLogs               AuditLog[]                        @relation("AuditActor")
+  leadActivities          LeadActivity[]                    @relation("LeadActivityActor")
   grantedBookingOverrides MemberMembershipBookingOverride[] @relation("GrantedBookingOverrideActor")
   revokedBookingOverrides MemberMembershipBookingOverride[] @relation("RevokedBookingOverrideActor")
 
@@ -277,10 +283,29 @@ model Lead {
   createdAt            DateTime   @default(now())
   updatedAt            DateTime   @updatedAt
 
-  convertedMember Member? @relation("LeadConversion", fields: [convertedMemberId], references: [id])
+  convertedMember Member?        @relation("LeadConversion", fields: [convertedMemberId], references: [id])
+  activities      LeadActivity[]
 
   @@index([status, createdAt])
   @@index([normalizedPhone, status, createdAt])
+}
+
+model LeadActivity {
+  id               String           @id @default(cuid())
+  leadId           String
+  type             LeadActivityType
+  fromStatus       LeadStatus?
+  toStatus         LeadStatus?
+  note             String?
+  actorUserId      String?
+  actorDisplayName String
+  createdAt        DateTime         @default(now())
+
+  lead  Lead  @relation(fields: [leadId], references: [id], onDelete: Cascade)
+  actor User? @relation("LeadActivityActor", fields: [actorUserId], references: [id], onDelete: SetNull)
+
+  @@index([leadId, createdAt, id])
+  @@index([actorUserId, createdAt])
 }
 
 model Coach {

@@ -262,6 +262,15 @@ Tras bugs reales:
 - tests de webhooks
 - tests de admin
 
+Para leads admin, el gate dirigido debe cubrir:
+
+- permisos `ADMIN`/`STAFF` y rechazo de `MEMBER`
+- mapa de transiciones y proteccion de `CONVERTED`
+- nota obligatoria al marcar `LOST`
+- persistencia atomica de cambio de estado + actividad
+- notas append-only, actor snapshot y timeline tras recarga
+- deep-link de detalle y retorno a filtros en mobile
+
 ## 12. Regla final
 
 En WellStudio, lo que rompe negocio no es un boton desalineado.
