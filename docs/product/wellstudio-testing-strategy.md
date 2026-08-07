@@ -89,6 +89,13 @@ Suite minima recomendada:
 7. cancelacion de reserva
 8. admin crea o edita una clase
 
+Gate dirigido de agenda publica:
+
+- una sesion futura publicada y publica aparece en `/classes` y abre su detalle
+- borradores, sesiones pasadas y tipos privados no aparecen ni son accesibles por URL directa
+- el CTA de reserva deriva al login del portal sin crear reservas anonimas
+- la vista mobile no introduce overflow horizontal y conserva fecha, hora y disponibilidad escaneables
+
 ## 4. Que testear por modulo
 
 ## Auth

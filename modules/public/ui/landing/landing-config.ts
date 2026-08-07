@@ -1,4 +1,5 @@
 export const navigationLinks = [
+  { href: '/classes', label: 'Agenda' },
   { href: '#centro', label: 'Centro' },
   { href: '#metodo', label: 'Método' },
   { href: '#testimonios', label: 'Testimonios' },

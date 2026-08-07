@@ -178,7 +178,9 @@ Postcondiciones:
 
 Nivel de certeza:
 
-- confirmado en sistema actual
+- implementado en `/classes` con sesiones futuras `PUBLISHED` cuyo tipo esta `ACTIVE` y marcado como publico
+- la primera slice agrupa una ventana acotada de 30 dias por fecha de Madrid y muestra disponibilidad derivada del aforo real
+- la agenda publica es de lectura: reservar o entrar en waitlist exige acceder al portal de socios
 
 ## 5. Ver detalle de clase
 
@@ -211,7 +213,8 @@ Postcondiciones:
 
 Nivel de certeza:
 
-- confirmado, con bug importante detectado en sistema actual
+- implementado en `/classes/[sessionId]`; una sesion pasada, borrador, cerrada o privada responde como no disponible
+- el detalle expone solo informacion segura de clase, coach, horario, ubicacion, capacidad y disponibilidad; nunca roster ni identidad de socios
 
 ## 6. Reserva de clase
 

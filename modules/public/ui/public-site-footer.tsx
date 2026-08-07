@@ -8,6 +8,7 @@ type PublicSiteFooterProps = {
 };
 
 const links = [
+  { href: "/classes", label: "Agenda" },
   { href: "/privacy-policy", label: "Privacidad" },
   { href: "/terms", label: "Condiciones" },
   { href: "/login", label: "Acceso socios" },

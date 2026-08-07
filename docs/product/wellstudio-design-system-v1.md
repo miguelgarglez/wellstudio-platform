@@ -262,6 +262,14 @@ Regla de producto:
 - member app puede ser mas guiada, espaciosa y editorial; admin debe ser mas denso, escaneable y accionable
 - no reutilizar layouts de member en admin salvo componentes atomicos compartidos como botones, inputs, badges o tokens de marca
 
+## Agenda publica
+
+- la agenda publica es una superficie editorial de descubrimiento, no una tabla admin ni una replica del portal member
+- agrupar sesiones por dia y usar filas escaneables con hora, clase, coach, ubicacion y disponibilidad; en mobile esa jerarquia debe sobrevivir sin truncar la señal diferencial
+- el detalle explica el contexto antes de pedir autenticacion y mantiene un unico siguiente paso principal: acceder para reservar
+- los estados de disponibilidad usan texto ademas de color y nunca prometen una plaza hasta que el motor de reservas la confirma dentro del portal
+- sesiones internas, borradores, pasadas o tipos no publicos no deben dejar rastros en la UI ni en metadata accesible
+
 ## Motion
 
 - usar animaciones cortas y funcionales

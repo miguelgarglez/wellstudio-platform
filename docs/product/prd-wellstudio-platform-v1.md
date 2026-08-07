@@ -327,6 +327,8 @@ Estas reglas salen del analisis actual y pueden ajustarse con validacion con el 
 
 El sistema debe exponer una agenda publica con sesiones futuras, horario, coach, capacidad y plazas libres.
 
+Estado V1 implementado: `/classes` y `/classes/[sessionId]` exponen una ventana futura acotada de sesiones publicadas y tipos publicos activos. La reserva permanece autenticada en el portal de socios.
+
 ## RF-2 Registro y acceso
 
 El sistema debe permitir registro, login, recuperacion de contraseña y verificacion de email.
