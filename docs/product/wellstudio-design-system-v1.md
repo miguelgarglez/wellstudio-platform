@@ -270,6 +270,14 @@ Regla de producto:
 - los estados de disponibilidad usan texto ademas de color y nunca prometen una plaza hasta que el motor de reservas la confirma dentro del portal
 - sesiones internas, borradores, pasadas o tipos no publicos no deben dejar rastros en la UI ni en metadata accesible
 
+## Catalogo publico de productos
+
+- separar visual y semanticamente planes recurrentes de bonos; son decisiones distintas, no variantes intercambiables de una card
+- precio, periodicidad y capacidad de reserva forman la jerarquia primaria; la descripcion solo aporta contexto
+- no mostrar fuentes legacy, IDs, estados internos ni lenguaje contractual que el producto no pueda sostener
+- un catalogo sin checkout debe decirlo con claridad y conducir a contacto o agenda; nunca usar botones de compra ficticios
+- los nombres y precios deben apilarse en mobile antes que truncarse o competir por la misma fila
+
 ## Motion
 
 - usar animaciones cortas y funcionales

@@ -181,6 +181,8 @@ Debe explicar:
 - reglas de elegibilidad
 - condiciones de cancelacion basicas
 
+Estado V1 implementado: `/plans` lee planes y bonos activos/publicos, muestra precio y reglas efectivas y deriva a contacto o agenda. Es una superficie informativa; no crea cobros ni activa productos. La compra online permanece en fase 2.
+
 ### 4. Captacion
 
 Debe incluir:

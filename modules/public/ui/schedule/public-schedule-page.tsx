@@ -3,7 +3,7 @@ import { ArrowRight, CalendarDays, Clock3, MapPin, UserRound, UsersRound } from 
 
 import { cn } from '@/lib/utils'
 import type { PublicScheduleSession, PublicSessionAvailability } from '@/modules/public/server/public-schedule'
-import { PublicScheduleShell } from '@/modules/public/ui/schedule/public-schedule-shell'
+import { PublicContentShell } from '@/modules/public/ui/public-content-shell'
 
 type PublicSchedule = {
   fromIso: string
@@ -19,7 +19,7 @@ type PublicSchedule = {
 
 export function PublicSchedulePage({ schedule }: { schedule: PublicSchedule }) {
   return (
-    <PublicScheduleShell>
+    <PublicContentShell>
       <div className="mx-auto max-w-7xl px-4 pb-8 pt-12 sm:px-6 sm:pt-16 lg:px-8 lg:pt-20">
         <header className="grid gap-8 border-b border-[color:color-mix(in_srgb,var(--wellstudio-blue)_14%,var(--border))] pb-10 lg:grid-cols-[minmax(0,1.15fr)_minmax(18rem,0.55fr)] lg:items-end">
           <div>
@@ -79,7 +79,7 @@ export function PublicSchedulePage({ schedule }: { schedule: PublicSchedule }) {
           </div>
         </section>
       </div>
-    </PublicScheduleShell>
+    </PublicContentShell>
   )
 }
 

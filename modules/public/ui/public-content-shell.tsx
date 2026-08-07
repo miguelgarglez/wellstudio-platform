@@ -5,19 +5,19 @@ import { navigationLinks, outlineButtonClass } from '@/modules/public/ui/landing
 import { LandingStickyHeader } from '@/modules/public/ui/landing/landing-sticky-header'
 import { PublicSiteFooter } from '@/modules/public/ui/public-site-footer'
 
-const scheduleNavigationLinks = navigationLinks.map((link) => ({
+const publicNavigationLinks = navigationLinks.map((link) => ({
   ...link,
   href: link.href.startsWith('#') ? `/${link.href}` : link.href,
 }))
 
-export function PublicScheduleShell({ children }: { children: ReactNode }) {
+export function PublicContentShell({ children }: { children: ReactNode }) {
   return (
     <main
       id="main-content"
       className="wellstudio-landing-shell min-h-screen bg-[radial-gradient(circle_at_84%_8%,color-mix(in_srgb,var(--wellstudio-blue-soft)_26%,transparent),transparent_24rem),linear-gradient(180deg,#f5f2ed_0%,#eeebe5_100%)] text-[var(--foreground)]"
     >
       <LandingStickyHeader
-        links={scheduleNavigationLinks}
+        links={publicNavigationLinks}
         loginButtonClassName={cn(
           outlineButtonClass,
           'h-10 border-white/16 bg-white/6 px-3 text-xs uppercase tracking-[0.14em] text-white hover:bg-white/10 hover:text-white focus-visible:ring-white/45 sm:h-12 sm:px-4 sm:text-sm sm:normal-case sm:tracking-normal',

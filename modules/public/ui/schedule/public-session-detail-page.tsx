@@ -3,14 +3,14 @@ import { ArrowLeft, ArrowRight, CalendarDays, Clock3, MapPin, ShieldCheck, UserR
 
 import type { PublicScheduleSession } from '@/modules/public/server/public-schedule'
 import { AvailabilityBadge } from '@/modules/public/ui/schedule/public-schedule-page'
-import { PublicScheduleShell } from '@/modules/public/ui/schedule/public-schedule-shell'
+import { PublicContentShell } from '@/modules/public/ui/public-content-shell'
 
 export function PublicSessionDetailPage({ session }: { session: PublicScheduleSession }) {
   const startsAt = new Date(session.startsAtIso)
   const endsAt = new Date(session.endsAtIso)
 
   return (
-    <PublicScheduleShell>
+    <PublicContentShell>
       <div className="mx-auto max-w-6xl px-4 pb-10 pt-10 sm:px-6 sm:pt-14 lg:px-8 lg:pt-18">
         <Link href="/classes" className="inline-flex items-center gap-2 rounded-full text-sm font-medium text-[var(--wellstudio-blue-deep)] underline-offset-4 hover:underline focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--wellstudio-blue)]">
           <ArrowLeft className="size-4" aria-hidden="true" /> Volver a la agenda
@@ -68,7 +68,7 @@ export function PublicSessionDetailPage({ session }: { session: PublicScheduleSe
           </div>
         </article>
       </div>
-    </PublicScheduleShell>
+    </PublicContentShell>
   )
 }
 

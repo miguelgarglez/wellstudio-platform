@@ -413,6 +413,13 @@ Nivel de certeza:
 
 ## 11. Compra de suscripcion o bono
 
+Estado actual de catalogo:
+
+- `/plans` permite comparar planes y bonos `ACTIVE` y publicos sin autenticacion
+- muestra precio, periodicidad, regla efectiva de reservas, creditos y vigencia sin exponer configuracion interna
+- los CTA derivan a contacto o agenda; no existe compra o activacion publica en V1
+- el checkout descrito a continuacion permanece diferido a fase 2
+
 Actor:
 
 - socio autenticado
@@ -448,7 +455,7 @@ Postcondiciones:
 
 Nivel de certeza:
 
-- confirmado como concepto, pendiente de validar por falta de catalogo activo
+- catalogo informativo implementado y validado; compra online confirmada solo como concepto de fase 2
 
 ## 12. Gestion de perfil
 

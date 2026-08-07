@@ -9,6 +9,7 @@ type PublicSiteFooterProps = {
 
 const links = [
   { href: "/classes", label: "Agenda" },
+  { href: "/plans", label: "Planes y bonos" },
   { href: "/privacy-policy", label: "Privacidad" },
   { href: "/terms", label: "Condiciones" },
   { href: "/login", label: "Acceso socios" },
