@@ -146,6 +146,8 @@ No cerrar pagos sin probar al menos un flujo sandbox end-to-end.
 - permisos de staff/admin
 - read models de politicas y overrides admin
 - read model agregado de socios, incluidos estados, cobertura comercial y actividad reciente
+- servicio de cambio de estado de socio con validación, concurrencia optimista y auditoría
+- elegibilidad de reservas y waitlist rechaza socios inactivos o bloqueados sin impedir cancelaciones existentes
 - server actions finas de grant/revoke de overrides
 - creacion de clase
 - edicion de clase
@@ -161,6 +163,7 @@ No cerrar pagos sin probar al menos un flujo sandbox end-to-end.
 - admin crea o edita una sesion
 - admin crea, edita, archiva y reactiva recursos del catalogo de Agenda
 - admin busca un socio, abre su dossier y navega al flujo contextual correspondiente
+- admin inactiva un socio, el portal bloquea nuevas plazas y la reactivación restaura la operativa
 - un recurso con sesiones futuras no puede archivarse hasta resolver sus dependencias
 
 ## Matriz minima por modulo

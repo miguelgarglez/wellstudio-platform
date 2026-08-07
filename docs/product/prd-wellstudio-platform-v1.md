@@ -249,6 +249,7 @@ Debe permitir:
 
 - ver listado de socios
 - ver estado de cuenta
+- activar, inactivar o bloquear el acceso a nuevas plazas con motivo auditable
 - revisar reservas futuras
 - asignar o modificar planes/bonos
 
@@ -356,6 +357,8 @@ El sistema debe almacenar formularios comerciales y permitir seguimiento interno
 ## RF-9 Gestion de socios
 
 El equipo debe poder consultar y editar el estado basico de los socios.
+
+En V1, cambiar el estado no elimina actividad ni revoca la identidad del portal. Los estados `inactive` y `blocked` impiden adquirir nuevas plazas, incluidas reservas y waitlist, pero conservan la consulta y cancelacion de actividad existente. Toda transicion exige motivo, actor y trazabilidad.
 
 ## RF-10 Reporting basico
 
@@ -592,4 +595,3 @@ El siguiente documento deberia ser uno de estos dos:
 Recomendacion:
 
 hacer primero el backlog funcional, porque ayuda a estimar alcance, tiempos y presupuesto antes de entrar en detalle tecnico profundo
-

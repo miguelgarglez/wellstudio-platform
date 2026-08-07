@@ -20,6 +20,9 @@ import {
 
 function createTransactionMock() {
   return {
+    member: {
+      findUnique: vi.fn().mockResolvedValue({ status: 'ACTIVE' }),
+    },
     classSession: {
       findUnique: vi.fn(),
       update: vi.fn(),
@@ -134,6 +137,52 @@ describe('member reservation mutations', () => {
       where: { id: 'session-1' },
       data: { reservedCount: { increment: 1 } },
     })
+  })
+
+  it('blocks new reservations when the member is not active', async () => {
+    const tx = createTransactionMock()
+    withTransaction(tx)
+    tx.member.findUnique.mockResolvedValue({ status: 'BLOCKED' })
+    tx.classSession.findUnique.mockResolvedValue({
+      id: 'session-1',
+      startsAt: new Date('2026-04-05T18:00:00.000Z'),
+      endsAt: new Date('2026-04-05T18:45:00.000Z'),
+      capacity: 10,
+      reservedCount: 6,
+      waitlistEnabled: true,
+      status: 'PUBLISHED',
+      classType: {
+        name: 'Grupo Premium',
+        eligibilityRules: [{
+          id: 'rule-membership',
+          ruleType: 'MEMBERSHIP_PLAN',
+          membershipPlanId: 'plan-premium',
+          creditCost: null,
+          priority: 0,
+          createdAt: new Date('2026-03-01T00:00:00.000Z'),
+          isActive: true,
+        }],
+      },
+    })
+    tx.reservation.findFirst.mockResolvedValue(null)
+    tx.waitlistEntry.findFirst.mockResolvedValue(null)
+    tx.memberMembership.findMany.mockResolvedValue([])
+    tx.memberCreditAccount.findMany.mockResolvedValue([])
+
+    const result = await reservePublishedSession({
+      memberId: 'member-1',
+      userId: 'user-1',
+      classSessionId: 'session-1',
+      now: new Date('2026-04-03T10:00:00.000Z'),
+    })
+
+    expect(result).toEqual({
+      success: false,
+      code: 'MEMBER_NOT_ACTIVE',
+      message: 'Tu cuenta de socio no está activa para realizar nuevas reservas.',
+      updatedEntityId: undefined,
+    })
+    expect(tx.reservation.create).not.toHaveBeenCalled()
   })
 
   it('books a published session with manual override entitlement usage', async () => {

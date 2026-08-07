@@ -185,6 +185,13 @@ Estados recomendados:
 - `inactive`
 - `blocked`
 
+Semantica operativa V1:
+
+- `active` permite adquirir nuevas plazas si el resto de reglas de elegibilidad se cumplen
+- `inactive` y `blocked` impiden nuevas reservas y nuevas entradas en waitlist, pero no borran historial ni impiden cancelar actividad existente
+- una transicion realizada por admin requiere motivo y genera `AuditLog`; la operacion usa el estado anterior como precondicion para detectar escrituras obsoletas
+- este estado no suspende por si solo la identidad de Supabase Auth ni modifica `User.status`
+
 ### member_notes
 
 Responsabilidad:

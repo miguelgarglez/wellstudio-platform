@@ -30,6 +30,7 @@ export type ReservationMutationCode =
   | 'SESSION_NOT_BOOKABLE'
   | 'RESERVATION_NOT_FOUND'
   | 'WAITLIST_NOT_FOUND'
+  | 'MEMBER_NOT_ACTIVE'
 
 export type ReservationMutationResult = {
   success: boolean
@@ -490,7 +491,11 @@ export async function evaluateEligibilityInTx(
     latestSessionStartsAt: input.session.startsAt,
   })
 
-  const [memberships, creditAccounts] = await Promise.all([
+  const [member, memberships, creditAccounts] = await Promise.all([
+    tx.member.findUnique({
+      where: { id: input.memberId },
+      select: { status: true },
+    }),
     tx.memberMembership.findMany({
       where: {
         memberId: input.memberId,
@@ -601,6 +606,13 @@ export async function evaluateEligibilityInTx(
       },
     }),
   ])
+
+  if (!member || member.status !== 'ACTIVE') {
+    return {
+      eligible: false,
+      code: 'MEMBER_NOT_ACTIVE',
+    } satisfies ReservationEligibilityResult
+  }
 
   return evaluateReservationEligibilityFromSnapshots({
     rules: input.session.classType.eligibilityRules,
@@ -1046,6 +1058,13 @@ function isBookableSession(session: MutationSessionSnapshot, now: Date) {
 function buildEligibilityFailureResult(
   code: Exclude<ReservationEligibilityResult['code'], 'ELIGIBLE'>,
 ) {
+  if (code === 'MEMBER_NOT_ACTIVE') {
+    return buildMutationResult(
+      'MEMBER_NOT_ACTIVE',
+      'Tu cuenta de socio no está activa para realizar nuevas reservas.',
+    )
+  }
+
   if (code === 'NO_ACTIVE_RULE') {
     return buildMutationResult(
       'NO_ACTIVE_RULE',

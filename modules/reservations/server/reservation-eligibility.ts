@@ -48,6 +48,7 @@ const BUSINESS_DATE_TIME_PARTS_FORMATTER = new Intl.DateTimeFormat('en-US', {
 export type SupportedEligibilityRuleType = 'MEMBERSHIP_PLAN' | 'CREDIT'
 export type ReservationEligibilityCode =
   | 'ELIGIBLE'
+  | 'MEMBER_NOT_ACTIVE'
   | 'NO_ACTIVE_RULE'
   | 'NO_ELIGIBLE_ENTITLEMENT'
   | 'MEMBERSHIP_ALLOWANCE_EXHAUSTED'

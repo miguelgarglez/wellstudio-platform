@@ -29,6 +29,10 @@ test.describe('Admin members @admin @sandbox', () => {
     await prepareSandboxAdminOverridesFixture()
   })
 
+  test.afterEach(async () => {
+    await prepareSandboxAdminOverridesFixture()
+  })
+
   test('member cannot access the operational member directory', async ({ page }) => {
     await loginAsSandboxMember(page)
     const response = await page.goto('/admin/members')
@@ -62,6 +66,51 @@ test.describe('Admin members @admin @sandbox', () => {
       body: await page.screenshot({ fullPage: true }),
       contentType: 'image/png',
     })
+  })
+
+  test('admin inactivates a member, member loses new booking access, and admin reactivates it', async ({ page, browser }, testInfo) => {
+    const { email } = getSandboxCredentials()
+
+    await loginAsSandboxAdmin(page)
+    await page.goto(`/admin/members?q=${encodeURIComponent(email)}`)
+    await page.getByRole('link', { name: new RegExp(email, 'i') }).click()
+
+    await page.getByRole('button', { name: 'Cambiar estado' }).click()
+    const statusDialog = page.getByRole('dialog', { name: new RegExp(`Cambiar estado de`, 'i') })
+    await statusDialog.getByText('Inactivo', { exact: true }).click()
+    await statusDialog.getByLabel('Motivo operativo').fill('Baja temporal validada en E2E')
+
+    await testInfo.attach('admin-member-status-dialog', {
+      body: await page.screenshot(),
+      contentType: 'image/png',
+    })
+
+    await statusDialog.getByRole('button', { name: 'Inactivar socio' }).click()
+    await expect(page).toHaveURL(/updated=member-inactive/)
+    await expect(page.getByRole('status').getByText('Socio inactivado')).toBeVisible()
+
+    const memberContext = await browser.newContext({
+      baseURL: testInfo.project.use.baseURL as string,
+    })
+    const memberPage = await memberContext.newPage()
+    await loginAsSandboxMember(memberPage)
+    await memberPage.goto('/app/reservations')
+    await expect(memberPage.getByText('Cuenta de socio inactiva').first()).toBeVisible()
+    await expect(memberPage.getByText(/no realizar nuevas reservas/i).first()).toBeVisible()
+
+    await testInfo.attach('inactive-member-reservations', {
+      body: await memberPage.screenshot({ fullPage: true }),
+      contentType: 'image/png',
+    })
+    await memberContext.close()
+
+    await page.getByRole('button', { name: 'Cambiar estado' }).click()
+    const reactivateDialog = page.getByRole('dialog', { name: new RegExp(`Cambiar estado de`, 'i') })
+    await reactivateDialog.getByText('Activo', { exact: true }).click()
+    await reactivateDialog.getByLabel('Motivo operativo').fill('Fin de la baja temporal E2E')
+    await reactivateDialog.getByRole('button', { name: 'Activar socio' }).click()
+    await expect(page).toHaveURL(/updated=member-active/)
+    await expect(page.getByRole('status').getByText('Socio activado')).toBeVisible()
   })
 
   test('mobile member detail uses the full viewport and returns to the filtered list', async ({ page }, testInfo) => {

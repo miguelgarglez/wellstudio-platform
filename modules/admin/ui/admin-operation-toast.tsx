@@ -31,6 +31,9 @@ type AdminOperationToastState =
   | 'coach-saved'
   | 'coach-archived'
   | 'coach-active'
+  | 'member-active'
+  | 'member-inactive'
+  | 'member-blocked'
   | null
 
 type AdminOperationToastProps = {
@@ -166,6 +169,21 @@ const TOAST_COPY: Record<
     tone: 'success',
     title: 'Coach reactivado',
     description: 'Vuelve a estar disponible al programar sesiones.',
+  },
+  'member-active': {
+    tone: 'success',
+    title: 'Socio activado',
+    description: 'La cuenta vuelve a admitir nuevas reservas y el cambio queda auditado.',
+  },
+  'member-inactive': {
+    tone: 'success',
+    title: 'Socio inactivado',
+    description: 'Se bloquean nuevas reservas sin ocultar su historial ni impedir cancelaciones.',
+  },
+  'member-blocked': {
+    tone: 'success',
+    title: 'Socio bloqueado',
+    description: 'La restricción operativa ya está activa y conserva acceso de consulta y cancelación.',
   },
 }
 

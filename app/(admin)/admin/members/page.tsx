@@ -12,6 +12,8 @@ type AdminMembersPageProps = {
     q?: string
     status?: string
     member?: string
+    updated?: string
+    notice?: string
   }>
 }
 
@@ -29,6 +31,8 @@ export default async function AdminMembersPage({ searchParams }: AdminMembersPag
           query={typeof params?.q === 'string' ? params.q : null}
           status={typeof params?.status === 'string' ? params.status : null}
           selectedMemberId={typeof params?.member === 'string' ? params.member : null}
+          updatedState={parseUpdatedState(params?.updated)}
+          noticeId={typeof params?.notice === 'string' ? params.notice : null}
         />
       </Suspense>
     </AdminSectionShell>
@@ -39,12 +43,28 @@ async function AdminMembersSection({
   query,
   status,
   selectedMemberId,
+  updatedState,
+  noticeId,
 }: {
   query: string | null
   status: string | null
   selectedMemberId: string | null
+  updatedState: 'member-active' | 'member-inactive' | 'member-blocked' | null
+  noticeId: string | null
 }) {
   const overview = await getAdminMembersOverview({ query, status, selectedMemberId })
 
-  return <AdminMembersDashboard overview={overview} />
+  return (
+    <AdminMembersDashboard
+      overview={overview}
+      updatedState={updatedState}
+      noticeId={noticeId}
+    />
+  )
+}
+
+function parseUpdatedState(value?: string) {
+  return value === 'member-active' || value === 'member-inactive' || value === 'member-blocked'
+    ? value
+    : null
 }

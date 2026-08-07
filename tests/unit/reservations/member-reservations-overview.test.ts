@@ -33,6 +33,19 @@ describe('member reservations overview helpers', () => {
         creditsRemaining: 0,
       }).reason,
     ).toBe('no-entitlement')
+
+    expect(
+      buildMemberBookingState({
+        memberStatus: 'BLOCKED',
+        currentMembershipName: 'Premium',
+        pendingMembershipName: null,
+        creditsRemaining: 10,
+      }),
+    ).toMatchObject({
+      canBook: false,
+      reason: 'member-unavailable',
+      advisoryLabel: 'Cuenta de socio bloqueada',
+    })
   })
 
   it('derives cancellation labels with a 120 minute cutoff', () => {
@@ -93,6 +106,37 @@ describe('member reservations overview helpers', () => {
 })
 
 describe('buildMemberReservationsOverview', () => {
+  it('keeps history available but blocks every new schedule action for inactive members', () => {
+    const overview = buildMemberReservationsOverview({
+      memberStatus: 'INACTIVE',
+      upcomingReservations: [],
+      activeWaitlists: [],
+      recentHistory: [],
+      memberships: [],
+      creditAccounts: [],
+      publishedSessions: [{
+        id: 'session-1',
+        startsAt: new Date('2026-04-05T18:00:00.000Z'),
+        endsAt: new Date('2026-04-05T18:50:00.000Z'),
+        locationLabel: 'Sala 1',
+        capacity: 10,
+        reservedCount: 4,
+        waitlistEnabled: true,
+        status: 'PUBLISHED',
+        classType: { name: 'Fuerza', eligibilityRules: [] },
+        coach: null,
+      }] as Parameters<typeof buildMemberReservationsOverview>[0]['publishedSessions'],
+      now: new Date('2026-04-03T10:00:00.000Z'),
+    })
+
+    expect(overview.bookingState.reason).toBe('member-unavailable')
+    expect(overview.schedulePreview[0]?.sessions[0]?.primaryAction).toEqual({
+      kind: 'blocked',
+      label: 'Cuenta inactiva',
+      description: 'Contacta con el centro para reactivar nuevas reservas.',
+    })
+  })
+
   it('maps real reservation data into an operational dashboard overview', () => {
     const now = new Date('2026-03-31T10:00:00.000Z')
 

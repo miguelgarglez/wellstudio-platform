@@ -1,6 +1,7 @@
 'use client'
 
-import { useState, useTransition } from 'react'
+import { useActionState, useState, useTransition } from 'react'
+import { useFormStatus } from 'react-dom'
 import Link from 'next/link'
 import { useRouter } from 'next/navigation'
 import {
@@ -20,10 +21,23 @@ import {
   ShieldCheck,
   TicketCheck,
   UserRoundCheck,
+  UserRoundCog,
   UsersRound,
 } from 'lucide-react'
 
+import {
+  changeAdminMemberStatusAction,
+  type AdminMemberStatusActionState,
+} from '@/app/(admin)/admin/members/actions'
 import { Button, buttonVariants } from '@/components/ui/button'
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+} from '@/components/ui/dialog'
 import { Input } from '@/components/ui/input'
 import { Spinner } from '@/components/ui/spinner'
 import type {
@@ -33,6 +47,8 @@ import type {
   AdminMembersOverview,
 } from '@/modules/admin/server/admin-members-overview'
 import { AdminResponsiveDetailFrame } from '@/modules/admin/ui/admin-responsive-detail-frame'
+import { AdminOperationToast } from '@/modules/admin/ui/admin-operation-toast'
+import type { AdminMemberOperableStatus } from '@/modules/members/server/admin-member-status'
 import { cn } from '@/lib/utils'
 
 const statusFilters: Array<{ value: AdminMemberStatusFilter; label: string }> = [
@@ -42,19 +58,35 @@ const statusFilters: Array<{ value: AdminMemberStatusFilter; label: string }> = 
   { value: 'all', label: 'Todos' },
 ]
 
-export function AdminMembersDashboard({ overview }: { overview: AdminMembersOverview }) {
+export function AdminMembersDashboard({
+  overview,
+  updatedState,
+  noticeId,
+}: {
+  overview: AdminMembersOverview
+  updatedState: 'member-active' | 'member-inactive' | 'member-blocked' | null
+  noticeId: string | null
+}) {
   const router = useRouter()
   const baseHref = buildMembersHref({
     query: overview.query,
     status: overview.statusFilter,
   })
+  const detailHref = overview.selectedMember
+    ? buildMembersHref({
+        query: overview.query,
+        status: overview.statusFilter,
+        memberId: overview.selectedMember.id,
+      })
+    : baseHref
 
   function handleSearch(query: string) {
     router.push(buildMembersHref({ query, status: overview.statusFilter }))
   }
 
   return (
-    <section className="grid min-w-0 gap-4 lg:grid-cols-[minmax(19rem,0.72fr)_minmax(0,1.55fr)] lg:items-start">
+    <section className="relative grid min-w-0 gap-4 lg:grid-cols-[minmax(19rem,0.72fr)_minmax(0,1.55fr)] lg:items-start">
+      <AdminOperationToast state={updatedState} instanceKey={noticeId} />
       <div className="min-w-0 overflow-hidden rounded-[1.65rem] border border-[color:color-mix(in_srgb,var(--wellstudio-blue)_8%,white)] bg-[color:color-mix(in_srgb,var(--card)_90%,white)] shadow-[0_18px_42px_rgba(18,20,24,0.06)]">
         <div className="border-b border-[color:color-mix(in_srgb,var(--border)_72%,white)] p-4 sm:p-5">
           <div className="flex items-start gap-3">
@@ -131,7 +163,7 @@ export function AdminMembersDashboard({ overview }: { overview: AdminMembersOver
         className="lg:min-h-[46rem]"
       >
         {overview.selectedMember ? (
-          <MemberDetail member={overview.selectedMember} />
+          <MemberDetail member={overview.selectedMember} returnTo={detailHref} />
         ) : (
           <MemberDetailEmptyState />
         )}
@@ -211,7 +243,9 @@ function MemberListRow({
   )
 }
 
-function MemberDetail({ member }: { member: AdminMemberDetail }) {
+function MemberDetail({ member, returnTo }: { member: AdminMemberDetail; returnTo: string }) {
+  const [statusDialogOpen, setStatusDialogOpen] = useState(false)
+
   return (
     <div className="space-y-6">
       <header className="border-b border-[color:color-mix(in_srgb,var(--border)_72%,white)] pb-5">
@@ -241,6 +275,9 @@ function MemberDetail({ member }: { member: AdminMemberDetail }) {
           <Link href={`/admin/overrides?member=${encodeURIComponent(member.id)}`} className={buttonVariants({ size: 'sm', className: 'rounded-full' })}>
             <TicketCheck className="size-4" aria-hidden="true" />Operar excepciones
           </Link>
+          <Button type="button" variant="outline" size="sm" className="rounded-full" onClick={() => setStatusDialogOpen(true)}>
+            <UserRoundCog className="size-4" aria-hidden="true" />Cambiar estado
+          </Button>
         </div>
       </header>
 
@@ -338,7 +375,156 @@ function MemberDetail({ member }: { member: AdminMemberDetail }) {
           </div>
         </section>
       </div>
+
+      <MemberStatusDialog
+        key={member.id}
+        open={statusDialogOpen}
+        onOpenChange={setStatusDialogOpen}
+        member={member}
+        returnTo={returnTo}
+      />
     </div>
+  )
+}
+
+const memberStatusOptions: Array<{
+  value: AdminMemberOperableStatus
+  label: string
+  description: string
+}> = [
+  {
+    value: 'ACTIVE',
+    label: 'Activo',
+    description: 'Puede realizar nuevas reservas si dispone de cobertura comercial válida.',
+  },
+  {
+    value: 'INACTIVE',
+    label: 'Inactivo',
+    description: 'Conserva acceso e historial, pero no puede adquirir nuevas plazas.',
+  },
+  {
+    value: 'BLOCKED',
+    label: 'Bloqueado',
+    description: 'Restricción operativa explícita; mantiene consulta y cancelación de actividad existente.',
+  },
+]
+
+function MemberStatusDialog({
+  open,
+  onOpenChange,
+  member,
+  returnTo,
+}: {
+  open: boolean
+  onOpenChange: (open: boolean) => void
+  member: AdminMemberDetail
+  returnTo: string
+}) {
+  const [state, action] = useActionState<AdminMemberStatusActionState, FormData>(
+    changeAdminMemberStatusAction,
+    null,
+  )
+  const initialStatus = memberStatusOptions.find((option) => option.value !== member.status)?.value ?? 'ACTIVE'
+  const [targetStatus, setTargetStatus] = useState<AdminMemberOperableStatus>(initialStatus)
+
+  return (
+    <Dialog open={open} onOpenChange={onOpenChange}>
+      <DialogContent className="sm:max-w-2xl">
+        <DialogHeader>
+          <p className="text-xs uppercase tracking-[0.22em] text-[var(--wellstudio-blue-deep)]">
+            Estado actual · {member.statusLabel}
+          </p>
+          <DialogTitle className="text-2xl">Cambiar estado de {member.displayName}</DialogTitle>
+          <DialogDescription>
+            El cambio afecta a nuevas reservas, pero no borra actividad ni impide cancelar una reserva existente.
+          </DialogDescription>
+        </DialogHeader>
+
+        <form action={action} className="space-y-5">
+          <input type="hidden" name="memberId" value={member.id} />
+          <input type="hidden" name="expectedStatus" value={member.status} />
+          <input type="hidden" name="returnTo" value={returnTo} />
+
+          <fieldset>
+            <legend className="text-sm font-medium text-[var(--wellstudio-ink)]">Nuevo estado</legend>
+            <div className="mt-2 grid gap-2 sm:grid-cols-3">
+              {memberStatusOptions.map((option) => {
+                const isCurrent = option.value === member.status
+                const isSelected = targetStatus === option.value
+
+                return (
+                  <label
+                    key={option.value}
+                    className={cn(
+                      'relative rounded-[1.15rem] border p-4 transition-[background-color,border-color,box-shadow] duration-200',
+                      isCurrent
+                        ? 'cursor-not-allowed border-border/60 bg-muted/45 opacity-60'
+                        : 'cursor-pointer hover:border-[color:color-mix(in_srgb,var(--wellstudio-blue)_28%,white)]',
+                      isSelected && !isCurrent
+                        ? 'border-[color:color-mix(in_srgb,var(--wellstudio-blue)_52%,white)] bg-[color:color-mix(in_srgb,var(--wellstudio-blue)_7%,white)] shadow-[0_10px_24px_rgba(20,24,30,0.06)]'
+                        : 'bg-white/72',
+                    )}
+                  >
+                    <input
+                      type="radio"
+                      name="status"
+                      value={option.value}
+                      checked={isSelected}
+                      disabled={isCurrent}
+                      onChange={() => setTargetStatus(option.value)}
+                      className="sr-only"
+                    />
+                    <span className="font-medium text-[var(--wellstudio-ink)]">
+                      {option.label}{isCurrent ? ' · actual' : ''}
+                    </span>
+                    <span className="mt-2 block text-sm leading-6 text-muted-foreground">
+                      {option.description}
+                    </span>
+                  </label>
+                )
+              })}
+            </div>
+            {state?.field === 'status' ? <p role="alert" className="mt-2 text-sm text-destructive">{state.message}</p> : null}
+          </fieldset>
+
+          <div>
+            <label htmlFor="member-status-reason" className="text-sm font-medium text-[var(--wellstudio-ink)]">
+              Motivo operativo
+            </label>
+            <textarea
+              id="member-status-reason"
+              name="reason"
+              required
+              minLength={5}
+              maxLength={240}
+              rows={4}
+              placeholder="Ej. baja solicitada por el socio, incidencia resuelta…"
+              className="mt-2 w-full resize-none rounded-[1.15rem] border border-input bg-white/86 px-4 py-3 text-sm leading-6 outline-none transition-[border-color,box-shadow] placeholder:text-muted-foreground focus-visible:border-ring focus-visible:ring-2 focus-visible:ring-ring/35"
+            />
+            <p className="mt-2 text-xs leading-5 text-muted-foreground">Quedará guardado en auditoría junto al operador y la transición.</p>
+            {state?.field === 'reason' ? <p role="alert" className="mt-2 text-sm text-destructive">{state.message}</p> : null}
+          </div>
+
+          {state?.message && !state.field ? <p role="alert" className="text-sm text-destructive">{state.message}</p> : null}
+
+          <DialogFooter>
+            <Button type="button" variant="outline" className="rounded-full" onClick={() => onOpenChange(false)}>Cancelar</Button>
+            <MemberStatusSubmitButton targetStatus={targetStatus} />
+          </DialogFooter>
+        </form>
+      </DialogContent>
+    </Dialog>
+  )
+}
+
+function MemberStatusSubmitButton({ targetStatus }: { targetStatus: AdminMemberOperableStatus }) {
+  const { pending } = useFormStatus()
+  const label = targetStatus === 'ACTIVE' ? 'Activar socio' : targetStatus === 'BLOCKED' ? 'Bloquear socio' : 'Inactivar socio'
+
+  return (
+    <Button type="submit" className="rounded-full" disabled={pending}>
+      {pending ? <><Spinner data-icon="inline-start" />Guardando…</> : label}
+    </Button>
   )
 }
 

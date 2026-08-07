@@ -24,6 +24,17 @@ export async function prepareSandboxAdminOverridesFixture() {
   await client.connect()
 
   try {
+    await client.query(
+      `
+        update "Member" m
+        set status = 'ACTIVE', "updatedAt" = now()
+        from "User" u
+        where m."userId" = u.id
+          and u."normalizedEmail" = $1
+      `,
+      [normalizeEmail(email)],
+    )
+
     const membershipResult = await client.query<{
       membership_id: string
       membership_plan_id: string

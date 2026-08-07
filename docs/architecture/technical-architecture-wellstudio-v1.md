@@ -851,7 +851,7 @@ Superficies admin ya implementadas:
 
 - `/admin`: reglas de reserva por membership plan; el termino visible es "Reglas" para evitar sobreprometer una gestion completa de planes
 - `/admin/overrides`: excepciones de reserva auditables por socio sobre memberships activas; internamente siguen siendo booking overrides de dominio
-- `/admin/members`: directorio y dossier operativo read-only; agrega datos de varios modulos mediante un read model server-side y delega las acciones en superficies de dominio existentes
+- `/admin/members`: directorio y dossier operativo; agrega datos de varios modulos mediante un read model server-side, permite cambios auditables del estado basico y delega el resto de acciones en superficies de dominio existentes
 
 Decision de entrada admin:
 
@@ -873,7 +873,9 @@ Patron de interfaz:
 - las listas admin por defecto deben ser read models server-side acotados y honestos: pueden priorizar actividad reciente u operabilidad, pero deben distinguirse de resultados de busqueda exhaustivos
 - las acciones admin siguen siendo server actions finas que delegan en servicios de dominio; el layout no debe introducir reglas de negocio
 - en seguimiento comercial, el detalle debe priorizar identidad, estado actual y timeline; las operaciones de nota/cambio de estado se abren en dialogos enfocados y no como formularios permanentes
-- en gestion de socios, la vista agregada es deliberadamente read-only: asignar planes, créditos o estados requiere casos de uso con invariantes y auditoria propios, no escrituras improvisadas desde el dossier
+- en gestion de socios, la vista agregada es read-only salvo operaciones explicitas con caso de uso propio; el estado basico se cambia mediante un servicio auditable con motivo obligatorio, estado esperado y control de concurrencia, mientras que asignar planes o creditos sigue fuera del dossier
+- `Member.status` es una señal operativa autoritativa para adquirir nuevas plazas: solo `ACTIVE` puede reservar o entrar en waitlist; `INACTIVE` y `BLOCKED` conservan login, historial y capacidad de cancelar reservas o abandonar waitlists existentes
+- el cambio de `Member.status` no muta Supabase Auth ni `User.status`; suspender autenticacion o cerrar una cuenta es un workflow distinto y no debe inferirse desde esta operacion
 
 Regla de acceso:
 

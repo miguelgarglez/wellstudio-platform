@@ -2,6 +2,7 @@ import { cache } from 'react'
 import type {
   ClassTypeEligibilityRule,
   ClassSession,
+  MemberStatus,
   MemberCreditAccount,
   MemberMembership,
   Reservation,
@@ -113,7 +114,7 @@ type PublishedSession = Pick<
 
 export type ReservationActionTone = 'allowed' | 'blocked' | 'neutral'
 
-export type MemberBookingStateReason = 'ready' | 'no-entitlement' | 'pending-plan'
+export type MemberBookingStateReason = 'ready' | 'no-entitlement' | 'pending-plan' | 'member-unavailable'
 
 export type MemberBookingState = {
   canBook: boolean
@@ -195,7 +196,8 @@ export const getMemberReservationsOverview = cache(
     const { requireAuthenticatedContext } = await import('@/modules/auth/server/identity')
     const authContext = await requireAuthenticatedContext()
     const { prisma } = await import('@/lib/db/prisma')
-    const memberId = authContext.member?.id
+    const member = authContext.member
+    const memberId = member?.id
 
     if (!memberId) {
       throw new Error('Authenticated member required for reservations overview')
@@ -488,6 +490,7 @@ export const getMemberReservationsOverview = cache(
     })
 
     return buildMemberReservationsOverview({
+      memberStatus: member.status,
       upcomingReservations,
       activeWaitlists,
       recentHistory,
@@ -500,6 +503,7 @@ export const getMemberReservationsOverview = cache(
 )
 
 type BuildMemberReservationsOverviewInput = {
+  memberStatus?: MemberStatus
   upcomingReservations: ReservationWithSession[]
   activeWaitlists: WaitlistWithSession[]
   recentHistory: ReservationWithSession[]
@@ -510,6 +514,7 @@ type BuildMemberReservationsOverviewInput = {
 }
 
 export function buildMemberReservationsOverview({
+  memberStatus = 'ACTIVE',
   upcomingReservations,
   activeWaitlists,
   recentHistory,
@@ -522,6 +527,7 @@ export function buildMemberReservationsOverview({
   const pendingMembership = selectPendingMembership(memberships)
   const creditsRemaining = calculateCreditsRemaining(creditAccounts)
   const bookingState = buildMemberBookingState({
+    memberStatus,
     currentMembershipName: currentMembership?.membershipPlan.name ?? null,
     pendingMembershipName: pendingMembership?.membershipPlan.name ?? null,
     creditsRemaining,
@@ -534,15 +540,18 @@ export function buildMemberReservationsOverview({
 
   const waitlistRows = activeWaitlists.map((entry) => mapWaitlistRow(entry, now))
   const historyRows = recentHistory.map((reservation) => mapHistoryRow(reservation, now))
-  const scheduleDays = groupSchedulePreviewByDay(
-    publishedSessions,
-    {
-      memberships,
-      creditAccounts,
-      bookedSessionIds,
-      waitlistedSessionIds,
-    },
-    now,
+  const scheduleDays = applyMemberStatusToSchedule(
+    groupSchedulePreviewByDay(
+      publishedSessions,
+      {
+        memberships,
+        creditAccounts,
+        bookedSessionIds,
+        waitlistedSessionIds,
+      },
+      now,
+    ),
+    memberStatus,
   )
 
   return {
@@ -563,14 +572,26 @@ export function buildMemberReservationsOverview({
 }
 
 export function buildMemberBookingState({
+  memberStatus = 'ACTIVE',
   currentMembershipName,
   pendingMembershipName,
   creditsRemaining,
 }: {
+  memberStatus?: MemberStatus
   currentMembershipName: string | null
   pendingMembershipName: string | null
   creditsRemaining: number
 }): MemberBookingState {
+  if (memberStatus !== 'ACTIVE') {
+    return {
+      canBook: false,
+      reason: 'member-unavailable',
+      advisoryLabel: memberStatus === 'BLOCKED' ? 'Cuenta de socio bloqueada' : 'Cuenta de socio inactiva',
+      description:
+        'Puedes consultar y cancelar tu actividad existente, pero no realizar nuevas reservas hasta que el centro reactive tu cuenta.',
+    }
+  }
+
   if (currentMembershipName || creditsRemaining > 0) {
     return {
       canBook: true,
@@ -601,6 +622,25 @@ export function buildMemberBookingState({
     description:
       'Puedes consultar la agenda y tu actividad reciente, pero para reservar necesitarás una membresía activa o créditos disponibles.',
   }
+}
+
+function applyMemberStatusToSchedule(
+  days: SchedulePreviewDay[],
+  memberStatus: MemberStatus,
+): SchedulePreviewDay[] {
+  if (memberStatus === 'ACTIVE') return days
+
+  return days.map((day) => ({
+    ...day,
+    sessions: day.sessions.map((session) => ({
+      ...session,
+      primaryAction: {
+        kind: 'blocked',
+        label: memberStatus === 'BLOCKED' ? 'Cuenta bloqueada' : 'Cuenta inactiva',
+        description: 'Contacta con el centro para reactivar nuevas reservas.',
+      },
+    })),
+  }))
 }
 
 export function buildCancellationStatus(startsAt: Date, now: Date): {
