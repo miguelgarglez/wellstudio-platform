@@ -21,6 +21,10 @@ type AdminOperationToastState =
   | 'session-published'
   | 'session-closed'
   | 'session-canceled'
+  | 'attendance-attended'
+  | 'attendance-no-show'
+  | 'attendance-pending'
+  | 'session-completed'
   | null
 
 type AdminOperationToastProps = {
@@ -106,6 +110,26 @@ const TOAST_COPY: Record<
     tone: 'success',
     title: 'Sesión cancelada',
     description: 'Reservas y waitlist se han cerrado, con devoluciones y auditoría aplicadas.',
+  },
+  'attendance-attended': {
+    tone: 'success',
+    title: 'Asistencia registrada',
+    description: 'El socio figura como asistente y el cambio ha quedado auditado.',
+  },
+  'attendance-no-show': {
+    tone: 'success',
+    title: 'No-show registrado',
+    description: 'La ausencia queda reflejada en la reserva y en la trazabilidad admin.',
+  },
+  'attendance-pending': {
+    tone: 'success',
+    title: 'Asistencia corregida',
+    description: 'La reserva vuelve a quedar pendiente para que el equipo la revise.',
+  },
+  'session-completed': {
+    tone: 'success',
+    title: 'Sesión completada',
+    description: 'El roster está resuelto y la sesión queda cerrada como histórico.',
   },
 }
 

@@ -280,6 +280,11 @@ Para agenda admin, el gate dirigido debe cubrir:
 - cancelacion atomica: reservas canceladas, creditos devueltos, waitlist expirada, ocupacion a cero y `AuditLog`
 - creacion, cambio de estado y persistencia tras recarga en E2E
 - detalle de sesion a ancho completo en mobile
+- check-in cerrado hasta dos horas antes del inicio
+- consistencia entre `Reservation.status` y `attendanceStatus`
+- rechazo de escrituras obsoletas mediante estado esperado
+- correcciones auditables y prohibicion de reintroducir pendientes tras completar
+- finalizacion bloqueada hasta resolver todo el roster y persistencia tras recarga
 
 ## 12. Regla final
 

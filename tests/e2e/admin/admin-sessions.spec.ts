@@ -2,6 +2,8 @@ import { expect, test } from '@playwright/test'
 
 import {
   ADMIN_SESSIONS_E2E_CLASS,
+  ADMIN_ATTENDANCE_E2E_CLASS,
+  ATTENDANCE_GUEST_NAME,
   prepareSandboxAdminSessionsFixture,
 } from '../support/admin-sessions'
 import {
@@ -13,6 +15,7 @@ import {
   hasSandboxAdminCredentials,
   hasSandboxCredentials,
   isSandboxAuthEnabled,
+  getSandboxCredentials,
   loadE2EEnvFiles,
 } from '../support/env'
 
@@ -77,6 +80,41 @@ test.describe('Admin sessions @admin @sandbox', () => {
 
     await page.reload()
     await expect(detail.getByText('Cancelada', { exact: true })).toBeVisible()
+  })
+
+  test('admin resolves attendance and completes the session', async ({ page }, testInfo) => {
+    await loginAsSandboxAdmin(page)
+    await page.goto('/admin/sessions')
+    await page.getByRole('link', { name: new RegExp(ADMIN_ATTENDANCE_E2E_CLASS) }).click()
+
+    const detail = page.getByRole('dialog', { name: ADMIN_ATTENDANCE_E2E_CLASS })
+    await expect(detail.getByText('Pendientes · 2')).toBeVisible()
+    await expect(detail.getByRole('button', { name: 'Completar sesión' })).toBeDisabled()
+
+    const memberEmail = getSandboxCredentials().email
+    const memberRow = detail.getByRole('group', { name: new RegExp(memberEmail, 'i') })
+    await memberRow.getByRole('button', { name: 'Asistió' }).click()
+    await expect(page.getByRole('status').getByText('Asistencia registrada')).toBeVisible()
+
+    const refreshedDetail = page.getByRole('dialog', { name: ADMIN_ATTENDANCE_E2E_CLASS })
+    const guestRow = refreshedDetail.getByRole('group', { name: new RegExp(ATTENDANCE_GUEST_NAME, 'i') })
+    await guestRow.getByRole('button', { name: 'No vino' }).click()
+    await expect(page.getByRole('status').getByText('No-show registrado')).toBeVisible()
+    await expect(refreshedDetail.getByText('Pendientes · 0')).toBeVisible()
+
+    await testInfo.attach('admin-attendance-resolved', {
+      body: await page.screenshot({ fullPage: true }),
+      contentType: 'image/png',
+    })
+
+    await refreshedDetail.getByRole('button', { name: 'Completar sesión' }).click()
+    await expect(page.getByRole('status').getByText('Sesión completada')).toBeVisible()
+    await expect(refreshedDetail.getByText('Completada', { exact: true })).toBeVisible()
+
+    await page.reload()
+    await expect(refreshedDetail.getByText('Completada', { exact: true })).toBeVisible()
+    await expect(refreshedDetail.getByText('Asistió', { exact: true }).first()).toBeVisible()
+    await expect(refreshedDetail.getByText('No vino', { exact: true }).first()).toBeVisible()
   })
 
   test('mobile agenda keeps navigation compact and detail full width', async ({ page }, testInfo) => {

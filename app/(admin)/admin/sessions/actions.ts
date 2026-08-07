@@ -11,6 +11,10 @@ import {
   saveAdminClassSession,
   type AdminSessionActor,
 } from '@/modules/classes/server/admin-class-sessions'
+import {
+  completeAdminClassSession,
+  updateAdminReservationAttendance,
+} from '@/modules/classes/server/admin-session-attendance'
 
 export type AdminSessionActionState = { message: string; field?: string } | null
 
@@ -70,6 +74,44 @@ export async function cancelAdminSessionAction(
   })
   if (!result.success) return { message: result.message, field: result.field }
   finish(result.sessionId, 'canceled')
+}
+
+export async function updateAdminAttendanceAction(
+  _state: AdminSessionActionState,
+  formData: FormData,
+): Promise<AdminSessionActionState> {
+  const context = await requireAdminOrStaffContext()
+  if (!context) return { message: 'Necesitamos una sesión admin o staff válida.' }
+  const expectedStatus = read(formData, 'expectedStatus')
+  const attendanceStatus = read(formData, 'attendanceStatus')
+  if (
+    (expectedStatus !== 'PENDING' && expectedStatus !== 'ATTENDED' && expectedStatus !== 'NO_SHOW') ||
+    (attendanceStatus !== 'PENDING' && attendanceStatus !== 'ATTENDED' && attendanceStatus !== 'NO_SHOW')
+  ) {
+    return { message: 'El estado de asistencia no es válido.' }
+  }
+  const result = await updateAdminReservationAttendance({
+    reservationId: read(formData, 'reservationId') ?? '',
+    expectedStatus,
+    attendanceStatus,
+    actor: actorFrom(context),
+  })
+  if (!result.success) return { message: result.message }
+  finish(result.sessionId, result.attendanceStatus?.toLowerCase().replace('_', '-') ?? 'attendance')
+}
+
+export async function completeAdminSessionAction(
+  _state: AdminSessionActionState,
+  formData: FormData,
+): Promise<AdminSessionActionState> {
+  const context = await requireAdminOrStaffContext()
+  if (!context) return { message: 'Necesitamos una sesión admin o staff válida.' }
+  const result = await completeAdminClassSession({
+    sessionId: read(formData, 'sessionId') ?? '',
+    actor: actorFrom(context),
+  })
+  if (!result.success) return { message: result.message }
+  finish(result.sessionId, 'completed')
 }
 
 function finish(sessionId: string, updated: string): never {

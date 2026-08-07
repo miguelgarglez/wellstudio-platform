@@ -1116,3 +1116,6 @@ La mejor decision de V1 es no replicar la fragmentacion actual. Marketing, membe
 - seleccion durable: `?session=<id>`; apertura temporal de creacion en estado cliente
 - fechas de `datetime-local`: se interpretan explicitamente en `Europe/Madrid` antes de persistir UTC
 - cancelacion: transaccion serializable y auditoria, reutilizando la devolucion de credito del modulo de reservas
+- asistencia: `modules/classes/server/admin-session-attendance.ts` mantiene sincronizados reserva y check-in, aplica control de concurrencia optimista y registra actor/contexto
+- cierre operativo: solo despues de `endsAt` y con cero reservas pendientes; una sesion completada permite corregir `ATTENDED`/`NO_SHOW`, pero no volver a `PENDING`
+- ventana de agenda: hoy y futuro se priorizan; se conservan 14 dias recientes para correcciones operativas sin convertir la vista en un historico ilimitado

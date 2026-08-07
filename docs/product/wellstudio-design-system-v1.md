@@ -249,6 +249,8 @@ Regla de producto:
 - las agendas operativas se agrupan por dia y usan filas compactas; el horario, estado y ocupacion deben poder compararse sin abrir el detalle
 - crear o editar una sesion ocurre en una `Sheet` dedicada: la lista conserva contexto y el formulario no domina la superficie base
 - los cambios reversibles de disponibilidad (`cerrar` / `reabrir`) pueden ser acciones directas; cancelar una sesion exige razon visible y confirma sus efectos sobre reservas y waitlist
+- el roster de una sesion usa filas compactas con identidad, estado y tres resultados excluyentes: pendiente, asistio o no vino; el estado activo debe reconocerse sin depender solo del color
+- la accion de completar una sesion permanece junto al resumen de asistencia y explica por que esta bloqueada cuando quedan pendientes
 - member app puede ser mas guiada, espaciosa y editorial; admin debe ser mas denso, escaneable y accionable
 - no reutilizar layouts de member en admin salvo componentes atomicos compartidos como botones, inputs, badges o tokens de marca
 

@@ -628,6 +628,9 @@ Estado V1 implementado:
 - permite conceder `session_access` sobre sesiones futuras publicadas
 - permite revocar overrides vigentes sin borrar historial
 - las acciones delegan en servicios de dominio y dejan trazabilidad auditable
+- `/admin/sessions` muestra el roster y permite registrar asistencia o no-show desde dos horas antes
+- cada correccion usa estado esperado para detectar concurrencia y genera `AuditLog`
+- una sesion terminada solo puede completarse cuando no quedan asistencias pendientes
 
 ## Decisiones pendientes antes de implementar reservas y pagos
 

@@ -3,7 +3,7 @@
 import { useActionState, useState } from 'react'
 import Link from 'next/link'
 import { useRouter } from 'next/navigation'
-import { CalendarDays, ChevronRight, Clock3, MapPin, Plus, Users } from 'lucide-react'
+import { CalendarDays, Check, ChevronRight, Clock3, MapPin, Minus, Plus, UserCheck, UserX, Users } from 'lucide-react'
 import { useFormStatus } from 'react-dom'
 
 import { Button } from '@/components/ui/button'
@@ -28,7 +28,9 @@ import {
 import {
   cancelAdminSessionAction,
   changeAdminSessionStatusAction,
+  completeAdminSessionAction,
   saveAdminSessionAction,
+  updateAdminAttendanceAction,
   type AdminSessionActionState,
 } from '@/app/(admin)/admin/sessions/actions'
 import type { AdminSessionOverview } from '@/modules/admin/server/admin-sessions-overview'
@@ -46,7 +48,7 @@ type SessionItem = AdminSessionOverview['sessions'][number]
 export function AdminSessionsDashboard({ overview, updated, notice }: Props) {
   const router = useRouter()
   const [isCreating, setIsCreating] = useState(false)
-  const groupedSessions = groupByDay(overview.sessions)
+  const groupedSessions = groupByDay(overview.sessions, overview.todayKey)
   const toastState =
     updated === 'draft'
       ? 'session-draft'
@@ -56,6 +58,14 @@ export function AdminSessionsDashboard({ overview, updated, notice }: Props) {
           ? 'session-closed'
           : updated === 'canceled'
             ? 'session-canceled'
+            : updated === 'attended'
+              ? 'attendance-attended'
+              : updated === 'no-show'
+                ? 'attendance-no-show'
+                : updated === 'pending'
+                  ? 'attendance-pending'
+                  : updated === 'completed'
+                    ? 'session-completed'
             : null
 
   function closeSelectedSession() {
@@ -70,7 +80,7 @@ export function AdminSessionsDashboard({ overview, updated, notice }: Props) {
         <div className="flex flex-col gap-4 border-b border-[color:color-mix(in_srgb,var(--border)_76%,white)] p-4 sm:flex-row sm:items-center sm:justify-between sm:p-5">
           <div>
             <p className="text-xs uppercase tracking-[0.24em] text-[var(--wellstudio-blue-deep)]">
-              Próximos 45 días
+              Hoy, próximos 45 días y 14 días recientes
             </p>
             <h2 className="mt-1 text-xl font-medium text-[var(--wellstudio-ink)]">Operativa diaria</h2>
             <p className="mt-1 text-sm leading-6 text-muted-foreground">
@@ -172,7 +182,7 @@ function SessionRow({ session }: { session: SessionItem }) {
 function SessionEditorSheet({ overview, session }: { overview: AdminSessionOverview; session: SessionItem | null }) {
   const [saveState, saveAction] = useActionState(saveAdminSessionAction, null)
   const [statusState, statusAction] = useActionState(changeAdminSessionStatusAction, null)
-  const canEdit = !session || ['DRAFT', 'PUBLISHED', 'CLOSED'].includes(session.status)
+  const canEdit = !session || session.isEditable
   const defaultClassType = session
     ? overview.classTypes.find((item) => item.id === session.classTypeId)
     : overview.classTypes[0]
@@ -199,6 +209,7 @@ function SessionEditorSheet({ overview, session }: { overview: AdminSessionOverv
 
       <div className="min-h-0 flex-1 overflow-y-auto px-5 py-5 sm:px-6 sm:py-6">
         {session ? <SessionSummary session={session} /> : null}
+        {session ? <AttendanceRoster session={session} /> : null}
         {canEdit ? (
           <form action={saveAction} className="mt-5 space-y-5">
             {session ? <input type="hidden" name="sessionId" value={session.id} /> : null}
@@ -281,6 +292,130 @@ function SessionEditorSheet({ overview, session }: { overview: AdminSessionOverv
   )
 }
 
+function AttendanceRoster({ session }: { session: SessionItem }) {
+  const [completeState, completeAction] = useActionState(completeAdminSessionAction, null)
+  const canComplete = session.hasEnded && session.attendance.pending === 0 && ['PUBLISHED', 'CLOSED'].includes(session.status)
+
+  return (
+    <section className="mt-6 border-t border-border/70 pt-6">
+      <div className="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
+        <div>
+          <p className="text-xs uppercase tracking-[0.22em] text-[var(--wellstudio-blue-deep)]">Operativa de sala</p>
+          <h3 className="mt-1 text-lg font-medium text-[var(--wellstudio-ink)]">Asistencia</h3>
+          <p className="mt-1 text-sm leading-6 text-muted-foreground">
+            {session.isAttendanceOpen
+              ? 'Registra check-in o no-show. Las correcciones quedan auditadas.'
+              : 'El check-in se habilita dos horas antes del inicio.'}
+          </p>
+        </div>
+        <div className="flex flex-wrap gap-2 text-xs">
+          <AttendanceCount label="Pendientes" value={session.attendance.pending} tone="pending" />
+          <AttendanceCount label="Asistieron" value={session.attendance.attended} tone="attended" />
+          <AttendanceCount label="No vinieron" value={session.attendance.noShow} tone="no-show" />
+        </div>
+      </div>
+
+      {session.roster.length ? (
+        <div className="mt-4 divide-y divide-border/70 overflow-hidden rounded-[1.15rem] border border-border/70 bg-white/65">
+          {session.roster.map((reservation) => (
+            <AttendanceRow
+              key={reservation.reservationId}
+              reservation={reservation}
+              enabled={session.isAttendanceOpen}
+              allowPending={session.status !== 'COMPLETED'}
+            />
+          ))}
+        </div>
+      ) : (
+        <div className="mt-4 rounded-[1.15rem] border border-dashed border-border p-5 text-center text-sm text-muted-foreground">
+          Esta sesión no tiene reservas activas en el roster.
+        </div>
+      )}
+
+      {session.hasEnded && ['PUBLISHED', 'CLOSED'].includes(session.status) ? (
+        <form action={completeAction} className="mt-4 rounded-[1.1rem] border border-[color:color-mix(in_srgb,var(--wellstudio-blue)_14%,white)] bg-[color:color-mix(in_srgb,var(--wellstudio-blue)_5%,white)] p-4">
+          <input type="hidden" name="sessionId" value={session.id} />
+          <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+            <div>
+              <p className="font-medium">Finalizar operativa</p>
+              <p className="mt-1 text-sm leading-6 text-muted-foreground">
+                {session.attendance.pending
+                  ? `Resuelve ${session.attendance.pending} asistencia${session.attendance.pending === 1 ? '' : 's'} pendiente${session.attendance.pending === 1 ? '' : 's'} antes de completar.`
+                  : 'Todo el roster está resuelto. Puedes cerrar la sesión como completada.'}
+              </p>
+            </div>
+            <SubmitButton disabled={!canComplete} className="shrink-0">Completar sesión</SubmitButton>
+          </div>
+          {completeState ? <ActionError state={completeState} /> : null}
+        </form>
+      ) : null}
+    </section>
+  )
+}
+
+function AttendanceRow({
+  reservation,
+  enabled,
+  allowPending,
+}: {
+  reservation: SessionItem['roster'][number]
+  enabled: boolean
+  allowPending: boolean
+}) {
+  const [state, action] = useActionState(updateAdminAttendanceAction, null)
+  return (
+    <div
+      role="group"
+      aria-label={`Asistencia de ${reservation.memberName}, ${reservation.memberEmail}`}
+      className="grid gap-3 p-3.5 sm:grid-cols-[minmax(0,1fr)_auto] sm:items-center"
+    >
+      <div className="min-w-0">
+        <div className="flex flex-wrap items-center gap-2">
+          <p className="truncate font-medium text-[var(--wellstudio-ink)]">{reservation.memberName}</p>
+          <AttendanceBadge status={reservation.attendanceStatus} />
+        </div>
+        <p className="mt-1 truncate text-sm text-muted-foreground" translate="no">{reservation.memberEmail}</p>
+        {state ? <ActionError state={state} /> : null}
+      </div>
+      <form action={action} className="grid grid-cols-3 gap-1 rounded-[0.95rem] border border-border/70 bg-muted/35 p-1">
+        <input type="hidden" name="reservationId" value={reservation.reservationId} />
+        <input type="hidden" name="expectedStatus" value={reservation.attendanceStatus} />
+        <AttendanceButton value="PENDING" label="Pendiente" active={reservation.attendanceStatus === 'PENDING'} disabled={!enabled || !allowPending} icon={Minus} />
+        <AttendanceButton value="ATTENDED" label="Asistió" active={reservation.attendanceStatus === 'ATTENDED'} disabled={!enabled} icon={UserCheck} />
+        <AttendanceButton value="NO_SHOW" label="No vino" active={reservation.attendanceStatus === 'NO_SHOW'} disabled={!enabled} icon={UserX} />
+      </form>
+    </div>
+  )
+}
+
+function AttendanceButton({ value, label, active, disabled, icon: Icon }: { value: string; label: string; active: boolean; disabled: boolean; icon: typeof Check }) {
+  const { pending } = useFormStatus()
+  return (
+    <Button
+      type="submit"
+      name="attendanceStatus"
+      value={value}
+      variant="ghost"
+      size="sm"
+      disabled={disabled || pending || active}
+      aria-pressed={active}
+      className={cn('min-w-0 gap-1 px-2 text-[11px] sm:text-xs', active ? 'bg-white text-[var(--wellstudio-ink)] shadow-sm' : 'text-muted-foreground')}
+    >
+      <Icon className="size-3.5 shrink-0" aria-hidden="true" />
+      <span className="truncate">{pending ? 'Guardando…' : label}</span>
+    </Button>
+  )
+}
+
+function AttendanceCount({ label, value, tone }: { label: string; value: number; tone: 'pending' | 'attended' | 'no-show' }) {
+  return <span className={cn('rounded-full border px-2.5 py-1', tone === 'attended' ? 'border-emerald-700/15 bg-emerald-50 text-emerald-800' : tone === 'no-show' ? 'border-amber-700/15 bg-amber-50 text-amber-800' : 'border-border bg-white text-muted-foreground')}>{label} · {value}</span>
+}
+
+function AttendanceBadge({ status }: { status: SessionItem['roster'][number]['attendanceStatus'] }) {
+  const label = status === 'ATTENDED' ? 'Asistió' : status === 'NO_SHOW' ? 'No vino' : 'Pendiente'
+  return <span className="rounded-full border border-border bg-white px-2 py-0.5 text-[10px] uppercase tracking-[0.14em] text-muted-foreground">{label}</span>
+}
+
 function CancelSessionDialog({ session }: { session: SessionItem }) {
   const [state, action] = useActionState(cancelAdminSessionAction, null)
 
@@ -343,9 +478,9 @@ function Field({ label, error, children }: { label: string; error?: string; chil
   return <label className="block"><span className="mb-2 block text-sm font-medium">{label}</span>{children}{error ? <span className="mt-2 block text-sm text-destructive">{error}</span> : null}</label>
 }
 
-function SubmitButton({ children, ...props }: React.ComponentProps<typeof Button>) {
+function SubmitButton({ children, disabled, ...props }: React.ComponentProps<typeof Button>) {
   const { pending } = useFormStatus()
-  return <Button type="submit" disabled={pending} {...props}>{pending ? 'Guardando…' : children}</Button>
+  return <Button type="submit" {...props} disabled={pending || disabled}>{pending ? 'Guardando…' : children}</Button>
 }
 
 function StatusForm({ actionName, sessionId, action, children }: { actionName: string; sessionId: string; action: (formData: FormData) => void; children: React.ReactNode }) {
@@ -363,7 +498,7 @@ function StatusBadge({ status }: { status: SessionItem['status'] }) {
 
 const selectClassName = 'h-12 w-full rounded-2xl border border-input bg-white px-4 text-sm outline-none focus-visible:border-ring focus-visible:ring-3 focus-visible:ring-ring/30'
 
-function groupByDay(sessions: SessionItem[]) {
+function groupByDay(sessions: SessionItem[], todayKey: string) {
   const groups = new Map<string, SessionItem[]>()
   for (const session of sessions) {
     const key = new Intl.DateTimeFormat('sv-SE', { timeZone: 'Europe/Madrid' }).format(new Date(session.startsAtIso))
@@ -377,6 +512,13 @@ function groupByDay(sessions: SessionItem[]) {
       date: new Intl.DateTimeFormat('es-ES', { day: 'numeric', month: 'short', timeZone: 'Europe/Madrid' }).format(date),
       sessions: items,
     }
+  }).sort((left, right) => {
+    const leftIsCurrentOrFuture = left.key >= todayKey
+    const rightIsCurrentOrFuture = right.key >= todayKey
+    if (leftIsCurrentOrFuture !== rightIsCurrentOrFuture) return leftIsCurrentOrFuture ? -1 : 1
+    return leftIsCurrentOrFuture
+      ? left.key.localeCompare(right.key)
+      : right.key.localeCompare(left.key)
   })
 }
 

@@ -1021,3 +1021,5 @@ Eso deja una base suficientemente seria para construir sin caer ni en un schema 
 La superficie `/admin/sessions` opera sobre `ClassSession` sin duplicar estado de agenda. Los cambios sensibles generan `AuditLog` con actor y contexto.
 
 La cancelacion administrativa es una unica transaccion: cambia la sesion a `CANCELED`, cancela reservas `BOOKED`, devuelve consumos `CREDIT`, expira entradas `WAITING`/`NOTIFIED` y fija `reservedCount` a cero. No elimina filas ni promociona waitlist durante una cancelacion masiva.
+
+La asistencia reutiliza el doble estado ya existente de `Reservation`: `PENDING` se corresponde con reserva `BOOKED`, `ATTENDED` con `ATTENDED` y `NO_SHOW` con `NO_SHOW`. Cada cambio genera `AuditLog` y compara el estado esperado para evitar sobrescribir silenciosamente la operacion de otro miembro del staff. Una `ClassSession` solo pasa a `COMPLETED` despues de terminar y cuando no quedan reservas `BOOKED`.

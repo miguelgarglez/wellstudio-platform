@@ -9,12 +9,13 @@ export async function getAdminSessionOverview(input: {
   from?: Date
 }) {
   const now = input.from ?? new Date()
+  const earliest = new Date(now.getTime() - 14 * 86_400_000)
   const until = new Date(now.getTime() + SESSION_WINDOW_DAYS * 86_400_000)
 
   const [sessions, classTypes, coaches] = await Promise.all([
     prisma.classSession.findMany({
       where: {
-        startsAt: { gte: new Date(now.getTime() - 86_400_000), lte: until },
+        startsAt: { gte: earliest, lte: until },
       },
       orderBy: [{ startsAt: 'asc' }, { id: 'asc' }],
       select: {
@@ -30,6 +31,24 @@ export async function getAdminSessionOverview(input: {
         coachId: true,
         classType: { select: { name: true } },
         coach: { select: { displayName: true } },
+        reservations: {
+          where: { status: { in: ['BOOKED', 'ATTENDED', 'NO_SHOW'] } },
+          orderBy: [{ member: { firstName: 'asc' } }, { id: 'asc' }],
+          select: {
+            id: true,
+            status: true,
+            attendanceStatus: true,
+            bookedAt: true,
+            member: {
+              select: {
+                id: true,
+                firstName: true,
+                lastName: true,
+                user: { select: { email: true } },
+              },
+            },
+          },
+        },
         _count: {
           select: {
             waitlistEntries: { where: { status: { in: ['WAITING', 'NOTIFIED'] } } },
@@ -69,6 +88,28 @@ export async function getAdminSessionOverview(input: {
     waitlistEnabled: session.waitlistEnabled,
     locationLabel: session.locationLabel,
     status: session.status,
+    roster: session.reservations.map((reservation) => ({
+      reservationId: reservation.id,
+      memberId: reservation.member.id,
+      memberName: `${reservation.member.firstName} ${reservation.member.lastName}`.trim(),
+      memberEmail: reservation.member.user.email,
+      attendanceStatus: reservation.attendanceStatus,
+      reservationStatus: reservation.status,
+      bookedAtIso: reservation.bookedAt.toISOString(),
+    })),
+    attendance: {
+      pending: session.reservations.filter((item) => item.attendanceStatus === 'PENDING').length,
+      attended: session.reservations.filter((item) => item.attendanceStatus === 'ATTENDED').length,
+      noShow: session.reservations.filter((item) => item.attendanceStatus === 'NO_SHOW').length,
+    },
+    isAttendanceOpen:
+      now.getTime() >= session.startsAt.getTime() - 2 * 60 * 60 * 1000 &&
+      session.status !== 'DRAFT' &&
+      session.status !== 'CANCELED',
+    hasEnded: session.endsAt <= now,
+    isEditable:
+      session.startsAt > now &&
+      (session.status === 'DRAFT' || session.status === 'PUBLISHED' || session.status === 'CLOSED'),
   }))
   const selectedSession = input.selectedSessionId
     ? items.find((session) => session.id === input.selectedSessionId) ?? null
@@ -79,7 +120,8 @@ export async function getAdminSessionOverview(input: {
     selectedSession,
     classTypes,
     coaches,
-    window: { fromIso: now.toISOString(), untilIso: until.toISOString() },
+    window: { fromIso: earliest.toISOString(), untilIso: until.toISOString() },
+    todayKey: new Intl.DateTimeFormat('sv-SE', { timeZone: 'Europe/Madrid' }).format(now),
     counts: {
       published: items.filter((item) => item.status === 'PUBLISHED').length,
       drafts: items.filter((item) => item.status === 'DRAFT').length,
