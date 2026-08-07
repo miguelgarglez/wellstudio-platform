@@ -2,7 +2,7 @@
 
 import type { ReactNode } from 'react'
 import Link from 'next/link'
-import { CalendarDays, ClipboardList, Inbox, ShieldPlus } from 'lucide-react'
+import { CalendarDays, ClipboardList, Inbox, ShieldPlus, UsersRound } from 'lucide-react'
 import { usePathname } from 'next/navigation'
 import { useEffect, useRef, useState } from 'react'
 
@@ -35,6 +35,11 @@ const adminNavItems = [
     href: '/admin/leads',
     label: 'Solicitudes',
     icon: Inbox,
+  },
+  {
+    href: '/admin/members',
+    label: 'Socios',
+    icon: UsersRound,
   },
   {
     href: '/admin/sessions',
@@ -214,7 +219,7 @@ export function AdminShell({ children, summary }: AdminShellProps) {
         aria-label="Navegación admin móvil"
         className="fixed inset-x-0 bottom-0 z-40 border-t border-[color:color-mix(in_srgb,var(--border)_80%,white)] bg-[color:color-mix(in_srgb,var(--card)_88%,white)]/95 px-3 pb-[calc(env(safe-area-inset-bottom)+0.65rem)] pt-2.5 shadow-[0_-16px_40px_rgba(18,20,24,0.08)] backdrop-blur-xl xl:hidden"
       >
-        <div className="mx-auto flex w-fit max-w-[calc(100vw-2rem)] items-center justify-center gap-2 rounded-[2rem] border border-[color:color-mix(in_srgb,var(--wellstudio-blue)_8%,white)] bg-white/58 p-1.5 shadow-[0_10px_28px_rgba(18,20,24,0.07)]">
+        <div className="mx-auto flex w-fit max-w-[calc(100vw-1rem)] items-center justify-center gap-1 rounded-[2rem] border border-[color:color-mix(in_srgb,var(--wellstudio-blue)_8%,white)] bg-white/58 p-1.5 shadow-[0_10px_28px_rgba(18,20,24,0.07)] sm:gap-2">
           {adminNavItems.map((item) => {
             const Icon = item.icon
             const isActive = isAdminNavItemActive(pathname, item.href)
@@ -230,7 +235,7 @@ export function AdminShell({ children, summary }: AdminShellProps) {
                 onClick={() => handleAdminNavigation(item.href)}
                 aria-current={isActive ? 'page' : undefined}
                 className={cn(
-                  'relative flex w-[4.7rem] min-w-0 flex-col items-center gap-1 overflow-hidden rounded-[1.45rem] px-2 py-2 text-center text-[11px] font-medium transition-[background-color,color,box-shadow] duration-200 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--ring)] sm:w-28 sm:px-3 sm:text-xs',
+                  'relative flex w-[4rem] min-w-0 flex-col items-center gap-1 overflow-hidden rounded-[1.45rem] px-1.5 py-2 text-center text-[10px] font-medium transition-[background-color,color,box-shadow] duration-200 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--ring)] sm:w-24 sm:px-2 sm:text-xs md:w-28 md:px-3',
                   isActive
                     ? 'bg-[color:color-mix(in_srgb,var(--wellstudio-blue)_18%,white)] text-[var(--wellstudio-ink)]'
                     : 'text-[color:color-mix(in_srgb,var(--foreground)_70%,white)]',

@@ -145,6 +145,7 @@ No cerrar pagos sin probar al menos un flujo sandbox end-to-end.
 
 - permisos de staff/admin
 - read models de politicas y overrides admin
+- read model agregado de socios, incluidos estados, cobertura comercial y actividad reciente
 - server actions finas de grant/revoke de overrides
 - creacion de clase
 - edicion de clase
@@ -154,11 +155,12 @@ No cerrar pagos sin probar al menos un flujo sandbox end-to-end.
 
 - admin entra y ve panel
 - admin directo desde login aterriza en `/admin` por rol
-- member no accede a `/admin` ni `/admin/overrides`
+- member no accede a `/admin`, `/admin/overrides` ni `/admin/members`
 - admin edita politica de reserva por plan
 - admin concede y revoca overrides por socio
 - admin crea o edita una sesion
 - admin crea, edita, archiva y reactiva recursos del catalogo de Agenda
+- admin busca un socio, abre su dossier y navega al flujo contextual correspondiente
 - un recurso con sesiones futuras no puede archivarse hasta resolver sus dependencias
 
 ## Matriz minima por modulo

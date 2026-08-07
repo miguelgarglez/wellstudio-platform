@@ -624,6 +624,9 @@ Nivel de certeza:
 
 Estado V1 implementado:
 
+- `/admin/members` ofrece un directorio acotado con búsqueda por nombre, email o teléfono y filtros de estado
+- la ficha de socio agrega identidad, cuenta, memberships, créditos, reservas, waitlist, pagos y notas sin habilitar mutaciones comerciales ambiguas
+- desde la ficha se enlaza con Excepciones y con la sesión concreta de Agenda conservando un único contexto operativo
 - `/admin/overrides` permite buscar socios por nombre o email
 - opera solo sobre memberships activas
 - permite conceder `extra_allowance` para la ventana vigente de una politica periodica

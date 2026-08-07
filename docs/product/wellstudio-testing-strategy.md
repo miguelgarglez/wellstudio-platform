@@ -290,6 +290,14 @@ Para agenda admin, el gate dirigido debe cubrir:
 - archivado reversible y bloqueo cuando existan sesiones futuras dependientes
 - sheet de catalogo a ancho completo en mobile y feedback persistido tras cada accion
 
+Para gestion de socios admin, el gate dirigido debe cubrir:
+
+- rechazo de `MEMBER` y acceso de `ADMIN`/`STAFF`
+- búsqueda normalizada por identidad o contacto y filtros que distinguen activos, inactivos y bloqueados
+- read model agregado con datos parciales honestos, sin autoselección ni mutaciones
+- enlaces contextuales a Excepciones y Agenda con IDs reales
+- detalle a ancho completo en mobile y retorno al listado conservando búsqueda y filtro
+
 ## 12. Regla final
 
 En WellStudio, lo que rompe negocio no es un boton desalineado.

@@ -239,6 +239,8 @@ Regla de producto:
 - reservar nombres amplios como "Gestion de planes" para superficies que realmente permitan gestionar el plan completo: precio, estado, descripcion, visibilidad y reglas
 - no introducir dashboards de bienvenida sin senales accionables; una home admin solo compensa si ayuda a decidir que atender hoy
 - preferir patrones de workbench: rail de busqueda/lista, panel de detalle y acciones contextuales cerca del objeto seleccionado
+- el dossier operativo de un socio debe ordenar primero identidad y acceso, despues cobertura comercial y por ultimo actividad e historico; no presentar todos los datos con el mismo peso visual
+- una vista agregada read-only debe enlazar a la superficie que gobierna cada accion en vez de duplicar formularios o reglas de dominio dentro del detalle
 - evitar rails largos con scroll propio si el contenido principal ya hace scroll; los formularios y selecciones largas deben pasar a `Dialog`, `Sheet` o una superficie dedicada
 - en mobile/tablet, los workbenches admin no deben apilar lista y detalle obligando a scrollear para operar; el detalle seleccionado debe poder abrirse como `Sheet` contextual y cerrarse volviendo al listado
 - los placeholders de detalle sin seleccion son aceptables en desktop como ayuda del panel derecho; en mobile/tablet deben ocultarse para que la lista sea la superficie base hasta que el usuario seleccione un item

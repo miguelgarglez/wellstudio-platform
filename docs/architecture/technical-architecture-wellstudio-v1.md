@@ -851,6 +851,7 @@ Superficies admin ya implementadas:
 
 - `/admin`: reglas de reserva por membership plan; el termino visible es "Reglas" para evitar sobreprometer una gestion completa de planes
 - `/admin/overrides`: excepciones de reserva auditables por socio sobre memberships activas; internamente siguen siendo booking overrides de dominio
+- `/admin/members`: directorio y dossier operativo read-only; agrega datos de varios modulos mediante un read model server-side y delega las acciones en superficies de dominio existentes
 
 Decision de entrada admin:
 
@@ -872,6 +873,7 @@ Patron de interfaz:
 - las listas admin por defecto deben ser read models server-side acotados y honestos: pueden priorizar actividad reciente u operabilidad, pero deben distinguirse de resultados de busqueda exhaustivos
 - las acciones admin siguen siendo server actions finas que delegan en servicios de dominio; el layout no debe introducir reglas de negocio
 - en seguimiento comercial, el detalle debe priorizar identidad, estado actual y timeline; las operaciones de nota/cambio de estado se abren en dialogos enfocados y no como formularios permanentes
+- en gestion de socios, la vista agregada es deliberadamente read-only: asignar planes, créditos o estados requiere casos de uso con invariantes y auditoria propios, no escrituras improvisadas desde el dossier
 
 Regla de acceso:
 
