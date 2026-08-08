@@ -1,5 +1,14 @@
+import type { Metadata } from 'next'
+
 import { LegalPageShell } from '@/modules/public/ui/legal-page-shell'
 import { PUBLIC_CONTACT_EMAIL } from '@/modules/public/content/public-contact'
+
+export const metadata: Metadata = {
+  title: 'Condiciones de uso | WellStudio',
+  description:
+    'Condiciones esenciales que regulan el acceso y el uso de la plataforma y del área privada de WellStudio.',
+  alternates: { canonical: '/terms' },
+}
 
 export default function TermsPage() {
   return (

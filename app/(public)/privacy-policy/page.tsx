@@ -1,5 +1,14 @@
+import type { Metadata } from 'next'
+
 import { LegalPageShell } from '@/modules/public/ui/legal-page-shell'
 import { PUBLIC_CONTACT_EMAIL } from '@/modules/public/content/public-contact'
+
+export const metadata: Metadata = {
+  title: 'Política de privacidad | WellStudio',
+  description:
+    'Información sobre cómo WellStudio recoge, utiliza y protege los datos personales de usuarios y socios.',
+  alternates: { canonical: '/privacy-policy' },
+}
 
 export default function PrivacyPolicyPage() {
   return (

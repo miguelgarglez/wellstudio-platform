@@ -31,10 +31,7 @@ export function LegalPageShell({
   children,
 }: LegalPageShellProps) {
   return (
-    <main
-      id="main-content"
-      className="min-h-screen bg-[linear-gradient(180deg,rgba(183,206,231,0.16),rgba(247,245,241,0.92))] px-4 py-6 text-foreground sm:px-6 lg:px-8"
-    >
+    <div className="min-h-screen bg-[linear-gradient(180deg,rgba(183,206,231,0.16),rgba(247,245,241,0.92))] px-4 py-4 text-foreground sm:px-6 sm:py-6 lg:px-8">
       <div className="mx-auto flex min-h-[calc(100vh-3rem)] max-w-5xl flex-col rounded-[2rem] border border-white/65 bg-white/78 shadow-[0_24px_80px_rgba(17,19,22,0.12)] backdrop-blur">
         <header className="flex flex-col gap-8 border-b border-[color:color-mix(in_srgb,var(--wellstudio-blue)_12%,var(--border))] px-6 py-6 sm:px-8 sm:py-8">
           <div className="flex flex-wrap items-center justify-between gap-4">
@@ -51,7 +48,7 @@ export function LegalPageShell({
               </div>
             </Link>
             <nav
-              aria-label="Legal navigation"
+              aria-label="Navegación legal"
               className="flex flex-wrap items-center gap-2 text-sm text-muted-foreground"
             >
               {navLinks.map((link) => {
@@ -95,13 +92,13 @@ export function LegalPageShell({
           </div>
         </header>
 
-        <div className="grid flex-1 gap-8 px-6 py-6 sm:px-8 sm:py-8 lg:grid-cols-[minmax(0,1fr)_18rem] lg:items-start">
-          <article className="max-w-none text-[var(--wellstudio-ink)] [&_a]:font-medium [&_a]:text-[var(--wellstudio-blue-deep)] [&_a]:underline-offset-4 hover:[&_a]:underline [&_h2]:mb-2 [&_h2]:font-display [&_h2]:text-3xl [&_h2]:uppercase [&_h2]:tracking-[0.04em] [&_li]:leading-8 [&_p]:leading-8 [&_section]:space-y-4 [&_section]:rounded-[1.75rem] [&_section]:border [&_section]:border-[color:color-mix(in_srgb,var(--wellstudio-blue)_12%,var(--border))] [&_section]:bg-[color:color-mix(in_srgb,var(--wellstudio-blue)_3%,white)] [&_section]:px-5 [&_section]:py-5 sm:[&_section]:px-7 sm:[&_section]:py-6 [&_section+section]:mt-4 [&_ul]:space-y-2 [&_ul]:pl-5">
+        <main
+          id="main-content"
+          tabIndex={-1}
+          className="grid flex-1 gap-8 px-6 py-6 sm:px-8 sm:py-8 lg:grid-cols-[minmax(0,1fr)_18rem] lg:items-start"
+        >
+          <article className="max-w-none text-[var(--wellstudio-ink)] [&_a]:font-medium [&_a]:text-[var(--wellstudio-blue-deep)] [&_a]:underline-offset-4 hover:[&_a]:underline [&_h2]:mb-2 [&_h2]:font-display [&_h2]:text-3xl [&_h2]:uppercase [&_h2]:tracking-[0.04em] [&_li]:leading-8 [&_p]:leading-8 [&_section]:space-y-4 [&_section]:rounded-[1.75rem] [&_section]:border [&_section]:border-[color:color-mix(in_srgb,var(--wellstudio-blue)_12%,var(--border))] [&_section]:bg-[color:color-mix(in_srgb,var(--wellstudio-blue)_3%,white)] [&_section]:px-5 [&_section]:py-5 sm:[&_section]:px-7 sm:[&_section]:py-6 [&_section+section]:mt-4 [&_ul]:list-disc [&_ul]:space-y-2 [&_ul]:pl-5 [&_ul]:marker:text-[var(--wellstudio-blue)]">
             {children}
-
-            <div className="mt-8 border-t border-[color:color-mix(in_srgb,var(--wellstudio-blue)_12%,var(--border))] pt-5">
-              <PublicSiteFooter />
-            </div>
           </article>
 
           <aside className="lg:sticky lg:top-6">
@@ -116,7 +113,7 @@ export function LegalPageShell({
                 </div>
                 <div>
                   <p className="font-medium text-[var(--wellstudio-ink)]">Contacto</p>
-                  <a href={`mailto:${contactEmail}`}>{contactEmail}</a>
+                  <a className="break-all" href={`mailto:${contactEmail}`}>{contactEmail}</a>
                 </div>
                 <div>
                   <p className="font-medium text-[var(--wellstudio-ink)]">Estado</p>
@@ -129,8 +126,12 @@ export function LegalPageShell({
               </div>
             </div>
           </aside>
+        </main>
+
+        <div className="border-t border-[color:color-mix(in_srgb,var(--wellstudio-blue)_12%,var(--border))] px-6 py-5 sm:px-8">
+          <PublicSiteFooter />
         </div>
       </div>
-    </main>
+    </div>
   )
 }
