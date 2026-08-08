@@ -174,6 +174,23 @@ enum LeadActivityType {
   STATUS_CHANGED
 }
 
+enum NotificationEventType {
+  RESERVATION_BOOKED
+  RESERVATION_CANCELED
+}
+
+enum NotificationJobStatus {
+  PENDING
+  PROCESSING
+  SENT
+  FAILED
+}
+
+enum NotificationAttemptStatus {
+  SENT
+  FAILED
+}
+
 enum ConsentType {
   TERMS
   PRIVACY
@@ -440,6 +457,46 @@ model WaitlistEntry {
 
   @@unique([memberId, classSessionId, status], map: "waitlist_member_session_status_unique")
   @@index([classSessionId, status, joinedAt])
+}
+
+model NotificationJob {
+  id                String                @id @default(cuid())
+  eventType         NotificationEventType
+  status            NotificationJobStatus @default(PENDING)
+  recipient         String
+  payload           Json
+  idempotencyKey    String                @unique
+  referenceType     String
+  referenceId       String
+  attemptCount      Int                   @default(0)
+  availableAt       DateTime              @default(now())
+  lockedAt          DateTime?
+  sentAt            DateTime?
+  providerMessageId String?
+  lastError         String?
+  createdAt         DateTime              @default(now())
+  updatedAt         DateTime              @updatedAt
+
+  attempts NotificationDeliveryAttempt[]
+
+  @@index([status, availableAt])
+  @@index([referenceType, referenceId])
+}
+
+model NotificationDeliveryAttempt {
+  id                String                    @id @default(cuid())
+  notificationJobId String
+  attemptNumber     Int
+  status            NotificationAttemptStatus
+  provider          String
+  providerMessageId String?
+  error             String?
+  attemptedAt       DateTime                  @default(now())
+
+  notificationJob NotificationJob @relation(fields: [notificationJobId], references: [id], onDelete: Cascade)
+
+  @@unique([notificationJobId, attemptNumber])
+  @@index([status, attemptedAt])
 }
 
 model MembershipPlan {

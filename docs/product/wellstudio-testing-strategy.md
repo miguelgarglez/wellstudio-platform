@@ -273,6 +273,8 @@ Tras bugs reales:
 
 - tests de elegibilidad
 - tests de reservations
+- tests de outbox transaccional, idempotencia, backoff y autorizacion del dispatcher
+- render visual responsive de emails de confirmacion y cancelacion de reservas
 - tests de cancelacion
 - e2e de agenda y reserva
 

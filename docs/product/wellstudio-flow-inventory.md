@@ -256,11 +256,18 @@ Postcondiciones:
 
 - reserva creada
 - disponibilidad recalculada
-- evento de notificacion emitido
+- job `RESERVATION_BOOKED` persistido atomicamente
+- confirmacion por email intentada despues del commit; un fallo queda pendiente de reintento sin invalidar la reserva
 
 Nivel de certeza:
 
-- confirmado a nivel de concepto, pendiente de validar end-to-end
+- implementado y cubierto end-to-end para reserva directa
+
+### Confirmacion de cancelacion
+
+Cuando el socio cancela dentro de la ventana permitida, la misma transaccion que libera la plaza y devuelve el entitlement crea un job `RESERVATION_CANCELED`. El email se entrega despues del commit y conserva clase, fecha, horario, coach, espacio y referencia de reserva como snapshot auditable.
+
+Los recordatorios y las comunicaciones de waitlist siguen fuera de esta slice: requieren reglas de producto propias y no deben inferirse del outbox base.
 
 ## 7. Bloqueo por elegibilidad
 

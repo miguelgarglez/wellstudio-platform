@@ -1,6 +1,7 @@
 import { Prisma } from '@prisma/client'
 
 import { prisma } from '@/lib/db/prisma'
+import { enqueueReservationNotification } from '@/modules/notifications/server/notification-outbox'
 import {
   buildCancellationWindow,
   buildMembershipPolicyUsageSearchWindow,
@@ -37,6 +38,10 @@ export type ReservationMutationResult = {
   code: ReservationMutationCode
   message: string
   updatedEntityId?: string
+}
+
+export type ReservationMutationExecutionResult = ReservationMutationResult & {
+  notificationJobId?: string
 }
 
 type MutationSessionSnapshot = {
@@ -88,15 +93,17 @@ export async function reservePublishedSession(
   input: MutationContext & {
     classSessionId: string
   },
-): Promise<ReservationMutationResult> {
-  return runSerializableReservationTransaction(async (tx) => {
+): Promise<ReservationMutationExecutionResult> {
+  const outcome = await runSerializableReservationTransaction(async (tx) => {
     const now = input.now ?? new Date()
     const session = await getMutationSession(tx, input.classSessionId)
 
     if (!isBookableSession(session, now)) {
-      return buildMutationResult(
-        'SESSION_NOT_BOOKABLE',
-        'La sesión ya no está disponible para nuevas reservas.',
+      return buildMutationOutcome(
+        buildMutationResult(
+          'SESSION_NOT_BOOKABLE',
+          'La sesión ya no está disponible para nuevas reservas.',
+        ),
       )
     }
 
@@ -112,25 +119,31 @@ export async function reservePublishedSession(
     ])
 
     if (existingReservation) {
-      return buildMutationResult(
-        'ALREADY_BOOKED',
-        'Ya tienes una reserva activa para esta sesión.',
-        existingReservation.id,
+      return buildMutationOutcome(
+        buildMutationResult(
+          'ALREADY_BOOKED',
+          'Ya tienes una reserva activa para esta sesión.',
+          existingReservation.id,
+        ),
       )
     }
 
     if (existingWaitlist) {
-      return buildMutationResult(
-        'ALREADY_WAITLISTED',
-        'Ya estás dentro de la waitlist activa de esta sesión.',
-        existingWaitlist.id,
+      return buildMutationOutcome(
+        buildMutationResult(
+          'ALREADY_WAITLISTED',
+          'Ya estás dentro de la waitlist activa de esta sesión.',
+          existingWaitlist.id,
+        ),
       )
     }
 
     if (session.reservedCount >= session.capacity) {
-      return buildMutationResult(
-        'SESSION_FULL',
-        'La sesión está completa. Si la waitlist está habilitada, podrás entrar desde la agenda.',
+      return buildMutationOutcome(
+        buildMutationResult(
+          'SESSION_FULL',
+          'La sesión está completa. Si la waitlist está habilitada, podrás entrar desde la agenda.',
+        ),
       )
     }
 
@@ -140,7 +153,9 @@ export async function reservePublishedSession(
     })
 
     if (!eligibility.eligible) {
-      return buildEligibilityFailureResult(eligibility.code)
+      return buildMutationOutcome(
+        buildEligibilityFailureResult(eligibility.code),
+      )
     }
 
     const reservation = await createBookedReservation(tx, {
@@ -162,21 +177,34 @@ export async function reservePublishedSession(
       },
     })
 
-    return buildMutationResult(
-      'BOOKED',
-      `Reserva confirmada para ${session.classType.name}.`,
-      reservation.id,
-      true,
+    const notification = await enqueueReservationNotification(tx, {
+      eventType: 'RESERVATION_BOOKED',
+      reservationId: reservation.id,
+      memberId: input.memberId,
+      classSessionId: session.id,
+      occurredAt: now,
+    })
+
+    return buildMutationOutcome(
+      buildMutationResult(
+        'BOOKED',
+        `Reserva confirmada para ${session.classType.name}.`,
+        reservation.id,
+        true,
+      ),
+      notification.id,
     )
   })
+
+  return flattenReservationMutationOutcome(outcome)
 }
 
 export async function cancelMemberReservation(
   input: MutationContext & {
     reservationId: string
   },
-): Promise<ReservationMutationResult> {
-  return runSerializableReservationTransaction(async (tx) => {
+): Promise<ReservationMutationExecutionResult> {
+  const outcome = await runSerializableReservationTransaction(async (tx) => {
     const now = input.now ?? new Date()
     const reservation = await tx.reservation.findFirst({
       where: {
@@ -225,16 +253,20 @@ export async function cancelMemberReservation(
     })
 
     if (!reservation || reservation.status !== 'BOOKED') {
-      return buildMutationResult(
-        'RESERVATION_NOT_FOUND',
-        'No hemos encontrado una reserva activa para cancelar.',
+      return buildMutationOutcome(
+        buildMutationResult(
+          'RESERVATION_NOT_FOUND',
+          'No hemos encontrado una reserva activa para cancelar.',
+        ),
       )
     }
 
     if (reservation.classSession.startsAt.getTime() <= now.getTime()) {
-      return buildMutationResult(
-        'SESSION_NOT_BOOKABLE',
-        'La sesión ya ha comenzado o ha quedado cerrada.',
+      return buildMutationOutcome(
+        buildMutationResult(
+          'SESSION_NOT_BOOKABLE',
+          'La sesión ya ha comenzado o ha quedado cerrada.',
+        ),
       )
     }
 
@@ -244,10 +276,12 @@ export async function cancelMemberReservation(
     })
 
     if (cutoffAt.getTime() <= now.getTime()) {
-      return buildMutationResult(
-        'CANCELLATION_WINDOW_CLOSED',
-        'La ventana de cancelación ya está cerrada para esta reserva.',
-        reservation.id,
+      return buildMutationOutcome(
+        buildMutationResult(
+          'CANCELLATION_WINDOW_CLOSED',
+          'La ventana de cancelación ya está cerrada para esta reserva.',
+          reservation.id,
+        ),
       )
     }
 
@@ -292,13 +326,26 @@ export async function cancelMemberReservation(
       now,
     })
 
-    return buildMutationResult(
-      'CANCELED',
-      `Reserva cancelada para ${reservation.classSession.classType.name}.`,
-      reservation.id,
-      true,
+    const notification = await enqueueReservationNotification(tx, {
+      eventType: 'RESERVATION_CANCELED',
+      reservationId: reservation.id,
+      memberId: input.memberId,
+      classSessionId: reservation.classSession.id,
+      occurredAt: now,
+    })
+
+    return buildMutationOutcome(
+      buildMutationResult(
+        'CANCELED',
+        `Reserva cancelada para ${reservation.classSession.classType.name}.`,
+        reservation.id,
+        true,
+      ),
+      notification.id,
     )
   })
+
+  return flattenReservationMutationOutcome(outcome)
 }
 
 export async function joinSessionWaitlist(
@@ -1096,6 +1143,27 @@ function buildMutationResult(
     code,
     message,
     updatedEntityId,
+  }
+}
+
+type ReservationMutationOutcome = {
+  result: ReservationMutationResult
+  notificationJobId?: string
+}
+
+function buildMutationOutcome(
+  result: ReservationMutationResult,
+  notificationJobId?: string,
+): ReservationMutationOutcome {
+  return { result, notificationJobId }
+}
+
+function flattenReservationMutationOutcome(
+  outcome: ReservationMutationOutcome,
+): ReservationMutationExecutionResult {
+  return {
+    ...outcome.result,
+    notificationJobId: outcome.notificationJobId,
   }
 }
 

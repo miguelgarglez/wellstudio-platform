@@ -21,7 +21,12 @@ import {
 function createTransactionMock() {
   return {
     member: {
-      findUnique: vi.fn().mockResolvedValue({ status: 'ACTIVE' }),
+      findUnique: vi.fn().mockResolvedValue({
+        status: 'ACTIVE',
+        firstName: 'Ana',
+        lastName: 'Socio',
+        user: { email: 'ana@example.com' },
+      }),
     },
     classSession: {
       findUnique: vi.fn(),
@@ -51,6 +56,9 @@ function createTransactionMock() {
     },
     reservationEntitlementUsage: {
       create: vi.fn(),
+    },
+    notificationJob: {
+      upsert: vi.fn().mockResolvedValue({ id: 'notification-job-1' }),
     },
   }
 }
@@ -137,6 +145,16 @@ describe('member reservation mutations', () => {
       where: { id: 'session-1' },
       data: { reservedCount: { increment: 1 } },
     })
+    expect(tx.notificationJob.upsert).toHaveBeenCalledWith(
+      expect.objectContaining({
+        create: expect.objectContaining({
+          eventType: 'RESERVATION_BOOKED',
+          recipient: 'ana@example.com',
+          referenceId: 'reservation-1',
+        }),
+      }),
+    )
+    expect(result.notificationJobId).toBe('notification-job-1')
   })
 
   it('blocks new reservations when the member is not active', async () => {
@@ -183,6 +201,7 @@ describe('member reservation mutations', () => {
       updatedEntityId: undefined,
     })
     expect(tx.reservation.create).not.toHaveBeenCalled()
+    expect(tx.notificationJob.upsert).not.toHaveBeenCalled()
   })
 
   it('books a published session with manual override entitlement usage', async () => {
@@ -418,6 +437,14 @@ describe('member reservation mutations', () => {
       success: true,
       code: 'CANCELED',
     })
+    expect(tx.notificationJob.upsert).toHaveBeenCalledWith(
+      expect.objectContaining({
+        create: expect.objectContaining({
+          eventType: 'RESERVATION_CANCELED',
+          referenceId: 'reservation-1',
+        }),
+      }),
+    )
     expect(tx.creditLedgerEntry.create).toHaveBeenCalledWith({
       data: {
         memberCreditAccountId: 'credits-1',

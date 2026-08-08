@@ -1,8 +1,10 @@
 'use server'
 
 import { revalidatePath } from 'next/cache'
+import { after } from 'next/server'
 
 import { requireAuthenticatedContext } from '@/modules/auth/server/identity'
+import { dispatchNotificationJobSafely } from '@/modules/notifications/server/notification-outbox'
 import {
   cancelMemberReservation,
   joinSessionWaitlist,
@@ -35,17 +37,17 @@ export async function reservePublishedSessionAction(
     }
   }
 
-  const result = await reservePublishedSession({
+  const execution = await reservePublishedSession({
     memberId: authContext.member.id,
     userId: authContext.localUser.id,
     classSessionId,
   })
 
-  if (result.success) {
+  if (execution.success) {
     revalidateReservations()
   }
 
-  return result
+  return finalizeActionResult(execution)
 }
 
 export async function cancelMemberReservationAction(
@@ -72,17 +74,17 @@ export async function cancelMemberReservationAction(
     }
   }
 
-  const result = await cancelMemberReservation({
+  const execution = await cancelMemberReservation({
     memberId: authContext.member.id,
     userId: authContext.localUser.id,
     reservationId,
   })
 
-  if (result.success) {
+  if (execution.success) {
     revalidateReservations()
   }
 
-  return result
+  return finalizeActionResult(execution)
 }
 
 export async function joinSessionWaitlistAction(
@@ -167,4 +169,20 @@ function readRequiredField(formData: FormData, key: string) {
 function revalidateReservations() {
   revalidatePath('/app')
   revalidatePath('/app/reservations')
+}
+
+function finalizeActionResult(
+  execution: ReservationMutationResult & { notificationJobId?: string },
+): ReservationMutationResult {
+  if (execution.notificationJobId) {
+    const notificationJobId = execution.notificationJobId
+    after(() => dispatchNotificationJobSafely(notificationJobId))
+  }
+
+  return {
+    success: execution.success,
+    code: execution.code,
+    message: execution.message,
+    updatedEntityId: execution.updatedEntityId,
+  }
 }

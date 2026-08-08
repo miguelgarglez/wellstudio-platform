@@ -38,3 +38,4 @@ Cuando un documento deje de ser vigente:
 - `runbooks/vercel-preview-and-production.md`
 - `runbooks/codex-cloud-agent-setup.md`
 - `runbooks/agentation-local-isolation.md`
+- `runbooks/reservation-notification-delivery.md`

@@ -61,21 +61,29 @@ test.describe('Member reservations sandbox @sandbox @critical @reservations', ()
     await reservationsPage.expectWaitlistActiveAgain()
   })
 
-  test('member can reserve an available session', async ({ page }) => {
+  test('member can reserve an available session', async ({ page }, testInfo) => {
     const reservationsPage = new ReservationsPage(page)
 
     await resetSandboxReservableSessionState()
     await reservationsPage.goto()
     await reservationsPage.reserveAvailableSession()
     await reservationsPage.expectAvailableSessionReserved()
+    await page.screenshot({
+      path: testInfo.outputPath('reservation-confirmed.png'),
+      fullPage: true,
+    })
   })
 
-  test('member can cancel a future reservation within window', async ({ page }) => {
+  test('member can cancel a future reservation within window', async ({ page }, testInfo) => {
     const reservationsPage = new ReservationsPage(page)
 
     await resetSandboxCancelableReservationState()
     await reservationsPage.goto()
     await reservationsPage.cancelCancelableReservation()
     await reservationsPage.expectCancelableReservationCanceled()
+    await page.screenshot({
+      path: testInfo.outputPath('reservation-canceled.png'),
+      fullPage: true,
+    })
   })
 })

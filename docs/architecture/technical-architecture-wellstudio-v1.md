@@ -637,12 +637,22 @@ Responsabilidad:
 
 Entidades:
 
-- notification_jobs
-- notification_logs
+- `NotificationJob`: outbox durable, snapshot del mensaje, estado, lock e idempotencia
+- `NotificationDeliveryAttempt`: historial inmutable de cada intento de entrega
 
 APIs clave:
 
-- internas
+- enqueue interno dentro de la transaccion de dominio
+- dispatcher server-side despues del commit
+- `GET /api/internal/notifications/dispatch`, protegido por `CRON_SECRET`, para recuperacion programada
+
+Reglas operativas:
+
+- una operacion de negocio confirmada no se revierte si falla el proveedor de correo
+- el job y la reserva se crean o actualizan atomicamente
+- el transporte vive fuera de la transaccion de reserva
+- la clave estable por evento y reserva se propaga a Resend para evitar duplicados
+- los intentos fallidos usan backoff y los locks abandonados se pueden reclamar
 
 ## Admin
 
