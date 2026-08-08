@@ -1,0 +1,50 @@
+<!doctype html>
+<html lang="es">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Confirma tu acceso a WellStudio</title>
+    <style>
+      @media only screen and (max-width: 620px) {
+        .email-shell { padding: 16px !important; }
+        .email-card { border-radius: 24px !important; }
+        .email-content { padding: 32px 24px !important; }
+        .email-title { font-size: 34px !important; }
+        .email-button { display: block !important; text-align: center !important; }
+      }
+    </style>
+  </head>
+  <body style="margin: 0; background: #f2eee7; color: #111316; font-family: Arial, Helvetica, sans-serif;">
+    <div style="display: none; max-height: 0; overflow: hidden; opacity: 0;">
+      Confirma tu correo para activar tu acceso privado a WellStudio.
+    </div>
+    <table role="presentation" width="100%" cellspacing="0" cellpadding="0" border="0" style="background: #f2eee7;">
+      <tr>
+        <td class="email-shell" align="center" style="padding: 40px 20px;">
+          <table class="email-card" role="presentation" width="100%" cellspacing="0" cellpadding="0" border="0" style="max-width: 600px; overflow: hidden; border: 1px solid #ded6ca; border-radius: 32px; background: #fffaf4;">
+            <tr>
+              <td style="height: 8px; background: #4f89c5;"></td>
+            </tr>
+            <tr>
+              <td class="email-content" style="padding: 44px 48px;">
+                <p style="margin: 0 0 28px; color: #315272; font-size: 13px; font-weight: 700; letter-spacing: 3px; text-transform: uppercase;">WellStudio</p>
+                <h1 class="email-title" style="margin: 0; color: #111316; font-size: 42px; line-height: 1.05; letter-spacing: -1.5px;">Confirma tu acceso</h1>
+                <p style="margin: 22px 0 0; color: #5f5d59; font-size: 17px; line-height: 1.7;">Ya casi está. Confirma tu correo para activar tu cuenta y entrar en tu espacio privado.</p>
+                <table role="presentation" width="100%" cellspacing="0" cellpadding="0" border="0" style="margin: 32px 0;">
+                  <tr>
+                    <td>
+                      <a class="email-button" href="{{ .RedirectTo }}/auth/confirm?token_hash={{ .TokenHash }}&amp;type=email&amp;next=/app&amp;email={{ .Email }}" style="display: inline-block; border-radius: 999px; background: #4f89c5; color: #ffffff; font-size: 16px; font-weight: 700; line-height: 1; padding: 17px 26px; text-decoration: none;">Confirmar mi acceso</a>
+                    </td>
+                  </tr>
+                </table>
+                <div style="border-top: 1px solid #e7dfd4; padding-top: 24px;">
+                  <p style="margin: 0; color: #77736d; font-size: 14px; line-height: 1.65;">Este enlace es personal y temporal. Si no has creado esta cuenta, puedes ignorar este correo.</p>
+                </div>
+              </td>
+            </tr>
+          </table>
+        </td>
+      </tr>
+    </table>
+  </body>
+</html>

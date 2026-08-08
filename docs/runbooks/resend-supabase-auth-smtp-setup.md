@@ -204,6 +204,15 @@ Punto clave:
 
 ## Copy recomendado para las plantillas de email
 
+La fuente canónica y versionada ya no es este runbook: vive en `supabase/templates/`.
+Los asuntos, remitentes por entorno, restricciones y pasos de aplicación están en
+`supabase/templates/README.md`. El dashboard de cada proyecto hosted sigue siendo
+el punto de despliegue; el repositorio conserva la fuente revisable y testeable.
+
+Las plantillas deliberadamente usan tablas, estilos inline y una sola CTA. No incluyen
+imágenes, fuentes remotas, firmas ni copy promocional. Mantener desactivado el tracking
+de enlaces en el proveedor para evitar que se reescriban las URLs de autenticación.
+
 ### Confirm signup
 
 Subject recomendado:
@@ -212,19 +221,7 @@ Subject recomendado:
 WellStudio: confirma tu acceso
 ```
 
-Body recomendado:
-
-```html
-<h2>Confirma tu acceso a WellStudio</h2>
-
-<p>Ya casi está. Confirma tu correo para activar tu cuenta y entrar en tu espacio privado.</p>
-<p>
-  <a href="{{ .RedirectTo }}/auth/confirm?token_hash={{ .TokenHash }}&type=email&next=/app&email={{ .Email }}">
-    Confirmar mi acceso
-  </a>
-</p>
-<p>Si no has creado esta cuenta, puedes ignorar este correo.</p>
-```
+Body: `supabase/templates/confirmation.html`.
 
 ### Reset password
 
@@ -234,19 +231,7 @@ Subject recomendado:
 WellStudio: restablece tu contraseña
 ```
 
-Body recomendado:
-
-```html
-<h2>Restablece tu contraseña</h2>
-
-<p>Hemos recibido una solicitud para cambiar tu contraseña de WellStudio.</p>
-<p>
-  <a href="{{ .ConfirmationURL }}">
-    Crear una nueva contraseña
-  </a>
-</p>
-<p>Si no has solicitado este cambio, puedes ignorar este correo.</p>
-```
+Body: `supabase/templates/recovery.html`.
 
 ## Rate limits recomendados
 

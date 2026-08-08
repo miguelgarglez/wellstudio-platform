@@ -48,6 +48,7 @@ El riesgo que queda es este:
 - la app ya soporta `/auth/confirm`
 - la app ya soporta `/auth/callback` para cerrar mejor la confirmación de registro en el navegador
 - la plantilla de `Confirm signup` ya apunta explícitamente a `/auth/confirm` con `token_hash`
+- las plantillas de signup y recovery tienen fuente versionada en `supabase/templates/`, con tests que protegen tokens, CTA y restricciones de deliverability
 - la allowlist de `Redirect URLs` en Supabase ya está alineada con las rutas reales de auth
 - la UI ya refleja correctamente el estado de confirmación pendiente
 - el gap está documentado

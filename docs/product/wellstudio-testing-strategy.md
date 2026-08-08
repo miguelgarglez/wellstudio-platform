@@ -300,6 +300,13 @@ Para la home publica, el gate dirigido debe cubrir:
 - `robots.txt` sin superficies privadas/auth y `sitemap.xml` con rutas publicas indexables
 - menu mobile operable y ausencia de overflow horizontal
 
+Para plantillas de auth, el gate dirigido debe cubrir:
+
+- contrato SSR de confirmación con `RedirectTo`, `TokenHash`, tipo, destino y email
+- `ConfirmationURL` intacta en recovery mientras sea el flujo validado
+- una sola CTA, sin recursos remotos ni contenido promocional
+- render responsive sin overflow y con jerarquía/acción visibles
+
 Para agenda admin, el gate dirigido debe cubrir:
 
 - permisos `ADMIN`/`STAFF` y rechazo de `MEMBER`
