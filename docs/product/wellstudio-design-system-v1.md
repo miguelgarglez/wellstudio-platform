@@ -178,6 +178,15 @@ El boton principal debe sentirse premium y estable, no hiper-redondeado tipo Saa
 - subrayado o estado activo discreto
 - logo muy presente, como en la web actual
 
+## Accesibilidad y SEO publico
+
+- `header`, `main` y `footer` globales son landmarks hermanos; no se anidan footers globales dentro de `main`
+- cada pagina publica debe tener un unico `h1` y secciones con headings o `aria-labelledby` coherentes
+- el enlace de salto debe ser el primer foco de teclado y trasladar el foco al contenido principal
+- los menus responsive exponen nombre, estado y navegacion semantica; no imitan roles de menu de aplicacion cuando contienen enlaces normales
+- las imagenes informativas usan `alt` descriptivo y las puramente decorativas usan `alt=""`
+- la home mantiene title, description, canonical, Open Graph, Twitter y datos estructurados; `robots.txt` excluye superficies privadas/auth y `sitemap.xml` enumera solo rutas publicas indexables
+
 ## Auth surfaces
 
 Login y registro no deben parecer una landing genérica.

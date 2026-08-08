@@ -145,9 +145,13 @@ export function PublicLeadForm({ leadAttribution }: PublicLeadFormProps) {
         <div className="space-y-2">
           <label className="flex cursor-pointer items-start gap-3 rounded-[1.15rem] border border-[color:color-mix(in_srgb,var(--border)_78%,white)] bg-[color:color-mix(in_srgb,var(--wellstudio-blue)_4%,white)] px-4 py-4 text-sm leading-6 transition-[border-color,background-color,transform] duration-150 active:scale-[0.99] motion-reduce:transition-none motion-reduce:active:scale-100">
             <Checkbox
+              id="public-lead-privacy"
               name="privacyAccepted"
               className="mt-1 size-5"
               aria-invalid={fieldErrors.privacyAccepted ? true : undefined}
+              aria-describedby={
+                fieldErrors.privacyAccepted ? 'public-lead-privacy-error' : undefined
+              }
             />
             <span className="text-[color:color-mix(in_srgb,var(--foreground)_76%,white)]">
               Acepto la{' '}
@@ -216,7 +220,8 @@ function PublicLeadStatusNotice({ state }: { state: NonNullable<PublicLeadAction
 
   return (
     <div
-      aria-live="polite"
+      role={success ? 'status' : 'alert'}
+      aria-live={success ? 'polite' : 'assertive'}
       className={cn(
         'rounded-[1.35rem] border px-4 py-4',
         success

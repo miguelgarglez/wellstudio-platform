@@ -39,7 +39,7 @@ export function LandingSectionMenu({
     <div className="flex justify-end lg:hidden">
       <Popover open={open} onOpenChange={setOpen}>
         <PopoverTrigger
-          aria-label="Abrir secciones de la landing"
+          aria-label={open ? 'Cerrar navegación por secciones' : 'Abrir navegación por secciones'}
           className="inline-flex items-center gap-4 rounded-full border border-white/10 bg-[color:color-mix(in_srgb,var(--wellstudio-ink)_78%,rgba(13,15,18,0.35))] px-4 py-2.5 text-white shadow-[0_12px_32px_rgba(8,10,12,0.16)] backdrop-blur-xl transition-[background-color,border-color,transform,opacity] duration-200 ease-[cubic-bezier(0.215,0.61,0.355,1)] hover:bg-[color:color-mix(in_srgb,var(--wellstudio-ink)_82%,rgba(13,15,18,0.42))] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white/45 [touch-action:manipulation]"
         >
           <span className="text-[0.72rem] uppercase tracking-[0.18em] text-white/78 sm:text-xs">Secciones</span>
@@ -72,8 +72,7 @@ export function LandingSectionMenu({
             'w-[min(18rem,calc(100vw-2rem))] rounded-[1.4rem] border-white/10 bg-[color:color-mix(in_srgb,var(--wellstudio-ink)_84%,rgba(13,15,18,0.5))] p-3 text-white shadow-[0_18px_40px_rgba(8,10,12,0.2)] ring-white/10',
           )}
         >
-          <div
-            role="menu"
+          <nav
             aria-label="Secciones de la landing"
             className="flex flex-col gap-2"
           >
@@ -81,14 +80,13 @@ export function LandingSectionMenu({
               <a
                 key={link.href}
                 href={link.href}
-                role="menuitem"
                 onClick={() => setOpen(false)}
                 className="rounded-[1rem] border border-white/8 bg-white/5 px-3 py-2.5 text-[0.72rem] uppercase tracking-[0.18em] text-white/78 transition-[background-color,color] duration-150 ease-[cubic-bezier(0.215,0.61,0.355,1)] hover:bg-white/10 hover:text-white focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white/45"
               >
                 {link.label}
               </a>
             ))}
-          </div>
+          </nav>
         </PopoverContent>
       </Popover>
     </div>

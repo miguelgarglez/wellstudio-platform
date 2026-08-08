@@ -290,6 +290,16 @@ Para leads admin, el gate dirigido debe cubrir:
 - conversión de solicitud interesada a un socio existente, con protección ante doble conversión/concurrencia y estado read-only tras recarga
 - deep-link de detalle y retorno a filtros en mobile
 
+Para la home publica, el gate dirigido debe cubrir:
+
+- title, description, canonical, Open Graph y Twitter específicos de marketing
+- un unico `main`, `h1` y landmark global de footer
+- navegacion publica y footer con nombres accesibles
+- enlace de salto funcional y FAQ operable por teclado
+- imagenes con alternativa explicita, incluida alternativa vacia cuando sean decorativas
+- `robots.txt` sin superficies privadas/auth y `sitemap.xml` con rutas publicas indexables
+- menu mobile operable y ausencia de overflow horizontal
+
 Para agenda admin, el gate dirigido debe cubrir:
 
 - permisos `ADMIN`/`STAFF` y rechazo de `MEMBER`

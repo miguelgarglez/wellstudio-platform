@@ -29,10 +29,7 @@ export function PublicLandingPage({ leadAttribution }: PublicLandingPageProps) {
   const { hero, intro, method, pillars, testimonials, faqSection, faq, contactSection, contact } = landingContent
 
   return (
-    <main
-      id="main-content"
-      className="wellstudio-landing-shell relative min-h-screen bg-[var(--background)] text-[var(--foreground)]"
-    >
+    <div className="wellstudio-landing-shell min-h-screen bg-[var(--background)] text-[var(--foreground)]">
       <LandingStructuredData
         heroDescription={hero.description}
         contact={contact}
@@ -47,34 +44,36 @@ export function PublicLandingPage({ leadAttribution }: PublicLandingPageProps) {
         )}
       />
 
-      <LandingHeroSection
-        hero={hero}
-        contact={contact}
-      />
-      <LandingIntroSection intro={intro} />
-      <LandingMethodSection
-        method={method}
-        pillars={pillars}
-      />
-      <LandingTestimonialsSection testimonials={testimonials} />
-      <LandingFaqSection
-        faqSection={faqSection}
-        faq={faq}
-      />
-      <LandingContactSection
-        contactSection={contactSection}
-        contact={contact}
-        leadAttribution={leadAttribution}
-      />
-      <LandingSummarySection />
+      <main id="main-content" tabIndex={-1} className="relative">
+        <LandingHeroSection
+          hero={hero}
+          contact={contact}
+        />
+        <LandingIntroSection intro={intro} />
+        <LandingMethodSection
+          method={method}
+          pillars={pillars}
+        />
+        <LandingTestimonialsSection testimonials={testimonials} />
+        <LandingFaqSection
+          faqSection={faqSection}
+          faq={faq}
+        />
+        <LandingContactSection
+          contactSection={contactSection}
+          contact={contact}
+          leadAttribution={leadAttribution}
+        />
+        <LandingSummarySection />
+      </main>
 
-      <footer className="bg-[var(--wellstudio-ink)] px-4 py-8 text-white sm:px-6 lg:px-8">
+      <div className="bg-[var(--wellstudio-ink)] px-4 py-8 text-white sm:px-6 lg:px-8">
         <div className="mx-auto max-w-7xl rounded-[1.75rem] border border-white/10 bg-white/4 px-5 py-5 backdrop-blur-xl sm:px-6">
           <PublicSiteFooter
             className="text-white/70 [&_a]:text-white/72 [&_a:hover]:text-white [&_p:first-child]:text-[var(--wellstudio-blue-soft)]"
           />
         </div>
-      </footer>
-    </main>
+      </div>
+    </div>
   )
 }

@@ -26,7 +26,10 @@ export function PublicSiteFooter({ className }: PublicSiteFooterProps) {
       <p className="text-xs uppercase tracking-[0.18em] text-[var(--wellstudio-blue-deep)]">
         WellStudio
       </p>
-      <div className="flex flex-wrap items-center gap-x-4 gap-y-2">
+      <nav
+        aria-label="Enlaces del pie de página"
+        className="flex flex-wrap items-center gap-x-4 gap-y-2"
+      >
         {links.map((link) => (
           <Link
             key={link.href}
@@ -42,7 +45,7 @@ export function PublicSiteFooter({ className }: PublicSiteFooterProps) {
         >
           Contacto
         </a>
-      </div>
+      </nav>
     </footer>
   );
 }
