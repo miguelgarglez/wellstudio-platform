@@ -187,6 +187,14 @@ El boton principal debe sentirse premium y estable, no hiper-redondeado tipo Saa
 - las imagenes informativas usan `alt` descriptivo y las puramente decorativas usan `alt=""`
 - la home mantiene title, description, canonical, Open Graph, Twitter y datos estructurados; `robots.txt` excluye superficies privadas/auth y `sitemap.xml` enumera solo rutas publicas indexables
 
+## Agenda publica
+
+- la agenda mantiene una jerarquia editorial; los filtros son una unica superficie operativa compacta, no una nube de chips
+- en ventanas de datos pequenas y ya acotadas, filtrar en cliente es preferible a disparar una navegacion App Router por seleccion
+- clase y coach usan identificadores estables en URL; cualquier valor obsoleto o manipulado se normaliza antes de ocultar contenido
+- los popovers se cierran al seleccionar, anuncian el recuento resultante y ofrecen una limpieza global cuando existe contexto activo
+- el estado sin coincidencias explica los filtros; no reutiliza el mensaje de una agenda realmente vacia
+
 ## Auth surfaces
 
 Login y registro no deben parecer una landing genérica.

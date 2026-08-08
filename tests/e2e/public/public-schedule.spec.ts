@@ -4,6 +4,9 @@ import {
   hasPublicScheduleDatabase,
   preparePublicScheduleFixture,
   PUBLIC_SCHEDULE_E2E_CLASS,
+  PUBLIC_SCHEDULE_E2E_COACH,
+  PUBLIC_SCHEDULE_E2E_SECOND_CLASS,
+  PUBLIC_SCHEDULE_E2E_SECOND_COACH,
 } from '../support/public-schedule'
 
 test.describe('Public schedule @public @sandbox', () => {
@@ -51,11 +54,56 @@ test.describe('Public schedule @public @sandbox', () => {
     await expect(page.locator('meta[name="robots"]').first()).toHaveAttribute('content', /noindex/)
   })
 
+  test('filters instantly by class and coach, persists the URL and clears the context', async ({ page }, testInfo) => {
+    await page.goto('/classes')
+
+    await page.getByRole('button', { name: 'Tipo de clase: Todas las clases' }).click()
+    await page.getByRole('option', { name: new RegExp(PUBLIC_SCHEDULE_E2E_SECOND_CLASS) }).click()
+    await expect(page).toHaveURL(new RegExp(`class=${encodeURIComponent('e2e-public-schedule-mobility')}`))
+    await expect(
+      page.getByRole('link', { name: new RegExp(PUBLIC_SCHEDULE_E2E_SECOND_CLASS) }),
+    ).toBeVisible()
+    await expect(
+      page.getByRole('link', { name: new RegExp(PUBLIC_SCHEDULE_E2E_CLASS) }),
+    ).toHaveCount(0)
+
+    await page.getByRole('button', { name: 'Coach: Todos los coaches' }).click()
+    await page.getByRole('option', { name: new RegExp(PUBLIC_SCHEDULE_E2E_SECOND_COACH) }).click()
+    await expect(page.getByText('1 sesión encontrada')).toBeVisible()
+    await testInfo.attach('public-schedule-filtered-desktop', {
+      body: await page.screenshot({ fullPage: true }),
+      contentType: 'image/png',
+    })
+
+    await page.reload()
+    await expect(page.getByRole('button', { name: `Tipo de clase: ${PUBLIC_SCHEDULE_E2E_SECOND_CLASS}` })).toBeVisible()
+    await expect(page.getByRole('button', { name: `Coach: ${PUBLIC_SCHEDULE_E2E_SECOND_COACH}` })).toBeVisible()
+
+    await page.getByRole('button', { name: 'Limpiar filtros' }).click()
+    await expect(page).toHaveURL('/classes')
+    await expect(page.getByRole('link', { name: new RegExp(PUBLIC_SCHEDULE_E2E_CLASS) })).toBeVisible()
+    await expect(
+      page.getByRole('link', { name: new RegExp(PUBLIC_SCHEDULE_E2E_SECOND_CLASS) }),
+    ).toBeVisible()
+  })
+
+  test('ignores manipulated filter values without hiding public sessions', async ({ page }) => {
+    await page.goto('/classes?class=private-value&coach=missing')
+
+    await expect(page.getByRole('button', { name: 'Tipo de clase: Todas las clases' })).toBeVisible()
+    await expect(page.getByRole('button', { name: 'Coach: Todos los coaches' })).toBeVisible()
+    await expect(page.getByRole('link', { name: new RegExp(PUBLIC_SCHEDULE_E2E_CLASS) })).toBeVisible()
+    await expect(page).toHaveURL('/classes')
+  })
+
   test('mobile agenda remains scannable without horizontal overflow', async ({ page }, testInfo) => {
     await page.setViewportSize({ width: 390, height: 844 })
     await page.goto('/classes')
 
     await expect(page.getByText(PUBLIC_SCHEDULE_E2E_CLASS)).toBeVisible()
+    await expect(page.getByText(PUBLIC_SCHEDULE_E2E_COACH)).toBeVisible()
+    await page.getByRole('button', { name: 'Tipo de clase: Todas las clases' }).click()
+    await page.getByRole('option', { name: new RegExp(PUBLIC_SCHEDULE_E2E_CLASS) }).click()
     const overflow = await page.evaluate(() => document.documentElement.scrollWidth - window.innerWidth)
     expect(overflow).toBeLessThanOrEqual(1)
     await testInfo.attach('public-schedule-mobile', {

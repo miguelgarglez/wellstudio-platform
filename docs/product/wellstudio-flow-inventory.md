@@ -180,6 +180,7 @@ Nivel de certeza:
 
 - implementado en `/classes` con sesiones futuras `PUBLISHED` cuyo tipo esta `ACTIVE` y marcado como publico
 - la primera slice agrupa una ventana acotada de 30 dias por fecha de Madrid y muestra disponibilidad derivada del aforo real
+- la agenda permite combinar filtros instantaneos por tipo de clase y coach; al ser una ventana acotada, filtra el read model ya cargado y conserva el contexto valido en la URL sin una nueva navegacion App Router
 - la agenda publica es de lectura: reservar o entrar en waitlist exige acceder al portal de socios
 
 ## 5. Ver detalle de clase

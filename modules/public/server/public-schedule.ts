@@ -13,6 +13,7 @@ export type PublicScheduleSession = {
   description: string | null
   category: string | null
   durationMinutes: number
+  coachId: string
   coachName: string
   locationLabel: string
   startsAtIso: string
@@ -39,7 +40,7 @@ type PublicSessionRecord = {
     category: string | null
     durationMinutes: number
   }
-  coach: { displayName: string } | null
+  coach: { id: string; displayName: string } | null
 }
 
 export const getPublicSchedule = cache(async (now = new Date()) => {
@@ -90,7 +91,7 @@ const publicSessionSelect = {
       durationMinutes: true,
     },
   },
-  coach: { select: { displayName: true } },
+  coach: { select: { id: true, displayName: true } },
 } as const
 
 export function buildPublicSchedule(
@@ -144,6 +145,7 @@ export function mapPublicSession(session: PublicSessionRecord): PublicScheduleSe
     description: session.classType.description,
     category: session.classType.category,
     durationMinutes: session.classType.durationMinutes,
+    coachId: session.coach?.id ?? 'wellstudio-team',
     coachName: session.coach?.displayName ?? 'Equipo WellStudio',
     locationLabel: session.locationLabel ?? 'WellStudio Madrid',
     startsAtIso: session.startsAt.toISOString(),

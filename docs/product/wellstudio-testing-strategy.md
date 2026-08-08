@@ -93,6 +93,8 @@ Gate dirigido de agenda publica:
 
 - una sesion futura publicada y publica aparece en `/classes` y abre su detalle
 - borradores, sesiones pasadas y tipos privados no aparecen ni son accesibles por URL directa
+- clase y coach pueden filtrarse de forma combinada sin navegacion de servidor; el deep link restaura opciones validas y descarta valores manipulados
+- limpiar filtros restaura todos los grupos y elimina su estado de la URL
 - el CTA de reserva deriva al login del portal sin crear reservas anonimas
 - la vista mobile no introduce overflow horizontal y conserva fecha, hora y disponibilidad escaneables
 

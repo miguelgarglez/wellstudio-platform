@@ -2,7 +2,7 @@ import Link from 'next/link'
 import { ArrowLeft, ArrowRight, CalendarDays, Clock3, MapPin, ShieldCheck, UserRound, UsersRound } from 'lucide-react'
 
 import type { PublicScheduleSession } from '@/modules/public/server/public-schedule'
-import { AvailabilityBadge } from '@/modules/public/ui/schedule/public-schedule-page'
+import { AvailabilityBadge } from '@/modules/public/ui/schedule/public-schedule-elements'
 import { PublicContentShell } from '@/modules/public/ui/public-content-shell'
 
 export function PublicSessionDetailPage({ session }: { session: PublicScheduleSession }) {

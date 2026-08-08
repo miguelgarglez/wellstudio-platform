@@ -26,16 +26,39 @@ export const metadata: Metadata = {
   },
 }
 
-export default function ClassesPage() {
+type ClassesPageProps = {
+  searchParams?: Promise<{
+    class?: string | string[]
+    coach?: string | string[]
+  }>
+}
+
+export default function ClassesPage({ searchParams }: ClassesPageProps) {
   return (
     <Suspense fallback={<PublicScheduleSkeleton />}>
-      <ClassesContent />
+      <ClassesContent searchParams={searchParams} />
     </Suspense>
   )
 }
 
-async function ClassesContent() {
-  const schedule = await getPublicSchedule()
+async function ClassesContent({ searchParams }: ClassesPageProps) {
+  const emptyFilters: { class?: string | string[]; coach?: string | string[] } = {}
+  const [schedule, filters] = await Promise.all([
+    getPublicSchedule(),
+    searchParams ?? Promise.resolve(emptyFilters),
+  ])
 
-  return <PublicSchedulePage schedule={schedule} />
+  return (
+    <PublicSchedulePage
+      schedule={schedule}
+      initialFilters={{
+        classType: readSingleSearchParam(filters.class),
+        coach: readSingleSearchParam(filters.coach),
+      }}
+    />
+  )
+}
+
+function readSingleSearchParam(value: string | string[] | undefined) {
+  return typeof value === 'string' ? value : null
 }
