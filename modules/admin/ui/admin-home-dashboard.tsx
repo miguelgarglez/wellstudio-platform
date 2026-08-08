@@ -5,6 +5,7 @@ import {
   CircleAlert,
   ClipboardList,
   Inbox,
+  MailWarning,
   ShieldPlus,
   UserRoundCheck,
   UsersRound,
@@ -46,6 +47,14 @@ export function AdminHomeDashboard({ overview }: { overview: AdminHomeOverview }
       href: '/admin/overrides',
       icon: ShieldPlus,
       tone: 'neutral',
+    },
+    {
+      label: 'Entregas fallidas',
+      value: overview.signals.failedNotificationCount,
+      detail: 'Emails que requieren revisión',
+      href: '/admin/notifications?status=failed',
+      icon: MailWarning,
+      tone: overview.signals.failedNotificationCount > 0 ? 'warm' : 'neutral',
     },
   ] as const
 

@@ -645,6 +645,7 @@ APIs clave:
 - enqueue interno dentro de la transaccion de dominio
 - dispatcher server-side despues del commit
 - `GET /api/internal/notifications/dispatch`, protegido por `CRON_SECRET`, para recuperacion programada
+- `/admin/notifications`, protegido por rol, para lectura operativa y reintento manual de fallos
 
 Reglas operativas:
 
@@ -655,6 +656,8 @@ Reglas operativas:
 - el transporte vive fuera de la transaccion de reserva
 - la clave estable por evento y reserva se propaga a Resend para evitar duplicados
 - los intentos fallidos usan backoff y los locks abandonados se pueden reclamar
+- el reintento admin usa estado y version esperados, conserva la numeracion de intentos y crea `AuditLog`
+- el read model admin transforma el payload a contexto seguro; no entrega JSON arbitrario a React
 
 ## Admin
 

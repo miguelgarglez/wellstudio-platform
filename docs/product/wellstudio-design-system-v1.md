@@ -90,6 +90,8 @@ La web actual transmite varias pistas utiles:
 - admin:
   - misma familia visual, pero con menos dramatismo y mas sobriedad funcional
 
+Las superficies de observabilidad admin traducen estados tecnicos a decisiones operativas. Deben priorizar incidencias, contexto seguro y una unica accion recuperable; no muestran JSON, tablas densas sin jerarquia ni controles destructivos por defecto.
+
 ## Tipografia
 
 ## Direccion

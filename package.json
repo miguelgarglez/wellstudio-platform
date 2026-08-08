@@ -30,6 +30,7 @@
     "test:e2e:auth:sandbox": "playwright test tests/e2e/auth/auth-sandbox.spec.ts",
     "test:e2e:reservations:sandbox": "playwright test tests/e2e/reservations/reservations-sandbox.spec.ts",
     "test:e2e:admin:leads": "playwright test tests/e2e/admin/admin-leads.spec.ts",
+    "test:e2e:admin:notifications": "playwright test tests/e2e/admin/admin-notifications.spec.ts",
     "test:e2e:admin:sessions": "playwright test tests/e2e/admin/admin-sessions.spec.ts",
     "test:e2e:smoke": "playwright test --grep @smoke",
     "test:e2e:ui": "playwright test --ui",

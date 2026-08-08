@@ -60,6 +60,19 @@ curl --fail \
 
 La respuesta solo contiene contadores `examined`, `sent`, `failed` y `skipped`; no expone destinatarios ni payloads.
 
+### Recuperacion desde admin
+
+`/admin/notifications` ofrece a `ADMIN` y `STAFF` una bandeja denominada **Entregas**. La vista muestra salud operativa, destinatario, contexto de reserva, ultimo error e historial de intentos, pero nunca expone el JSON del payload ni secretos del proveedor.
+
+La accion **Reintentar ahora** solo aparece para jobs `FAILED`:
+
+1. cambia el job a `PENDING` mediante estado y version esperados
+2. crea `AuditLog` con actor, evento, referencia y contador previo
+3. responde al operador y ejecuta el envio con `after()`
+4. incrementa el numero de intento sin borrar ni renumerar los anteriores
+
+Un reintento manual puede superar los cinco intentos automaticos. Es una excepcion deliberada: la decision humana queda auditada y `NotificationDeliveryAttempt` conserva la secuencia monotona completa. No se debe usar la UI para jobs `SENT`, `PENDING` o `PROCESSING`.
+
 ## Consultas operativas
 
 ```sql
@@ -73,7 +86,7 @@ WHERE "status" = 'FAILED'
 ORDER BY "updatedAt" DESC;
 ```
 
-No se debe cambiar un job a `SENT` manualmente. Para reintentar un fallo agotado, revisar primero la causa y actualizarlo a `FAILED`, `attemptCount = 0` y `availableAt = now()` mediante una operacion break-glass documentada.
+No se debe cambiar un job a `SENT` manualmente ni reiniciar `attemptCount`. Para un fallo ordinario o agotado, usar primero **Entregas**. SQL queda reservado a una operacion break-glass documentada cuando la superficie admin no pueda recuperar el job.
 
 ## Alcance actual
 
@@ -84,6 +97,7 @@ Incluido:
 - confirmacion de plaza obtenida por promocion automatica desde waitlist
 - HTML responsive y fallback de texto
 - idempotencia, auditoria y recuperacion
+- monitor admin con filtros, detalle seguro y reintento manual auditable
 
 Pendiente de decision de producto:
 

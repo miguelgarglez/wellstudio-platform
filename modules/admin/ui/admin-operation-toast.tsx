@@ -41,6 +41,7 @@ type AdminOperationToastState =
   | 'credits-adjusted'
   | 'credit-account-opened'
   | 'member-note-added'
+  | 'notification-retry'
   | null
 
 type AdminOperationToastProps = {
@@ -226,6 +227,11 @@ const TOAST_COPY: Record<
     tone: 'success',
     title: 'Nota interna añadida',
     description: 'El contexto ya aparece en el dossier y queda asociado al operador.',
+  },
+  'notification-retry': {
+    tone: 'success',
+    title: 'Reintento programado',
+    description: 'La entrega se está procesando de nuevo sin perder el historial anterior.',
   },
 }
 

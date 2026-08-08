@@ -326,6 +326,14 @@ Para agenda admin, el gate dirigido debe cubrir:
 - check-in cerrado hasta dos horas antes del inicio
 - consistencia entre `Reservation.status` y `attendanceStatus`
 - rechazo de escrituras obsoletas mediante estado esperado
+
+Para entregas transaccionales admin, el gate dirigido debe cubrir:
+
+- rechazo de `MEMBER` y acceso de `ADMIN`/`STAFF`
+- filtros por estado y evento sin exponer payload JSON
+- detalle responsive con historial inmutable
+- reintento concurrente seguro de un job `FAILED`
+- sexto intento manual monotono, `AuditLog` y feedback post-respuesta
 - correcciones auditables y prohibicion de reintroducir pendientes tras completar
 - finalizacion bloqueada hasta resolver todo el roster y persistencia tras recarga
 - catalogo protegido frente a `MEMBER`, con altas y ediciones validadas server-side

@@ -165,6 +165,48 @@ describe('notification outbox', () => {
     })
   })
 
+  it('allows an explicit manual attempt after the automatic limit', async () => {
+    prismaMock.notificationJob.updateMany.mockResolvedValue({ count: 1 })
+    prismaMock.notificationJob.findUniqueOrThrow.mockResolvedValue({
+      id: 'job-1',
+      eventType: 'RESERVATION_BOOKED',
+      recipient: 'ana@example.com',
+      payload,
+      idempotencyKey: 'reservation_booked/reservation-1',
+      attemptCount: 6,
+    })
+    const sender = {
+      send: vi.fn().mockResolvedValue({ providerMessageId: 'resend-manual-1' }),
+    }
+
+    await dispatchNotificationJob('job-1', {
+      sender,
+      now,
+      allowExhaustedAttempts: true,
+    })
+
+    expect(prismaMock.notificationJob.updateMany).toHaveBeenCalledWith({
+      where: {
+        id: 'job-1',
+        OR: [
+          { status: { in: ['PENDING', 'FAILED'] }, availableAt: { lte: now } },
+          {
+            status: 'PROCESSING',
+            lockedAt: { lte: new Date('2026-08-08T09:50:00.000Z') },
+          },
+        ],
+      },
+      data: {
+        status: 'PROCESSING',
+        lockedAt: now,
+        attemptCount: { increment: 1 },
+      },
+    })
+    expect(prismaMock.notificationDeliveryAttempt.create).toHaveBeenCalledWith({
+      data: expect.objectContaining({ attemptNumber: 6, status: 'SENT' }),
+    })
+  })
+
   it('drains only the bounded due-job selection', async () => {
     prismaMock.notificationJob.findMany.mockResolvedValue([])
 

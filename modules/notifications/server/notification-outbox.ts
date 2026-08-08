@@ -96,10 +96,15 @@ export async function dispatchNotificationJob(
     sender?: TransactionalEmailSender
     now?: Date
     portalUrl?: string
+    allowExhaustedAttempts?: boolean
   } = {},
 ) {
   const now = dependencies.now ?? new Date()
-  const job = await claimNotificationJob(jobId, now)
+  const job = await claimNotificationJob(
+    jobId,
+    now,
+    dependencies.allowExhaustedAttempts ?? false,
+  )
 
   if (!job) return { status: 'skipped' as const, jobId }
 
@@ -164,11 +169,14 @@ export async function dispatchDueNotificationJobs(
 async function claimNotificationJob(
   jobId: string,
   now: Date,
+  allowExhaustedAttempts: boolean,
 ): Promise<ClaimedNotificationJob | null> {
   const claim = await prisma.notificationJob.updateMany({
     where: {
       id: jobId,
-      attemptCount: { lt: MAX_DELIVERY_ATTEMPTS },
+      ...(allowExhaustedAttempts
+        ? {}
+        : { attemptCount: { lt: MAX_DELIVERY_ATTEMPTS } }),
       ...buildClaimableWhere(now),
     },
     data: {

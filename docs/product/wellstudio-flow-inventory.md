@@ -652,6 +652,7 @@ Nivel de certeza:
 Estado V1 implementado:
 
 - `/admin/members` ofrece un directorio acotado con búsqueda por nombre, email o teléfono y filtros de estado
+- `/admin/notifications` muestra la salud de emails transaccionales, detalle seguro e intentos; solo los fallos pueden reintentarse y cada operacion queda auditada
 - la ficha de socio agrega identidad, cuenta, memberships, créditos, reservas, waitlist, pagos y notas sin habilitar mutaciones comerciales ambiguas
 - el admin puede añadir notas internas append-only al dossier; la UI recuerda que no deben almacenarse datos médicos o sensibles y cada alta conserva autor, fecha y auditoría
 - una solicitud interesada puede vincularse a un socio existente; el flujo muestra coincidencias de identidad, exige confirmación y conserva el historial comercial sin crear usuarios fuera del boundary de Auth

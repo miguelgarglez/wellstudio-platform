@@ -45,6 +45,7 @@ describe('buildAdminHomeOverview', () => {
       blockedMemberCount: 1,
       legacyRuleCount: 4,
       activeExceptionCount: 5,
+      failedNotificationCount: 2,
     })
 
     expect(overview.sessionSummary).toEqual({
@@ -69,6 +70,7 @@ describe('buildAdminHomeOverview', () => {
       blockedMemberCount: 1,
       legacyRuleCount: 4,
       activeExceptionCount: 5,
+      failedNotificationCount: 2,
     })
     expect(overview.pendingLeads[0]).toEqual({
       id: 'lead-1',
@@ -89,6 +91,7 @@ describe('buildAdminHomeOverview', () => {
       blockedMemberCount: 0,
       legacyRuleCount: 0,
       activeExceptionCount: 0,
+      failedNotificationCount: 0,
     })
 
     expect(overview.sessionSummary.occupancyPercent).toBe(0)

@@ -36,6 +36,7 @@ export async function getAdminHomeOverview(input: { now?: Date } = {}) {
     blockedMemberCount,
     legacyRuleCount,
     activeExceptionCount,
+    failedNotificationCount,
   ] = await Promise.all([
     prisma.classSession.findMany({
       where: {
@@ -113,6 +114,7 @@ export async function getAdminHomeOverview(input: { now?: Date } = {}) {
         },
       },
     }),
+    prisma.notificationJob.count({ where: { status: 'FAILED' } }),
   ])
 
   return buildAdminHomeOverview({
@@ -124,6 +126,7 @@ export async function getAdminHomeOverview(input: { now?: Date } = {}) {
     blockedMemberCount,
     legacyRuleCount,
     activeExceptionCount,
+    failedNotificationCount,
   })
 }
 
@@ -136,6 +139,7 @@ export function buildAdminHomeOverview(input: {
   blockedMemberCount: number
   legacyRuleCount: number
   activeExceptionCount: number
+  failedNotificationCount: number
 }) {
   const reservedCount = input.sessions.reduce((total, session) => total + session.reservedCount, 0)
   const capacity = input.sessions.reduce((total, session) => total + session.capacity, 0)
@@ -178,6 +182,7 @@ export function buildAdminHomeOverview(input: {
       blockedMemberCount: input.blockedMemberCount,
       legacyRuleCount: input.legacyRuleCount,
       activeExceptionCount: input.activeExceptionCount,
+      failedNotificationCount: input.failedNotificationCount,
     },
     pendingLeads: input.pendingLeads.map((lead) => ({
       id: lead.id,
