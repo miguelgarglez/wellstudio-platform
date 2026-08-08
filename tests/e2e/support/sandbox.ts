@@ -1,4 +1,6 @@
 import { execFileSync } from 'node:child_process'
+import { PrismaPg } from '@prisma/adapter-pg'
+import { PrismaClient } from '@prisma/client'
 
 import { getMissingSandboxAuthEnv, loadE2EEnvFiles } from './env'
 
@@ -89,6 +91,62 @@ export async function resetSandboxCancelableReservationState() {
   await runSandboxReservationScenario(
     MEMBER_RESERVATIONS_FLOW_OPERATIONS.cancelableReservationState,
   )
+}
+
+export async function readSandboxWaitlistPromotionState() {
+  const connectionString = process.env.DATABASE_URL
+
+  if (!connectionString) {
+    throw new Error('DATABASE_URL is required to inspect sandbox promotion state.')
+  }
+
+  const prisma = new PrismaClient({
+    adapter: new PrismaPg({ connectionString }),
+  })
+
+  try {
+    const reservation = await prisma.reservation.findFirst({
+      where: {
+        status: 'BOOKED',
+        source: 'SYSTEM',
+        member: {
+          user: {
+            normalizedEmail: 'e2e.filler.sandbox@wellstudio.test',
+          },
+        },
+        classSession: {
+          locationLabel: 'E2E Sandbox Flow · Cancelable reservation',
+        },
+      },
+      select: {
+        id: true,
+        member: { select: { user: { select: { email: true } } } },
+      },
+      orderBy: { createdAt: 'desc' },
+    })
+
+    if (!reservation) return null
+
+    const job = await prisma.notificationJob.findUnique({
+      where: {
+        idempotencyKey: `waitlist_promoted/${reservation.id}`,
+      },
+      select: {
+        eventType: true,
+        recipient: true,
+        status: true,
+        attemptCount: true,
+      },
+    })
+
+    return {
+      reservationId: reservation.id,
+      reservationRecipient: reservation.member.user.email,
+      job,
+    }
+  } finally {
+    await prisma.$disconnect()
+  }
 }
 
 function runSandboxReservationScenario(operation: string) {

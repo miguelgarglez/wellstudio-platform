@@ -267,7 +267,9 @@ Nivel de certeza:
 
 Cuando el socio cancela dentro de la ventana permitida, la misma transaccion que libera la plaza y devuelve el entitlement crea un job `RESERVATION_CANCELED`. El email se entrega despues del commit y conserva clase, fecha, horario, coach, espacio y referencia de reserva como snapshot auditable.
 
-Los recordatorios y las comunicaciones de waitlist siguen fuera de esta slice: requieren reglas de producto propias y no deben inferirse del outbox base.
+Si la cancelacion libera una plaza con waitlist activa, la misma transaccion promociona por orden a la primera entrada elegible, crea su reserva `SYSTEM`, marca la entrada como `PROMOTED` y persiste un job `WAITLIST_PROMOTED`. El email confirma una plaza efectiva, no una oferta pendiente de aceptar. Entrar o salir de waitlist no genera email en esta slice.
+
+Los recordatorios previos siguen fuera de esta slice: requieren reglas de producto propias y no deben inferirse del outbox base.
 
 ## 7. Bloqueo por elegibilidad
 
@@ -326,7 +328,9 @@ Happy path:
 2. el sistema ofrece entrar en waitlist
 3. el usuario confirma
 4. el sistema crea `waitlist_entry`
-5. si se libera plaza, se notifica o promueve segun politica
+5. si se libera plaza, el sistema promociona automaticamente por orden a la primera entrada elegible
+6. la promocion crea una reserva efectiva y un job `WAITLIST_PROMOTED` en la misma transaccion
+7. el email se intenta despues del commit sin bloquear ni revertir la promocion
 
 Errores y bloqueos:
 
@@ -340,7 +344,7 @@ Postcondiciones:
 
 Nivel de certeza:
 
-- inferido con alta confianza
+- implementado y cubierto end-to-end para entrada, salida y promocion por cancelacion
 
 ## 9. Cancelacion de reserva
 

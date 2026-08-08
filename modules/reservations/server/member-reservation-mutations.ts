@@ -41,7 +41,7 @@ export type ReservationMutationResult = {
 }
 
 export type ReservationMutationExecutionResult = ReservationMutationResult & {
-  notificationJobId?: string
+  notificationJobIds?: string[]
 }
 
 type MutationSessionSnapshot = {
@@ -192,7 +192,7 @@ export async function reservePublishedSession(
         reservation.id,
         true,
       ),
-      notification.id,
+      [notification.id],
     )
   })
 
@@ -321,7 +321,7 @@ export async function cancelMemberReservation(
       })
     }
 
-    await promoteWaitlistIfPossibleInTransaction(tx, {
+    const promotions = await promoteWaitlistIfPossibleInTransaction(tx, {
       classSessionId: reservation.classSession.id,
       now,
     })
@@ -341,7 +341,7 @@ export async function cancelMemberReservation(
         reservation.id,
         true,
       ),
-      notification.id,
+      [notification.id, ...promotions.map((promotion) => promotion.notificationJobId)],
     )
   })
 
@@ -677,7 +677,10 @@ export async function promoteWaitlistIfPossibleInTransaction(
     now: Date
   },
 ) {
-  const promotions: string[] = []
+  const promotions: Array<{
+    reservationId: string
+    notificationJobId: string
+  }> = []
 
   while (true) {
     const session = await getMutationSession(tx, input.classSessionId)
@@ -772,7 +775,18 @@ export async function promoteWaitlistIfPossibleInTransaction(
       },
     })
 
-    promotions.push(reservation.id)
+    const notification = await enqueueReservationNotification(tx, {
+      eventType: 'WAITLIST_PROMOTED',
+      reservationId: reservation.id,
+      memberId: nextWaitlistEntry.memberId,
+      classSessionId: input.classSessionId,
+      occurredAt: input.now,
+    })
+
+    promotions.push({
+      reservationId: reservation.id,
+      notificationJobId: notification.id,
+    })
     await resequenceWaitlistPositions(tx, input.classSessionId)
   }
 
@@ -1148,14 +1162,14 @@ function buildMutationResult(
 
 type ReservationMutationOutcome = {
   result: ReservationMutationResult
-  notificationJobId?: string
+  notificationJobIds?: string[]
 }
 
 function buildMutationOutcome(
   result: ReservationMutationResult,
-  notificationJobId?: string,
+  notificationJobIds?: string[],
 ): ReservationMutationOutcome {
-  return { result, notificationJobId }
+  return { result, notificationJobIds }
 }
 
 function flattenReservationMutationOutcome(
@@ -1163,7 +1177,7 @@ function flattenReservationMutationOutcome(
 ): ReservationMutationExecutionResult {
   return {
     ...outcome.result,
-    notificationJobId: outcome.notificationJobId,
+    notificationJobIds: outcome.notificationJobIds,
   }
 }
 

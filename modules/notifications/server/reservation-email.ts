@@ -8,7 +8,10 @@ export type ReservationNotificationPayload = {
   endsAt: string
 }
 
-export type ReservationEmailEvent = 'RESERVATION_BOOKED' | 'RESERVATION_CANCELED'
+export type ReservationEmailEvent =
+  | 'RESERVATION_BOOKED'
+  | 'RESERVATION_CANCELED'
+  | 'WAITLIST_PROMOTED'
 
 const TIME_ZONE = 'Europe/Madrid'
 
@@ -17,24 +20,16 @@ export function buildReservationEmail(input: {
   payload: ReservationNotificationPayload
   portalUrl: string
 }) {
-  const isBooking = input.eventType === 'RESERVATION_BOOKED'
-  const heading = isBooking ? 'Tu reserva está confirmada' : 'Tu reserva se ha cancelado'
-  const eyebrow = isBooking ? 'Reserva confirmada' : 'Cancelación confirmada'
-  const subject = isBooking
-    ? `Reserva confirmada · ${input.payload.className}`
-    : `Reserva cancelada · ${input.payload.className}`
-  const summary = isBooking
-    ? 'Ya tienes tu plaza. Guarda este email como referencia.'
-    : 'La plaza se ha liberado y tu portal ya refleja el cambio.'
+  const copy = buildEventCopy(input.eventType, input.payload.className)
   const rows = buildDetailRows(input.payload)
 
   return {
-    subject,
+    subject: copy.subject,
     text: [
-      heading,
+      copy.heading,
       '',
       `Hola ${input.payload.memberName},`,
-      summary,
+      copy.summary,
       '',
       ...rows.map(([label, value]) => `${label}: ${value}`),
       '',
@@ -46,19 +41,19 @@ export function buildReservationEmail(input: {
 <html lang="es">
   <head>
     <meta name="viewport" content="width=device-width, initial-scale=1">
-    <title>${escapeHtml(subject)}</title>
+    <title>${escapeHtml(copy.subject)}</title>
   </head>
   <body style="margin:0;background:#f3f0e8;color:#101820;font-family:Arial,sans-serif;">
     <main style="max-width:640px;margin:0 auto;padding:32px 16px;">
       <section style="overflow:hidden;border:1px solid #ddd4c5;border-radius:24px;background:#fffaf3;">
         <div style="padding:28px 28px 24px;background:#294b68;color:#ffffff;">
           <p style="margin:0 0 20px;font-size:12px;font-weight:700;letter-spacing:.2em;text-transform:uppercase;">WellStudio</p>
-          <p style="margin:0 0 10px;color:#c9dceb;font-size:12px;font-weight:700;letter-spacing:.16em;text-transform:uppercase;">${escapeHtml(eyebrow)}</p>
-          <h1 style="margin:0;font-size:30px;line-height:1.15;">${escapeHtml(heading)}</h1>
+          <p style="margin:0 0 10px;color:#c9dceb;font-size:12px;font-weight:700;letter-spacing:.16em;text-transform:uppercase;">${escapeHtml(copy.eyebrow)}</p>
+          <h1 style="margin:0;font-size:30px;line-height:1.15;">${escapeHtml(copy.heading)}</h1>
         </div>
         <div style="padding:28px;">
           <p style="margin:0 0 8px;font-size:18px;font-weight:700;">Hola ${escapeHtml(input.payload.memberName)},</p>
-          <p style="margin:0 0 24px;color:#5e5a54;font-size:16px;line-height:1.6;">${escapeHtml(summary)}</p>
+          <p style="margin:0 0 24px;color:#5e5a54;font-size:16px;line-height:1.6;">${escapeHtml(copy.summary)}</p>
           <table role="presentation" style="width:100%;border-collapse:collapse;">
             <tbody>
               ${rows.map(([label, value]) => `<tr>
@@ -74,6 +69,33 @@ export function buildReservationEmail(input: {
     </main>
   </body>
 </html>`,
+  }
+}
+
+function buildEventCopy(eventType: ReservationEmailEvent, className: string) {
+  switch (eventType) {
+    case 'RESERVATION_BOOKED':
+      return {
+        eyebrow: 'Reserva confirmada',
+        heading: 'Tu reserva está confirmada',
+        subject: `Reserva confirmada · ${className}`,
+        summary: 'Ya tienes tu plaza. Guarda este email como referencia.',
+      }
+    case 'RESERVATION_CANCELED':
+      return {
+        eyebrow: 'Cancelación confirmada',
+        heading: 'Tu reserva se ha cancelado',
+        subject: `Reserva cancelada · ${className}`,
+        summary: 'La plaza se ha liberado y tu portal ya refleja el cambio.',
+      }
+    case 'WAITLIST_PROMOTED':
+      return {
+        eyebrow: 'Promoción desde waitlist',
+        heading: 'Has conseguido plaza',
+        subject: `Ya tienes plaza · ${className}`,
+        summary:
+          'Se ha liberado una plaza y tu waitlist se ha convertido automáticamente en reserva.',
+      }
   }
 }
 

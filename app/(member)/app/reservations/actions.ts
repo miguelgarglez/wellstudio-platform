@@ -172,10 +172,9 @@ function revalidateReservations() {
 }
 
 function finalizeActionResult(
-  execution: ReservationMutationResult & { notificationJobId?: string },
+  execution: ReservationMutationResult & { notificationJobIds?: string[] },
 ): ReservationMutationResult {
-  if (execution.notificationJobId) {
-    const notificationJobId = execution.notificationJobId
+  for (const notificationJobId of execution.notificationJobIds ?? []) {
     after(() => dispatchNotificationJobSafely(notificationJobId))
   }
 

@@ -145,6 +145,7 @@ Gate dirigido de catalogo publico:
 - alta en lista de espera
 - orden de promocion
 - promocion al liberarse plaza
+- promocion, reserva `SYSTEM` y job `WAITLIST_PROMOTED` tras una cancelacion real
 
 ## Memberships y credits
 

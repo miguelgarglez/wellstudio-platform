@@ -154,7 +154,7 @@ describe('member reservation mutations', () => {
         }),
       }),
     )
-    expect(result.notificationJobId).toBe('notification-job-1')
+    expect(result.notificationJobIds).toEqual(['notification-job-1'])
   })
 
   it('blocks new reservations when the member is not active', async () => {
@@ -623,7 +623,7 @@ describe('member reservation mutations', () => {
           ],
         },
       })
-      .mockResolvedValueOnce({
+      .mockResolvedValue({
         id: 'session-1',
         startsAt: new Date('2026-04-05T18:00:00.000Z'),
         endsAt: new Date('2026-04-05T18:45:00.000Z'),
@@ -687,7 +687,21 @@ describe('member reservation mutations', () => {
       now: new Date('2026-04-03T10:00:00.000Z'),
     })
 
-    expect(promotions).toEqual(['reservation-promoted'])
+    expect(promotions).toEqual([
+      {
+        reservationId: 'reservation-promoted',
+        notificationJobId: 'notification-job-1',
+      },
+    ])
+    expect(tx.notificationJob.upsert).toHaveBeenCalledWith(
+      expect.objectContaining({
+        create: expect.objectContaining({
+          eventType: 'WAITLIST_PROMOTED',
+          recipient: 'ana@example.com',
+          referenceId: 'reservation-promoted',
+        }),
+      }),
+    )
     expect(tx.waitlistEntry.update).toHaveBeenNthCalledWith(1, {
       where: {
         id: 'waitlist-ineligible',

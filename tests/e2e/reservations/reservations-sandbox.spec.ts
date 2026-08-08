@@ -1,4 +1,4 @@
-import { test } from '@playwright/test'
+import { expect, test } from '@playwright/test'
 
 import { MemberPortalPage } from '../page-objects/member-portal-page'
 import { ReservationsPage } from '../page-objects/reservations-page'
@@ -6,6 +6,7 @@ import { loginAsSandboxMember } from '../support/auth'
 import {
   ensureSandboxReservationScenarioReady,
   getSandboxReservationsSetupIssue,
+  readSandboxWaitlistPromotionState,
   resetSandboxCancelableReservationState,
   resetSandboxReservableSessionState,
   resetSandboxWaitlistState,
@@ -81,6 +82,17 @@ test.describe('Member reservations sandbox @sandbox @critical @reservations', ()
     await reservationsPage.goto()
     await reservationsPage.cancelCancelableReservation()
     await reservationsPage.expectCancelableReservationCanceled()
+    await expect
+      .poll(() => readSandboxWaitlistPromotionState(), { timeout: 15_000 })
+      .toMatchObject({
+        reservationRecipient: 'e2e.filler.sandbox@wellstudio.test',
+        job: {
+          eventType: 'WAITLIST_PROMOTED',
+          recipient: 'e2e.filler.sandbox@wellstudio.test',
+          status: 'SENT',
+          attemptCount: 1,
+        },
+      })
     await page.screenshot({
       path: testInfo.outputPath('reservation-canceled.png'),
       fullPage: true,

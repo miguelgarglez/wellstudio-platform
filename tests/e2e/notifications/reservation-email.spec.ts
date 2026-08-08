@@ -46,3 +46,20 @@ test('cancellation confirmation email preserves the session reference', async ({
   await expect(page.getByText('Fuerza funcional')).toBeVisible()
   await page.screenshot({ path: testInfo.outputPath('reservation-canceled-desktop.png'), fullPage: true })
 })
+
+test('waitlist promotion email makes the automatic booking explicit', async ({ page }, testInfo) => {
+  const email = buildReservationEmail({
+    eventType: 'WAITLIST_PROMOTED',
+    payload,
+    portalUrl: 'https://wellstudio.miguelgarglez.com/app/reservations',
+  })
+
+  await page.setViewportSize({ width: 390, height: 844 })
+  await page.setContent(email.html)
+
+  await expect(page.getByRole('heading', { name: 'Has conseguido plaza' })).toBeVisible()
+  await expect(page.getByText('se ha convertido automáticamente en reserva')).toBeVisible()
+  await expect(page.getByRole('link', { name: 'Ver mis reservas' })).toBeVisible()
+  expect(await page.evaluate(() => document.documentElement.scrollWidth - window.innerWidth)).toBeLessThanOrEqual(1)
+  await page.screenshot({ path: testInfo.outputPath('waitlist-promoted-mobile.png'), fullPage: true })
+})

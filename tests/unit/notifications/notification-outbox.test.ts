@@ -204,6 +204,18 @@ describe('reservation email', () => {
     expect(email.subject).toContain('Reserva cancelada')
     expect(email.html).toContain('La plaza se ha liberado')
   })
+
+  it('explains an automatic promotion without implying a pending offer', () => {
+    const email = buildReservationEmail({
+      eventType: 'WAITLIST_PROMOTED',
+      payload,
+      portalUrl: 'https://wellstudio.example/app/reservations',
+    })
+
+    expect(email.subject).toContain('Ya tienes plaza')
+    expect(email.html).toContain('Has conseguido plaza')
+    expect(email.text).toContain('se ha convertido automáticamente en reserva')
+  })
 })
 
 describe('Resend transactional adapter', () => {

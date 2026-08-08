@@ -5,14 +5,14 @@ Estado: active operations guide
 
 ## Objetivo
 
-WellStudio envia emails transaccionales al socio cuando una reserva se confirma o se cancela. La reserva es siempre la fuente de verdad: una incidencia de Resend no revierte ni convierte en error una operacion de dominio ya confirmada.
+WellStudio envia emails transaccionales al socio cuando una reserva se confirma, se cancela o una entrada en waitlist se promociona automaticamente. La reserva es siempre la fuente de verdad: una incidencia de Resend no revierte ni convierte en error una operacion de dominio ya confirmada.
 
 ## Flujo
 
 1. La mutacion de reserva o cancelacion valida las reglas de dominio.
 2. Dentro de la misma transaccion Prisma persiste la reserva y un `NotificationJob` con snapshot de destinatario y sesion.
 3. La server action responde al socio y programa el primer intento con `after()` de Next.js, siempre despues del commit y sin bloquear el feedback de UI.
-4. Resend recibe una `Idempotency-Key` estable con formato `reservation_booked/<id>` o `reservation_canceled/<id>`.
+4. Resend recibe una `Idempotency-Key` estable con formato `reservation_booked/<id>`, `reservation_canceled/<id>` o `waitlist_promoted/<id>`.
 5. Cada resultado crea un `NotificationDeliveryAttempt` y actualiza el estado del job.
 6. Los fallos quedan en `FAILED` con backoff; un cron protegido recupera jobs vencidos o locks abandonados.
 
@@ -81,12 +81,13 @@ Incluido:
 
 - confirmacion de reserva directa
 - confirmacion de cancelacion por el socio
+- confirmacion de plaza obtenida por promocion automatica desde waitlist
 - HTML responsive y fallback de texto
 - idempotencia, auditoria y recuperacion
 
 Pendiente de decision de producto:
 
 - recordatorios previos
-- entrada, salida y promocion de waitlist
+- entrada y salida de waitlist
 - preferencias de comunicacion
 - panel admin de observabilidad

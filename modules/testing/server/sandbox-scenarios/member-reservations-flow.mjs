@@ -33,7 +33,7 @@ const MANAGED_MEMBER = {
   lastName: 'Member',
 }
 
-const FILLER_MEMBER_EMAIL = 'e2e.filler.sandbox@wellstudio.test'
+export const FILLER_MEMBER_EMAIL = 'e2e.filler.sandbox@wellstudio.test'
 const FILLER_MEMBER = {
   firstName: 'E2E',
   lastName: 'Filler',
@@ -185,6 +185,14 @@ async function runMemberReservationsFlowOperation({
         authUser,
         email,
         now,
+      })
+
+      await tx.notificationJob.deleteMany({
+        where: {
+          recipient: {
+            in: [dependencies.memberIdentity.user.email, dependencies.fillerIdentity.user.email],
+          },
+        },
       })
 
       if (operation === MEMBER_RESERVATIONS_FLOW_OPERATIONS.full) {
@@ -517,6 +525,7 @@ async function restoreCancelableReservationState(
   {
     memberIdentity,
     memberMembership,
+    fillerIdentity,
     coach,
     reservableClassType,
     sessions,
@@ -546,6 +555,16 @@ async function restoreCancelableReservationState(
     canceledAt: null,
     cancellationReason: null,
     now,
+  })
+
+  await tx.waitlistEntry.create({
+    data: {
+      memberId: fillerIdentity.member.id,
+      classSessionId: sessions.cancelable.id,
+      position: 1,
+      status: 'WAITING',
+      joinedAt: shiftMinutes(timeline.cancelable.startsAt, -180),
+    },
   })
 }
 

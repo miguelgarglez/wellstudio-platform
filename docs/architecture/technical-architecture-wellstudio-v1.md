@@ -650,6 +650,8 @@ Reglas operativas:
 
 - una operacion de negocio confirmada no se revierte si falla el proveedor de correo
 - el job y la reserva se crean o actualizan atomicamente
+- la cancelacion puede crear dos jobs en la misma transaccion: confirmacion para quien cancela y promocion para el siguiente socio elegible
+- los eventos actuales son `RESERVATION_BOOKED`, `RESERVATION_CANCELED` y `WAITLIST_PROMOTED`
 - el transporte vive fuera de la transaccion de reserva
 - la clave estable por evento y reserva se propaga a Resend para evitar duplicados
 - los intentos fallidos usan backoff y los locks abandonados se pueden reclamar

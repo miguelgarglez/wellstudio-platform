@@ -177,6 +177,7 @@ enum LeadActivityType {
 enum NotificationEventType {
   RESERVATION_BOOKED
   RESERVATION_CANCELED
+  WAITLIST_PROMOTED
 }
 
 enum NotificationJobStatus {
