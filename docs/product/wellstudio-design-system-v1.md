@@ -214,6 +214,8 @@ Direccion:
 - header o top bar con ancla visual de marca
 - tabs o secciones limpias
 - cards informativas con mas orden
+- las ediciones breves y ocasionales, como datos de perfil, se abren en `Dialog` para conservar contexto y evitar formularios permanentes
+- la confirmacion de una mutacion debe permanecer visible aunque el overlay se cierre; usar feedback fijo, no insertar contenido que provoque layout shift
 
 ## Admin
 

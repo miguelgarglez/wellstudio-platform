@@ -237,6 +237,12 @@ Debe permitir:
 - ver consentimiento y preferencias
 - ver informacion de facturacion basica si se implementa compra online
 
+Decision V1:
+
+- el socio puede editar nombre, apellidos, telefono obligatorio y fecha de nacimiento opcional
+- el email de acceso es de solo lectura: cambiarlo requiere un flujo separado de verificacion con Supabase Auth
+- la escritura usa version esperada para no sobrescribir cambios concurrentes y registra solo los nombres de campos modificados en `AuditLog`, sin copiar PII al contexto de auditoria
+
 ## C. Area interna
 
 ### 1. Gestion de clases

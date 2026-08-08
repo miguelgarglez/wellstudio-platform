@@ -185,17 +185,9 @@ async function provisionLocalIdentity(
       },
     })
 
+    // Auth metadata seeds a new profile, but the members domain owns it afterwards.
     const member = existingMember
-      ? await tx.member.update({
-          where: {
-            userId: localUser.id,
-          },
-          data: {
-            firstName: input.firstName,
-            lastName: input.lastName,
-            phone: input.phone,
-          },
-        })
+      ? existingMember
       : await tx.member.create({
           data: {
             userId: localUser.id,

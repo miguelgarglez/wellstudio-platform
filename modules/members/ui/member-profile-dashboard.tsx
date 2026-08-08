@@ -5,6 +5,7 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Skeleton } from '@/components/ui/skeleton'
 import type { MemberProfileOverview } from '@/modules/members/server/member-profile-overview'
 import { cn } from '@/lib/utils'
+import { MemberProfileEditor } from '@/modules/members/ui/member-profile-editor'
 
 type MemberProfileDashboardProps = {
   overview: MemberProfileOverview
@@ -13,6 +14,7 @@ type MemberProfileDashboardProps = {
 export function MemberProfileDashboard({ overview }: MemberProfileDashboardProps) {
   return (
     <MemberProfileDashboardLayout
+      personalAction={<MemberProfileEditor profile={overview.editable} email={overview.email} />}
       personalFields={
         <>
           <ProfileField
@@ -73,6 +75,7 @@ export function MemberProfileDashboard({ overview }: MemberProfileDashboardProps
 export function MemberProfileDashboardSkeletonBody() {
   return (
     <MemberProfileDashboardLayout
+      personalAction={<Skeleton className="h-9 w-28 rounded-full" />}
       personalFields={
         <>
           {Array.from({ length: 4 }).map((_, index) => (
@@ -100,21 +103,23 @@ export function MemberProfileDashboardSkeletonBody() {
 }
 
 function MemberProfileDashboardLayout({
+  personalAction,
   personalFields,
   profileStateContent,
   consentContent,
 }: {
+  personalAction: ReactNode
   personalFields: ReactNode
   profileStateContent: ReactNode
   consentContent: ReactNode
 }) {
   return (
-    <div className="grid gap-4 xl:grid-cols-[minmax(0,1.18fr)_minmax(300px,0.82fr)]">
-      <SectionCard title="Datos personales">
+    <div className="grid min-w-0 gap-4 xl:grid-cols-[minmax(0,1.18fr)_minmax(300px,0.82fr)]">
+      <SectionCard title="Datos personales" action={personalAction}>
         <div className="grid gap-4 sm:grid-cols-2">{personalFields}</div>
       </SectionCard>
 
-      <div className="grid gap-4">
+      <div className="grid min-w-0 gap-4">
         <SectionCard title="Estado de perfil">{profileStateContent}</SectionCard>
         <SectionCard title="Consentimientos">{consentContent}</SectionCard>
       </div>
@@ -124,15 +129,20 @@ function MemberProfileDashboardLayout({
 
 function SectionCard({
   title,
+  action,
   children,
 }: {
   title: ReactNode
+  action?: ReactNode
   children: ReactNode
 }) {
   return (
-    <Card className="overflow-visible rounded-[2rem] border border-[color:color-mix(in_srgb,var(--wellstudio-blue)_10%,white)] bg-white py-0 shadow-none">
+    <Card className="min-w-0 overflow-visible rounded-[2rem] border border-[color:color-mix(in_srgb,var(--wellstudio-blue)_10%,white)] bg-white py-0 shadow-none">
       <CardHeader className="border-b border-[color:color-mix(in_srgb,var(--border)_74%,white)] px-6 py-6 sm:px-8">
-        <CardTitle className="text-xl text-[var(--wellstudio-ink)]">{title}</CardTitle>
+        <div className="flex flex-wrap items-center justify-between gap-3">
+          <CardTitle className="text-xl text-[var(--wellstudio-ink)]">{title}</CardTitle>
+          {action}
+        </div>
       </CardHeader>
       <CardContent className="px-6 py-6 sm:px-8">{children}</CardContent>
     </Card>

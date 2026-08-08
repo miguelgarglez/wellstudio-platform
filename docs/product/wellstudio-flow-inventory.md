@@ -684,3 +684,19 @@ Implementar por este orden:
 6. cancelacion y waitlist
 7. pagos
 8. panel admin minimo
+
+## Flujo de edicion de perfil del socio
+
+1. el socio abre `/app/profile` y revisa sus datos actuales
+2. abre un dialogo enfocado sin abandonar el contexto del perfil
+3. puede editar nombre, apellidos, telefono y fecha de nacimiento; el email permanece bloqueado y explicado
+4. el servidor valida y normaliza los datos dentro del modulo `members`
+5. la escritura compara `Member.updatedAt` para evitar lost updates
+6. si hay cambios, persiste el perfil y crea `MEMBER_PROFILE_UPDATED` con solo `changedFields`
+7. el dialogo se cierra, aparece una confirmacion y la ficha muestra los valores actualizados
+
+Estados de fallo:
+
+- errores de campo se muestran inline sin cerrar el dialogo
+- un perfil obsoleto no se sobrescribe; se pide recargar y reintentar
+- guardar valores equivalentes normalizados es un no-op y no genera auditoria

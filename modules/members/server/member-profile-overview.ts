@@ -15,6 +15,13 @@ export type MemberProfileOverview = {
   birthDateLabel: string
   joinedAtLabel: string
   statusLabel: string
+  editable: {
+    firstName: string
+    lastName: string
+    phone: string
+    birthDate: string
+    updatedAtIso: string
+  }
   consents: MemberProfileConsentItem[]
 }
 
@@ -40,6 +47,7 @@ export const getMemberProfileOverview = cache(async (): Promise<MemberProfileOve
       birthDate: true,
       joinedAt: true,
       status: true,
+      updatedAt: true,
       user: {
         select: {
           email: true,
@@ -70,31 +78,37 @@ export const getMemberProfileOverview = cache(async (): Promise<MemberProfileOve
   }
 
   return buildMemberProfileOverview({
-    fullName: [member.firstName, member.lastName].join(' ').trim(),
+    firstName: member.firstName,
+    lastName: member.lastName,
     email: member.user.email,
     phone: member.phone,
     birthDate: member.birthDate,
     joinedAt: member.joinedAt,
     status: member.status,
+    updatedAt: member.updatedAt,
     consents: member.user.consents,
   })
 })
 
 export function buildMemberProfileOverview({
-  fullName,
+  firstName,
+  lastName,
   email,
   phone,
   birthDate,
   joinedAt,
   status,
+  updatedAt,
   consents,
 }: {
-  fullName: string
+  firstName: string
+  lastName: string
   email: string
   phone: string | null
   birthDate: Date | null
   joinedAt: Date | null
   status: MemberStatus
+  updatedAt: Date
   consents: Array<Pick<UserConsent, 'id' | 'consentType' | 'accepted' | 'acceptedAt' | 'createdAt'>>
 }): MemberProfileOverview {
   const dateFormatter = new Intl.DateTimeFormat('es-ES', {
@@ -104,14 +118,29 @@ export function buildMemberProfileOverview({
   })
 
   return {
-    fullName,
+    fullName: [firstName, lastName].join(' ').trim(),
     email,
     phoneLabel: phone ?? 'Sin teléfono',
     birthDateLabel: birthDate ? dateFormatter.format(birthDate) : 'Fecha no disponible',
     joinedAtLabel: joinedAt ? dateFormatter.format(joinedAt) : 'Alta no registrada',
     statusLabel: formatMemberStatus(status),
+    editable: {
+      firstName,
+      lastName,
+      phone: phone ?? '',
+      birthDate: birthDate ? formatDateInputValue(birthDate) : '',
+      updatedAtIso: updatedAt.toISOString(),
+    },
     consents: consents.map((consent) => buildConsentItem(consent, dateFormatter)),
   }
+}
+
+function formatDateInputValue(date: Date) {
+  const year = date.getUTCFullYear()
+  const month = String(date.getUTCMonth() + 1).padStart(2, '0')
+  const day = String(date.getUTCDate()).padStart(2, '0')
+
+  return `${year}-${month}-${day}`
 }
 
 function buildConsentItem(

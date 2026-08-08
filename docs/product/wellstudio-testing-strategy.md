@@ -120,6 +120,9 @@ Gate dirigido de catalogo publico:
 - creacion de member al registrarse
 - actualizacion de perfil
 - restricciones de campos editables
+- normalizacion de nombre y telefono, fecha opcional valida y rechazo de fechas futuras
+- concurrencia optimista del perfil, no-op sin auditoria y `AuditLog` sin snapshots de PII
+- E2E de edicion, confirmacion, persistencia tras recarga y restauracion determinista del socio sandbox
 
 ## Classes
 

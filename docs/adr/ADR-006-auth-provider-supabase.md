@@ -65,6 +65,7 @@ Elegir `Supabase Auth` como proveedor de autenticacion para WellStudio V1.
 
 - integrar Supabase Auth en el monolito `Next.js`
 - definir sincronizacion o provisionado local de `User` y `Member`
+- los metadatos de Supabase inicializan nombre y telefono solo al crear `Member`; despues, `modules/members` es la fuente de verdad y cada login no puede sobrescribir el perfil local
 - proteger rutas privadas y admin desde el boundary de auth
 - mantener roles y permisos de negocio en la base de datos propia
 

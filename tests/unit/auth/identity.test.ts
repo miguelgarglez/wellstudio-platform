@@ -1,10 +1,22 @@
-import { describe, expect, it, vi } from 'vitest'
+import { beforeEach, describe, expect, it, vi } from 'vitest'
 
-vi.mock('@/lib/db/prisma', () => ({
-  prisma: {},
-}))
+const { prismaMock, tx } = vi.hoisted(() => {
+  const transaction = {
+    user: { findFirst: vi.fn(), update: vi.fn(), create: vi.fn() },
+    member: { findUnique: vi.fn(), create: vi.fn(), update: vi.fn() },
+    userRole: { createMany: vi.fn(), findMany: vi.fn() },
+  }
+  return {
+    tx: transaction,
+    prismaMock: {
+      $transaction: vi.fn(async (callback: (client: typeof transaction) => unknown) => callback(transaction)),
+    },
+  }
+})
 
-import { hasAnyRole } from '@/modules/auth/server/identity'
+vi.mock('@/lib/db/prisma', () => ({ prisma: prismaMock }))
+
+import { ensureLocalUser, hasAnyRole } from '@/modules/auth/server/identity'
 import type { AuthContext } from '@/modules/auth/server/identity'
 
 function buildAuthenticatedContext(
@@ -34,5 +46,65 @@ describe('hasAnyRole', () => {
 
   it('rejects contexts that only contain member role', () => {
     expect(hasAnyRole(buildAuthenticatedContext([{ role: 'MEMBER' }]), ['ADMIN', 'STAFF'])).toBe(false)
+  })
+})
+
+describe('ensureLocalUser profile ownership', () => {
+  beforeEach(() => {
+    vi.clearAllMocks()
+    tx.user.findFirst.mockResolvedValue({ id: 'user-1' })
+    tx.user.update.mockResolvedValue({ id: 'user-1', email: 'member@wellstudio.test' })
+    tx.userRole.createMany.mockResolvedValue({ count: 0 })
+    tx.userRole.findMany.mockResolvedValue([{ id: 'role-1', userId: 'user-1', role: 'MEMBER' }])
+  })
+
+  it('does not overwrite an existing member profile from auth metadata', async () => {
+    const existingMember = {
+      id: 'member-1',
+      userId: 'user-1',
+      firstName: 'Nombre editado',
+      lastName: 'Perfil local',
+      phone: '699123456',
+      birthDate: null,
+      status: 'ACTIVE',
+      joinedAt: null,
+      createdAt: new Date(),
+      updatedAt: new Date(),
+    }
+    tx.member.findUnique.mockResolvedValue(existingMember)
+
+    const identity = await ensureLocalUser({
+      id: 'supabase-1',
+      email: 'member@wellstudio.test',
+      phone: '612345678',
+      user_metadata: { first_name: 'Nombre auth', last_name: 'Antiguo' },
+    } as unknown as Parameters<typeof ensureLocalUser>[0])
+
+    expect(identity.member).toEqual(existingMember)
+    expect(tx.member.update).not.toHaveBeenCalled()
+    expect(tx.member.create).not.toHaveBeenCalled()
+  })
+
+  it('seeds the local profile from auth metadata when the member is first created', async () => {
+    tx.member.findUnique.mockResolvedValue(null)
+    tx.member.create.mockResolvedValue({ id: 'member-1' })
+
+    await ensureLocalUser({
+      id: 'supabase-1',
+      email: 'member@wellstudio.test',
+      phone: '612345678',
+      user_metadata: { first_name: 'Nombre auth', last_name: 'Inicial' },
+    } as unknown as Parameters<typeof ensureLocalUser>[0])
+
+    expect(tx.member.create).toHaveBeenCalledWith({
+      data: {
+        userId: 'user-1',
+        firstName: 'Nombre auth',
+        lastName: 'Inicial',
+        phone: '612345678',
+        status: 'ACTIVE',
+        joinedAt: expect.any(Date),
+      },
+    })
   })
 })
