@@ -6,6 +6,7 @@ import type {
 
 import { prisma } from '@/lib/db/prisma'
 import { parseReservationNotificationPayload } from '@/modules/notifications/server/reservation-email'
+import { parseSessionChangeNotificationPayload } from '@/modules/notifications/server/session-change-email'
 
 const LIST_LIMIT = 40
 const RECENT_WINDOW_MS = 24 * 60 * 60 * 1_000
@@ -17,6 +18,7 @@ export type AdminNotificationEventFilter =
   | 'booking'
   | 'cancellation'
   | 'promotion'
+  | 'session'
 
 type NotificationJobRecord = {
   id: string
@@ -169,7 +171,7 @@ export function parseAdminNotificationStatusFilter(
 export function parseAdminNotificationEventFilter(
   value?: string | null,
 ): AdminNotificationEventFilter {
-  return value === 'booking' || value === 'cancellation' || value === 'promotion'
+  return value === 'booking' || value === 'cancellation' || value === 'promotion' || value === 'session'
     ? value
     : 'all'
 }
@@ -186,13 +188,15 @@ function buildNotificationListWhere(input: {
         : input.status === 'sent'
           ? ['SENT']
           : undefined
-  const eventType: NotificationEventType | undefined =
+  const eventType: Prisma.NotificationJobWhereInput['eventType'] =
     input.event === 'booking'
       ? 'RESERVATION_BOOKED'
       : input.event === 'cancellation'
         ? 'RESERVATION_CANCELED'
         : input.event === 'promotion'
           ? 'WAITLIST_PROMOTED'
+          : input.event === 'session'
+            ? { in: ['SESSION_RESCHEDULED', 'SESSION_CANCELED'] }
           : undefined
 
   return {
@@ -202,7 +206,7 @@ function buildNotificationListWhere(input: {
 }
 
 function mapNotificationJob(job: NotificationJobRecord, now: Date) {
-  const payload = readReservationPayload(job.payload)
+  const payload = readNotificationPayload(job.payload)
   const status = formatNotificationStatus(job.status)
 
   return {
@@ -222,23 +226,55 @@ function mapNotificationJob(job: NotificationJobRecord, now: Date) {
       : 'Sesión no disponible',
     coachName: payload?.coachName ?? 'Sin coach',
     locationLabel: payload?.locationLabel ?? 'Sin espacio indicado',
+    contextTitle: payload?.contextTitle ?? 'Contexto no disponible',
+    audienceLabel: payload?.audienceLabel ?? 'Destinatario no disponible',
     createdAtLabel: formatDateTime(job.createdAt),
     ageLabel: formatRelativeAge(job.createdAt, now),
   }
 }
 
-function readReservationPayload(value: Prisma.JsonValue) {
+function readNotificationPayload(value: Prisma.JsonValue) {
   try {
-    return parseReservationNotificationPayload(value)
+    const payload = parseReservationNotificationPayload(value)
+    return {
+      ...payload,
+      contextTitle: 'Reserva comunicada',
+      audienceLabel: 'Reserva confirmada',
+    }
   } catch {
-    return null
+    try {
+      const payload = parseSessionChangeNotificationPayload(value)
+      return {
+        ...payload,
+        contextTitle: 'Sesión comunicada',
+        audienceLabel:
+          payload.audience === 'WAITLIST' ? 'Lista de espera' : 'Reserva confirmada',
+      }
+    } catch {
+      return null
+    }
   }
 }
 
 function formatNotificationEvent(eventType: NotificationEventType) {
-  if (eventType === 'RESERVATION_BOOKED') return 'Reserva confirmada'
-  if (eventType === 'RESERVATION_CANCELED') return 'Cancelación confirmada'
-  return 'Promoción desde waitlist'
+  switch (eventType) {
+    case 'RESERVATION_BOOKED':
+      return 'Reserva confirmada'
+    case 'RESERVATION_CANCELED':
+      return 'Cancelación confirmada'
+    case 'WAITLIST_PROMOTED':
+      return 'Promoción desde waitlist'
+    case 'SESSION_RESCHEDULED':
+      return 'Sesión actualizada'
+    case 'SESSION_CANCELED':
+      return 'Sesión cancelada por el centro'
+    default:
+      return assertNever(eventType)
+  }
+}
+
+function assertNever(value: never): never {
+  throw new Error(`Unsupported notification event: ${value}`)
 }
 
 function formatNotificationStatus(status: NotificationJobStatus) {

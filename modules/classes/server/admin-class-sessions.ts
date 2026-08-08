@@ -1,13 +1,21 @@
 import { Prisma, type ClassSessionStatus } from '@prisma/client'
+import { randomUUID } from 'node:crypto'
 
 import { prisma } from '@/lib/db/prisma'
+import { enqueueAdminSessionNotifications } from '@/modules/notifications/server/notification-outbox'
+import type { SessionChangeSnapshot } from '@/modules/notifications/server/session-change-email'
 import { refundCreditUsage } from '@/modules/reservations/server/member-reservation-mutations'
 
 const ACTIVE_SESSION_STATUSES: ClassSessionStatus[] = ['DRAFT', 'PUBLISHED', 'CLOSED']
 const ACTIVE_WAITLIST_STATUSES = ['WAITING', 'NOTIFIED'] as const
 
 export type AdminSessionMutationResult =
-  | { success: true; sessionId: string; status: ClassSessionStatus }
+  | {
+      success: true
+      sessionId: string
+      status: ClassSessionStatus
+      notificationJobIds?: string[]
+    }
   | { success: false; message: string; field?: AdminSessionField }
 
 export type AdminSessionField =
@@ -45,6 +53,7 @@ export async function saveAdminClassSession(
   input: SaveAdminSessionInput,
 ): Promise<AdminSessionMutationResult> {
   const now = input.now ?? new Date()
+  const operationId = randomUUID()
 
   if (!input.classTypeId) {
     return failure('Selecciona un tipo de clase.', 'classTypeId')
@@ -94,6 +103,8 @@ export async function saveAdminClassSession(
             status: true,
             reservedCount: true,
             updatedAt: true,
+            classType: { select: { name: true } },
+            coach: { select: { displayName: true } },
             _count: {
               select: {
                 waitlistEntries: { where: { status: { in: [...ACTIVE_WAITLIST_STATUSES] } } },
@@ -236,7 +247,24 @@ export async function saveAdminClassSession(
       },
     })
 
-    return { success: true, sessionId: session.id, status: session.status }
+    const notificationJobs =
+      existing && materialChange && hasDemand
+        ? await enqueueAdminSessionNotifications(tx, {
+            eventType: 'SESSION_RESCHEDULED',
+            sessionId: session.id,
+            operationId,
+            occurredAt: now,
+            previous: toSessionChangeSnapshot(existing),
+            reason: impactReason,
+          })
+        : []
+
+    return {
+      success: true,
+      sessionId: session.id,
+      status: session.status,
+      notificationJobIds: notificationJobs.map((job) => job.id),
+    }
   }, { isolationLevel: Prisma.TransactionIsolationLevel.Serializable })
 }
 
@@ -295,6 +323,7 @@ export async function cancelAdminClassSession(input: {
 }): Promise<AdminSessionMutationResult> {
   const reason = input.reason.trim()
   const now = input.now ?? new Date()
+  const operationId = randomUUID()
 
   if (reason.length < 5) return failure('Indica una razón de al menos 5 caracteres.', 'reason')
   if (reason.length > 500) return failure('La razón no puede superar 500 caracteres.', 'reason')
@@ -318,6 +347,15 @@ export async function cancelAdminClassSession(input: {
     if (!ACTIVE_SESSION_STATUSES.includes(session.status) || session.startsAt <= now) {
       return failure('Esta sesión ya no se puede cancelar.', 'status')
     }
+
+    const notificationJobs = await enqueueAdminSessionNotifications(tx, {
+      eventType: 'SESSION_CANCELED',
+      sessionId: session.id,
+      operationId,
+      occurredAt: now,
+      previous: null,
+      reason,
+    })
 
     for (const reservation of session.reservations) {
       await tx.reservation.update({
@@ -361,7 +399,12 @@ export async function cancelAdminClassSession(input: {
       },
     })
 
-    return { success: true, sessionId: session.id, status: 'CANCELED' }
+    return {
+      success: true,
+      sessionId: session.id,
+      status: 'CANCELED',
+      notificationJobIds: notificationJobs.map((job) => job.id),
+    }
   }, { isolationLevel: Prisma.TransactionIsolationLevel.Serializable })
 }
 
@@ -416,6 +459,22 @@ export function parseEuropeMadridDateTime(value: string): Date {
 
 function failure(message: string, field?: AdminSessionField): AdminSessionMutationResult {
   return { success: false, message, field }
+}
+
+function toSessionChangeSnapshot(session: {
+  classType: { name: string }
+  coach: { displayName: string } | null
+  locationLabel: string | null
+  startsAt: Date
+  endsAt: Date
+}): SessionChangeSnapshot {
+  return {
+    className: session.classType.name,
+    coachName: session.coach?.displayName ?? null,
+    locationLabel: session.locationLabel,
+    startsAt: session.startsAt.toISOString(),
+    endsAt: session.endsAt.toISOString(),
+  }
 }
 
 async function createSessionAudit(

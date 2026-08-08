@@ -652,9 +652,11 @@ Reglas operativas:
 - una operacion de negocio confirmada no se revierte si falla el proveedor de correo
 - el job y la reserva se crean o actualizan atomicamente
 - la cancelacion puede crear dos jobs en la misma transaccion: confirmacion para quien cancela y promocion para el siguiente socio elegible
-- los eventos actuales son `RESERVATION_BOOKED`, `RESERVATION_CANCELED` y `WAITLIST_PROMOTED`
+- los eventos actuales son `RESERVATION_BOOKED`, `RESERVATION_CANCELED`, `WAITLIST_PROMOTED`, `SESSION_RESCHEDULED` y `SESSION_CANCELED`
+- un cambio administrativo de horario, clase o coach crea un job por reserva `BOOKED` y entrada `WAITING`/`NOTIFIED`; una cancelacion toma esa audiencia antes de cerrar sus estados
+- cada operacion administrativa usa un `operationId` comun y una clave unica por audiencia y registro afectado, de modo que una reprogramacion posterior sea un evento nuevo sin duplicar la anterior
 - el transporte vive fuera de la transaccion de reserva
-- la clave estable por evento y reserva se propaga a Resend para evitar duplicados
+- la clave estable por evento y entidad afectada se propaga a Resend para evitar duplicados
 - los intentos fallidos usan backoff y los locks abandonados se pueden reclamar
 - el reintento admin usa estado y version esperados, conserva la numeracion de intentos y crea `AuditLog`
 - el read model admin transforma el payload a contexto seguro; no entrega JSON arbitrario a React
@@ -1142,7 +1144,7 @@ La mejor decision de V1 es no replicar la fragmentacion actual. Marketing, membe
 - server actions finas: parsean `FormData`, resuelven actor y delegan al dominio
 - seleccion durable: `?session=<id>`; apertura temporal de creacion en estado cliente
 - fechas de `datetime-local`: se interpretan explicitamente en `Europe/Madrid` antes de persistir UTC
-- cancelacion: transaccion serializable y auditoria, reutilizando la devolucion de credito del modulo de reservas
+- cancelacion: transaccion serializable, auditoria y outbox por socio afectado, reutilizando la devolucion de credito del modulo de reservas
 - asistencia: `modules/classes/server/admin-session-attendance.ts` mantiene sincronizados reserva y check-in, aplica control de concurrencia optimista y registra actor/contexto
 - cierre operativo: solo despues de `endsAt` y con cero reservas pendientes; una sesion completada permite corregir `ATTENDED`/`NO_SHOW`, pero no volver a `PENDING`
 - ventana de agenda: hoy y futuro se priorizan; se conservan 14 dias recientes para correcciones operativas sin convertir la vista en un historico ilimitado

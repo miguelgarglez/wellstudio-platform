@@ -46,6 +46,7 @@ const EVENT_FILTERS: Array<{
   { value: 'booking', label: 'Reservas' },
   { value: 'cancellation', label: 'Cancelaciones' },
   { value: 'promotion', label: 'Waitlist' },
+  { value: 'session', label: 'Agenda' },
 ]
 
 export function AdminNotificationsDashboard({
@@ -301,7 +302,7 @@ function NotificationDetail({
           </span>
           <div>
             <p className="text-xs uppercase tracking-[0.22em] text-[var(--wellstudio-blue-deep)]">Contexto</p>
-            <h3 className="mt-1 text-lg font-medium text-[var(--wellstudio-ink)]">Reserva comunicada</h3>
+            <h3 className="mt-1 text-lg font-medium text-[var(--wellstudio-ink)]">{job.contextTitle}</h3>
           </div>
         </div>
         <div className="mt-4 grid gap-3 sm:grid-cols-2">
@@ -309,6 +310,7 @@ function NotificationDetail({
           <ContextCard label="Clase" value={job.className} />
           <ContextCard label="Sesión" value={job.sessionLabel} />
           <ContextCard label="Coach" value={job.coachName} />
+          <ContextCard label="Situación" value={job.audienceLabel} />
         </div>
         <div className="mt-3 flex items-center gap-2 rounded-xl border border-[color:color-mix(in_srgb,var(--border)_72%,white)] px-3 py-2.5 text-sm text-[color:color-mix(in_srgb,var(--foreground)_68%,white)]">
           <MapPin className="size-4 shrink-0 text-[var(--wellstudio-blue-deep)]" aria-hidden="true" />

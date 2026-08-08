@@ -20,10 +20,12 @@ vi.mock('@/lib/db/prisma', () => ({ prisma: prismaMock }))
 import {
   dispatchDueNotificationJobs,
   dispatchNotificationJob,
+  enqueueAdminSessionNotifications,
   enqueueReservationNotification,
 } from '@/modules/notifications/server/notification-outbox'
 import { buildReservationEmail } from '@/modules/notifications/server/reservation-email'
 import { createResendTransactionalEmailSender } from '@/modules/notifications/server/resend-email-provider'
+import { buildSessionChangeEmail } from '@/modules/notifications/server/session-change-email'
 
 const now = new Date('2026-08-08T10:00:00.000Z')
 const payload = {
@@ -93,6 +95,91 @@ describe('notification outbox', () => {
     })
   })
 
+  it('enqueues one immutable session-change job per affected record', async () => {
+    const tx = {
+      classSession: {
+        findUnique: vi.fn().mockResolvedValue({
+          id: 'session-1',
+          startsAt: new Date(payload.startsAt),
+          endsAt: new Date(payload.endsAt),
+          locationLabel: 'Sala 1',
+          classType: { name: 'Fuerza Total' },
+          coach: { displayName: 'Marta Coach' },
+          reservations: [
+            {
+              id: 'reservation-1',
+              member: {
+                firstName: 'Ana',
+                lastName: 'Socio',
+                user: { email: 'ana@example.com' },
+              },
+            },
+          ],
+          waitlistEntries: [
+            {
+              id: 'waitlist-1',
+              member: {
+                firstName: 'Leo',
+                lastName: 'Espera',
+                user: { email: 'leo@example.com' },
+              },
+            },
+          ],
+        }),
+      },
+      notificationJob: {
+        upsert: vi.fn()
+          .mockResolvedValueOnce({ id: 'job-reservation' })
+          .mockResolvedValueOnce({ id: 'job-waitlist' }),
+      },
+    }
+
+    const jobs = await enqueueAdminSessionNotifications(tx as never, {
+      eventType: 'SESSION_RESCHEDULED',
+      sessionId: 'session-1',
+      operationId: 'operation-1',
+      occurredAt: now,
+      previous: {
+        className: 'Fuerza Total',
+        coachName: 'Marta Coach',
+        locationLabel: 'Sala 1',
+        startsAt: '2026-08-10T15:00:00.000Z',
+        endsAt: '2026-08-10T15:50:00.000Z',
+      },
+      reason: 'Ajuste de agenda',
+    })
+
+    expect(jobs).toEqual([{ id: 'job-reservation' }, { id: 'job-waitlist' }])
+    expect(tx.notificationJob.upsert).toHaveBeenNthCalledWith(1, {
+      where: {
+        idempotencyKey:
+          'session_rescheduled/session-1/operation-1/reservation/reservation-1',
+      },
+      create: expect.objectContaining({
+        eventType: 'SESSION_RESCHEDULED',
+        recipient: 'ana@example.com',
+        referenceType: 'class_session',
+        referenceId: 'session-1',
+        payload: expect.objectContaining({
+          audience: 'RESERVATION',
+          memberName: 'Ana Socio',
+          reason: 'Ajuste de agenda',
+        }),
+      }),
+      update: {},
+      select: { id: true },
+    })
+    expect(tx.notificationJob.upsert).toHaveBeenNthCalledWith(
+      2,
+      expect.objectContaining({
+        create: expect.objectContaining({
+          recipient: 'leo@example.com',
+          payload: expect.objectContaining({ audience: 'WAITLIST' }),
+        }),
+      }),
+    )
+  })
+
   it('claims and sends a job once with provider idempotency', async () => {
     prismaMock.notificationJob.updateMany.mockResolvedValue({ count: 1 })
     prismaMock.notificationJob.findUniqueOrThrow.mockResolvedValue({
@@ -154,6 +241,42 @@ describe('notification outbox', () => {
         lastError: 'Provider unavailable',
       }),
     })
+  })
+
+  it('dispatches a session cancellation with its contextual template', async () => {
+    prismaMock.notificationJob.updateMany.mockResolvedValue({ count: 1 })
+    prismaMock.notificationJob.findUniqueOrThrow.mockResolvedValue({
+      id: 'job-session',
+      eventType: 'SESSION_CANCELED',
+      recipient: 'ana@example.com',
+      payload: {
+        sessionId: 'session-1',
+        affectedRecordId: 'reservation-1',
+        audience: 'RESERVATION',
+        memberName: 'Ana Socio',
+        className: 'Fuerza Total',
+        coachName: 'Marta Coach',
+        locationLabel: 'Sala 1',
+        startsAt: payload.startsAt,
+        endsAt: payload.endsAt,
+        previous: null,
+        reason: 'Cierre extraordinario',
+      },
+      idempotencyKey: 'session_canceled/session-1/operation-1/reservation/reservation-1',
+      attemptCount: 1,
+    })
+    const sender = {
+      send: vi.fn().mockResolvedValue({ providerMessageId: 'resend-session-1' }),
+    }
+
+    await dispatchNotificationJob('job-session', { sender, now })
+
+    expect(sender.send).toHaveBeenCalledWith(
+      expect.objectContaining({
+        subject: 'Sesión cancelada · Fuerza Total',
+        text: expect.stringContaining('Cierre extraordinario'),
+      }),
+    )
   })
 
   it('skips a job already claimed or delivered by another worker', async () => {
@@ -257,6 +380,64 @@ describe('reservation email', () => {
     expect(email.subject).toContain('Ya tienes plaza')
     expect(email.html).toContain('Has conseguido plaza')
     expect(email.text).toContain('se ha convertido automáticamente en reserva')
+  })
+})
+
+describe('session change email', () => {
+  it('compares the previous and current session for a booked member', () => {
+    const email = buildSessionChangeEmail({
+      eventType: 'SESSION_RESCHEDULED',
+      payload: {
+        sessionId: 'session-1',
+        affectedRecordId: 'reservation-1',
+        audience: 'RESERVATION',
+        memberName: 'Ana & Socio',
+        className: 'Fuerza <Total>',
+        coachName: 'Marta Coach',
+        locationLabel: 'Sala 2',
+        startsAt: payload.startsAt,
+        endsAt: payload.endsAt,
+        previous: {
+          className: 'Fuerza Total',
+          coachName: 'Leo Coach',
+          locationLabel: 'Sala 1',
+          startsAt: '2026-08-10T15:00:00.000Z',
+          endsAt: '2026-08-10T15:50:00.000Z',
+        },
+        reason: 'Ajuste de agenda',
+      },
+      portalUrl: 'https://wellstudio.example/app/reservations',
+    })
+
+    expect(email.subject).toContain('Cambio de sesión')
+    expect(email.html).toContain('Antes')
+    expect(email.html).toContain('Ahora')
+    expect(email.html).toContain('Fuerza &lt;Total&gt;')
+    expect(email.text).toContain('Tu plaza se mantiene')
+  })
+
+  it('explains a canceled waitlist without implying a booked place', () => {
+    const email = buildSessionChangeEmail({
+      eventType: 'SESSION_CANCELED',
+      payload: {
+        sessionId: 'session-1',
+        affectedRecordId: 'waitlist-1',
+        audience: 'WAITLIST',
+        memberName: 'Leo Espera',
+        className: 'Fuerza Total',
+        coachName: null,
+        locationLabel: null,
+        startsAt: payload.startsAt,
+        endsAt: payload.endsAt,
+        previous: null,
+        reason: 'Cierre extraordinario',
+      },
+      portalUrl: 'https://wellstudio.example/app/reservations',
+    })
+
+    expect(email.html).toContain('Lista de espera')
+    expect(email.text).toContain('tu posición ya está cerrada')
+    expect(email.text).toContain('Cierre extraordinario')
   })
 })
 

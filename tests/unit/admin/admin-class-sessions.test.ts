@@ -13,6 +13,7 @@ const { prismaMock, refundCreditUsageMock, tx } = vi.hoisted(() => {
     },
     reservation: { update: vi.fn() },
     waitlistEntry: { updateMany: vi.fn() },
+    notificationJob: { upsert: vi.fn() },
     auditLog: { create: vi.fn() },
     memberCreditAccount: { findUnique: vi.fn(), update: vi.fn() },
     creditLedgerEntry: { create: vi.fn() },
@@ -45,6 +46,7 @@ const now = new Date('2026-08-07T10:00:00.000Z')
 describe('admin class sessions', () => {
   beforeEach(() => {
     vi.clearAllMocks()
+    tx.notificationJob.upsert.mockResolvedValue({ id: 'notification-1' })
   })
 
   it('only allows deliberate status transitions', () => {
@@ -131,7 +133,7 @@ describe('admin class sessions', () => {
       durationMinutes: 50,
       status: 'ACTIVE',
     })
-    tx.classSession.findUnique.mockResolvedValue({
+    tx.classSession.findUnique.mockResolvedValueOnce({
       id: 'session-1',
       classTypeId: 'class-1',
       coachId: null,
@@ -210,7 +212,7 @@ describe('admin class sessions', () => {
       durationMinutes: 50,
       status: 'ACTIVE',
     })
-    tx.classSession.findUnique.mockResolvedValue({
+    tx.classSession.findUnique.mockResolvedValueOnce({
       id: 'session-1',
       classTypeId: 'class-1',
       coachId: null,
@@ -222,7 +224,28 @@ describe('admin class sessions', () => {
       status: 'PUBLISHED',
       reservedCount: 2,
       updatedAt: new Date('2026-08-07T09:00:00.000Z'),
+      classType: { name: 'Strength' },
+      coach: null,
       _count: { waitlistEntries: 0 },
+    })
+    tx.classSession.findUnique.mockResolvedValueOnce({
+      id: 'session-1',
+      startsAt: new Date('2026-08-08T13:00:00.000Z'),
+      endsAt: new Date('2026-08-08T13:50:00.000Z'),
+      locationLabel: 'Sala 2',
+      classType: { name: 'Strength' },
+      coach: null,
+      reservations: [
+        {
+          id: 'reservation-1',
+          member: {
+            firstName: 'Ana',
+            lastName: 'Socio',
+            user: { email: 'ana@example.com' },
+          },
+        },
+      ],
+      waitlistEntries: [],
     })
     tx.classSession.updateMany.mockResolvedValue({ count: 1 })
 
@@ -241,7 +264,12 @@ describe('admin class sessions', () => {
       now,
     })
 
-    expect(result).toEqual({ success: true, sessionId: 'session-1', status: 'PUBLISHED' })
+    expect(result).toEqual({
+      success: true,
+      sessionId: 'session-1',
+      status: 'PUBLISHED',
+      notificationJobIds: ['notification-1'],
+    })
     expect(tx.classSession.updateMany).toHaveBeenCalledWith(
       expect.objectContaining({ where: { id: 'session-1', updatedAt: new Date('2026-08-07T09:00:00.000Z') } }),
     )
@@ -255,6 +283,20 @@ describe('admin class sessions', () => {
         }),
       }),
     })
+    expect(tx.notificationJob.upsert).toHaveBeenCalledWith(
+      expect.objectContaining({
+        create: expect.objectContaining({
+          eventType: 'SESSION_RESCHEDULED',
+          recipient: 'ana@example.com',
+          payload: expect.objectContaining({
+            previous: expect.objectContaining({
+              startsAt: '2026-08-08T12:00:00.000Z',
+            }),
+            startsAt: '2026-08-08T13:00:00.000Z',
+          }),
+        }),
+      }),
+    )
   })
 
   it('rejects a coach overlap before persisting', async () => {
@@ -287,7 +329,7 @@ describe('admin class sessions', () => {
   })
 
   it('cancels bookings, refunds credits, expires waitlist and audits atomically', async () => {
-    tx.classSession.findUnique.mockResolvedValue({
+    tx.classSession.findUnique.mockResolvedValueOnce({
       id: 'session-1',
       status: 'PUBLISHED',
       startsAt: new Date('2026-08-09T12:00:00.000Z'),
@@ -300,6 +342,25 @@ describe('admin class sessions', () => {
         },
       ],
     })
+    tx.classSession.findUnique.mockResolvedValueOnce({
+      id: 'session-1',
+      startsAt: new Date('2026-08-09T12:00:00.000Z'),
+      endsAt: new Date('2026-08-09T12:50:00.000Z'),
+      locationLabel: 'Sala 1',
+      classType: { name: 'Strength' },
+      coach: { displayName: 'Marta Coach' },
+      reservations: [
+        {
+          id: 'reservation-1',
+          member: {
+            firstName: 'Ana',
+            lastName: 'Socio',
+            user: { email: 'ana@example.com' },
+          },
+        },
+      ],
+      waitlistEntries: [],
+    })
     tx.classSession.update.mockResolvedValue({ id: 'session-1' })
 
     const result = await cancelAdminClassSession({
@@ -309,7 +370,12 @@ describe('admin class sessions', () => {
       now,
     })
 
-    expect(result).toEqual({ success: true, sessionId: 'session-1', status: 'CANCELED' })
+    expect(result).toEqual({
+      success: true,
+      sessionId: 'session-1',
+      status: 'CANCELED',
+      notificationJobIds: ['notification-1'],
+    })
     expect(tx.reservation.update).toHaveBeenCalledWith({
       where: { id: 'reservation-1' },
       data: expect.objectContaining({
@@ -338,5 +404,16 @@ describe('admin class sessions', () => {
         entityId: 'session-1',
       }),
     })
+    expect(tx.notificationJob.upsert).toHaveBeenCalledWith(
+      expect.objectContaining({
+        create: expect.objectContaining({
+          eventType: 'SESSION_CANCELED',
+          recipient: 'ana@example.com',
+          payload: expect.objectContaining({
+            reason: 'Cierre extraordinario del estudio',
+          }),
+        }),
+      }),
+    )
   })
 })

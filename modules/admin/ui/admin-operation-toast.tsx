@@ -1,6 +1,7 @@
 'use client'
 
-import { useEffect, useState } from 'react'
+import { useEffect, useState, useSyncExternalStore } from 'react'
+import { createPortal } from 'react-dom'
 import { AlertCircle, CheckCircle2, X } from 'lucide-react'
 
 import { Button } from '@/components/ui/button'
@@ -21,8 +22,10 @@ type AdminOperationToastState =
   | 'session-draft'
   | 'session-published'
   | 'session-updated'
+  | 'session-updated-notified'
   | 'session-closed'
   | 'session-canceled'
+  | 'session-canceled-notified'
   | 'attendance-attended'
   | 'attendance-no-show'
   | 'attendance-pending'
@@ -49,6 +52,8 @@ type AdminOperationToastProps = {
   variant?: 'fixed' | 'inline'
   instanceKey?: string | null
 }
+
+const subscribeToClient = () => () => undefined
 
 const TOAST_COPY: Record<
   Exclude<AdminOperationToastState, null>,
@@ -128,6 +133,11 @@ const TOAST_COPY: Record<
     title: 'Sesión actualizada',
     description: 'Los cambios ya están persistidos y la agenda muestra la versión actual.',
   },
+  'session-updated-notified': {
+    tone: 'success',
+    title: 'Sesión actualizada y avisos preparados',
+    description: 'La agenda ya muestra el cambio y cada socio afectado tiene una entrega transaccional trazable.',
+  },
   'session-closed': {
     tone: 'success',
     title: 'Reservas cerradas',
@@ -137,6 +147,11 @@ const TOAST_COPY: Record<
     tone: 'success',
     title: 'Sesión cancelada',
     description: 'Reservas y waitlist se han cerrado, con devoluciones y auditoría aplicadas.',
+  },
+  'session-canceled-notified': {
+    tone: 'success',
+    title: 'Sesión cancelada y avisos preparados',
+    description: 'Reservas y waitlist están cerradas; las comunicaciones quedan visibles en Entregas.',
   },
   'attendance-attended': {
     tone: 'success',
@@ -261,31 +276,33 @@ function VisibleAdminOperationToast({
   variant: NonNullable<AdminOperationToastProps['variant']>
 }) {
   const [isVisible, setIsVisible] = useState(true)
+  const isClient = useSyncExternalStore(subscribeToClient, () => true, () => false)
+  const portalTarget = isClient ? document.body : null
 
   useEffect(() => {
     const timeout = window.setTimeout(() => {
       setIsVisible(false)
-    }, 5200)
+    }, 8000)
 
     return () => {
       window.clearTimeout(timeout)
     }
   }, [state])
 
-  if (!isVisible) {
+  if (!isVisible || !portalTarget) {
     return null
   }
 
   const copy = TOAST_COPY[state]
   const Icon = copy.tone === 'success' ? CheckCircle2 : AlertCircle
 
-  return (
+  return createPortal(
     <div
       role={copy.tone === 'error' ? 'alert' : 'status'}
       aria-live={copy.tone === 'error' ? 'assertive' : 'polite'}
       className={cn(
         variant === 'fixed'
-          ? 'pointer-events-none fixed inset-x-3 top-3 z-50 flex justify-center sm:inset-x-auto sm:right-4 sm:top-4 sm:block'
+          ? 'pointer-events-none fixed inset-x-3 top-3 z-[100] flex justify-center sm:inset-x-auto sm:right-4 sm:top-4 sm:block'
           : 'pointer-events-none absolute inset-x-3 top-3 z-20 flex justify-center',
       )}
     >
@@ -334,7 +351,8 @@ function VisibleAdminOperationToast({
           </Button>
         </div>
       </div>
-    </div>
+    </div>,
+    portalTarget,
   )
 }
 

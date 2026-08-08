@@ -2,6 +2,7 @@
 
 import { revalidatePath } from 'next/cache'
 import { redirect } from 'next/navigation'
+import { after } from 'next/server'
 
 import { requireAdminOrStaffContext } from '@/modules/auth/server/identity'
 import {
@@ -15,6 +16,7 @@ import {
   completeAdminClassSession,
   updateAdminReservationAttendance,
 } from '@/modules/classes/server/admin-session-attendance'
+import { dispatchNotificationJobSafely } from '@/modules/notifications/server/notification-outbox'
 
 export type AdminSessionActionState = { message: string; field?: string } | null
 
@@ -44,9 +46,15 @@ export async function saveAdminSessionAction(
   })
 
   if (!result.success) return { message: result.message, field: result.field }
+  scheduleNotificationDispatch(result.notificationJobIds)
+  const existingSession = Boolean(read(formData, 'sessionId'))
   finish(
     result.sessionId,
-    read(formData, 'sessionId') ? 'updated' : result.status.toLowerCase(),
+    existingSession
+      ? result.notificationJobIds?.length
+        ? 'updated-notified'
+        : 'updated'
+      : result.status.toLowerCase(),
   )
 }
 
@@ -81,7 +89,11 @@ export async function cancelAdminSessionAction(
     actor: actorFrom(context),
   })
   if (!result.success) return { message: result.message, field: result.field }
-  finish(result.sessionId, 'canceled')
+  scheduleNotificationDispatch(result.notificationJobIds)
+  finish(
+    result.sessionId,
+    result.notificationJobIds?.length ? 'canceled-notified' : 'canceled',
+  )
 }
 
 export async function updateAdminAttendanceAction(
@@ -130,6 +142,12 @@ function finish(sessionId: string, updated: string): never {
 function read(formData: FormData, key: string) {
   const value = formData.get(key)
   return typeof value === 'string' && value.trim() ? value.trim() : null
+}
+
+function scheduleNotificationDispatch(jobIds?: string[]) {
+  for (const jobId of jobIds ?? []) {
+    after(() => dispatchNotificationJobSafely(jobId))
+  }
 }
 
 function actorFrom(

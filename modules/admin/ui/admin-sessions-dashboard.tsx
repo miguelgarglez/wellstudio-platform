@@ -50,26 +50,7 @@ export function AdminSessionsDashboard({ overview, updated, notice }: Props) {
   const router = useRouter()
   const [isCreating, setIsCreating] = useState(false)
   const groupedSessions = groupByDay(overview.sessions, overview.todayKey)
-  const toastState =
-    updated === 'draft'
-      ? 'session-draft'
-      : updated === 'updated'
-        ? 'session-updated'
-      : updated === 'published'
-        ? 'session-published'
-        : updated === 'closed'
-          ? 'session-closed'
-          : updated === 'canceled'
-            ? 'session-canceled'
-            : updated === 'attended'
-              ? 'attendance-attended'
-              : updated === 'no-show'
-                ? 'attendance-no-show'
-                : updated === 'pending'
-                  ? 'attendance-pending'
-                  : updated === 'completed'
-                    ? 'session-completed'
-            : null
+  const toastState = resolveSessionToastState(updated)
 
   function closeSelectedSession() {
     router.replace('/admin/sessions', { scroll: false })
@@ -154,6 +135,35 @@ export function AdminSessionsDashboard({ overview, updated, notice }: Props) {
       </Sheet>
     </div>
   )
+}
+
+function resolveSessionToastState(updated: string | null) {
+  switch (updated) {
+    case 'draft':
+      return 'session-draft'
+    case 'published':
+      return 'session-published'
+    case 'updated':
+      return 'session-updated'
+    case 'updated-notified':
+      return 'session-updated-notified'
+    case 'closed':
+      return 'session-closed'
+    case 'canceled':
+      return 'session-canceled'
+    case 'canceled-notified':
+      return 'session-canceled-notified'
+    case 'attended':
+      return 'attendance-attended'
+    case 'no-show':
+      return 'attendance-no-show'
+    case 'pending':
+      return 'attendance-pending'
+    case 'completed':
+      return 'session-completed'
+    default:
+      return null
+  }
 }
 
 function SessionRow({ session }: { session: SessionItem }) {
@@ -357,7 +367,7 @@ function SessionForm({ overview, session }: { overview: AdminSessionOverview; se
             <ShieldAlert className="mt-0.5 size-5 shrink-0 text-amber-800" aria-hidden="true" />
             <div>
               <p className="font-medium text-amber-950">Esta sesión ya tiene demanda</p>
-              <p className="mt-1 text-sm leading-6 text-amber-950/70">Cambiar clase, coach u horario afecta a {session!.reservedCount} reserva{session!.reservedCount === 1 ? '' : 's'} y {session!.waitlistCount} persona{session!.waitlistCount === 1 ? '' : 's'} en espera. WellStudio todavía no les envía una notificación automática.</p>
+              <p className="mt-1 text-sm leading-6 text-amber-950/70">Cambiar clase, coach u horario afecta a {session!.reservedCount} reserva{session!.reservedCount === 1 ? '' : 's'} y {session!.waitlistCount} persona{session!.waitlistCount === 1 ? '' : 's'} en espera. Al guardar, WellStudio preparará {session!.reservedCount + session!.waitlistCount} aviso{session!.reservedCount + session!.waitlistCount === 1 ? '' : 's'} transaccional{session!.reservedCount + session!.waitlistCount === 1 ? '' : 'es'}.</p>
             </div>
           </div>
           <Field label="Razón operativa" error={saveState?.field === 'impactReason' ? saveState.message : undefined}>
@@ -365,7 +375,7 @@ function SessionForm({ overview, session }: { overview: AdminSessionOverview; se
           </Field>
           <label className="mt-3 flex cursor-pointer items-start gap-3 text-sm leading-6 text-amber-950/80">
             <input name="acknowledgeMemberImpact" type="checkbox" className="mt-1 size-4 accent-amber-800" />
-            <span>He revisado el impacto y gestionaré la comunicación con las personas afectadas.</span>
+            <span>He revisado el impacto y confirmo el envío de los avisos a las personas afectadas.</span>
           </label>
         </div>
       ) : null}
@@ -514,7 +524,7 @@ function CancelSessionDialog({ session }: { session: SessionItem }) {
       <div className="mt-5 flex flex-col gap-3 rounded-[1.15rem] border border-[color:color-mix(in_srgb,var(--destructive)_18%,white)] bg-[color:color-mix(in_srgb,var(--destructive)_4%,white)] p-4 sm:flex-row sm:items-center sm:justify-between">
         <div>
           <p className="font-medium text-[var(--wellstudio-ink)]">Cancelar sesión</p>
-          <p className="mt-1 text-sm leading-6 text-muted-foreground">Cancela reservas, devuelve créditos y expira la lista de espera.</p>
+          <p className="mt-1 text-sm leading-6 text-muted-foreground">Cancela reservas, devuelve créditos, expira la lista de espera y avisa a las personas afectadas.</p>
         </div>
         <AlertDialogTrigger render={<Button type="button" variant="destructive" />}>
           Revisar cancelación
@@ -524,7 +534,7 @@ function CancelSessionDialog({ session }: { session: SessionItem }) {
         <AlertDialogHeader className="place-items-start text-left">
           <AlertDialogTitle className="text-xl">Cancelar {session.classTypeName}</AlertDialogTitle>
           <AlertDialogDescription className="text-left leading-6">
-            La sesión seguirá en el historial. Las reservas activas se cancelarán, los créditos se devolverán y nadie será promocionado desde la waitlist.
+            La sesión seguirá en el historial. Las reservas activas se cancelarán, los créditos se devolverán, la waitlist se cerrará y se prepararán {session.reservedCount + session.waitlistCount} aviso{session.reservedCount + session.waitlistCount === 1 ? '' : 's'} trazable{session.reservedCount + session.waitlistCount === 1 ? '' : 's'}.
           </AlertDialogDescription>
         </AlertDialogHeader>
         <form action={action} className="space-y-4">

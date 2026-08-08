@@ -121,5 +121,55 @@ describe('admin notification delivery overview', () => {
     expect(parseAdminNotificationStatusFilter('failed')).toBe('failed')
     expect(parseAdminNotificationEventFilter('unknown')).toBe('all')
     expect(parseAdminNotificationEventFilter('cancellation')).toBe('cancellation')
+    expect(parseAdminNotificationEventFilter('session')).toBe('session')
+  })
+
+  it('maps session-change payloads without exposing raw operational data', () => {
+    const overview = buildAdminNotificationDeliveryOverview({
+      status: 'sent',
+      event: 'session',
+      jobs: [
+        {
+          id: 'job-session',
+          eventType: 'SESSION_RESCHEDULED',
+          status: 'SENT',
+          recipient: 'ana@example.com',
+          payload: {
+            sessionId: 'session-1',
+            affectedRecordId: 'waitlist-1',
+            audience: 'WAITLIST',
+            memberName: 'Ana Socio',
+            className: 'Fuerza funcional',
+            coachName: 'Marta Coach',
+            locationLabel: 'Sala principal',
+            startsAt: '2026-08-10T16:00:00.000Z',
+            endsAt: '2026-08-10T16:50:00.000Z',
+            previous: null,
+            reason: 'Ajuste operativo',
+          },
+          referenceId: 'session-1',
+          attemptCount: 1,
+          availableAt: now,
+          lockedAt: null,
+          sentAt: now,
+          providerMessageId: 'resend-1',
+          lastError: null,
+          createdAt: now,
+          updatedAt: now,
+        },
+      ],
+      failedCount: 0,
+      activeCount: 0,
+      sentRecentCount: 1,
+      selectedJob: null,
+      now,
+    })
+
+    expect(overview.jobs[0]).toMatchObject({
+      eventLabel: 'Sesión actualizada',
+      contextTitle: 'Sesión comunicada',
+      audienceLabel: 'Lista de espera',
+      memberName: 'Ana Socio',
+    })
   })
 })

@@ -5,14 +5,14 @@ Estado: active operations guide
 
 ## Objetivo
 
-WellStudio envia emails transaccionales al socio cuando una reserva se confirma, se cancela o una entrada en waitlist se promociona automaticamente. La reserva es siempre la fuente de verdad: una incidencia de Resend no revierte ni convierte en error una operacion de dominio ya confirmada.
+WellStudio envia emails transaccionales al socio cuando una reserva se confirma, se cancela, una entrada en waitlist se promociona o el centro cambia materialmente una sesion con demanda. El dominio es siempre la fuente de verdad: una incidencia de Resend no revierte ni convierte en error una operacion ya confirmada.
 
 ## Flujo
 
-1. La mutacion de reserva o cancelacion valida las reglas de dominio.
-2. Dentro de la misma transaccion Prisma persiste la reserva y un `NotificationJob` con snapshot de destinatario y sesion.
+1. La mutacion de reserva, sesion o cancelacion valida las reglas de dominio.
+2. Dentro de la misma transaccion Prisma persiste el cambio y cada `NotificationJob` con snapshot de destinatario y sesion.
 3. La server action responde al socio y programa el primer intento con `after()` de Next.js, siempre despues del commit y sin bloquear el feedback de UI.
-4. Resend recibe una `Idempotency-Key` estable con formato `reservation_booked/<id>`, `reservation_canceled/<id>` o `waitlist_promoted/<id>`.
+4. Resend recibe una `Idempotency-Key` estable. Las reservas usan `reservation_booked/<id>`, `reservation_canceled/<id>` o `waitlist_promoted/<id>`. Los cambios de agenda incluyen evento, sesion, operacion, audiencia y registro afectado para admitir varias reprogramaciones sin duplicar una misma operacion.
 5. Cada resultado crea un `NotificationDeliveryAttempt` y actualiza el estado del job.
 6. Los fallos quedan en `FAILED` con backoff; un cron protegido recupera jobs vencidos o locks abandonados.
 
@@ -34,6 +34,8 @@ CRON_SECRET=un-secreto-largo-y-aleatorio
 ```
 
 `TRANSACTIONAL_NOTIFICATION_FROM` puede omitir temporalmente su valor y usar `LEAD_NOTIFICATION_FROM` como fallback, pero production debe declararla de forma explicita para separar responsabilidades.
+
+Los eventos `SESSION_RESCHEDULED` y `SESSION_CANCELED` requieren aplicar la migracion `20260808020000_mig124_session_change_notifications` en cada entorno mediante `pnpm db:migrate:deploy`. La migracion esta aplicada en sandbox/preview; production debe desplegarla antes de publicar el codigo que genere esos eventos.
 
 Vercel añade `Authorization: Bearer $CRON_SECRET` a la invocacion programada. El endpoint devuelve `401` sin token correcto y `503` cuando el entorno no esta configurado.
 
@@ -95,6 +97,8 @@ Incluido:
 - confirmacion de reserva directa
 - confirmacion de cancelacion por el socio
 - confirmacion de plaza obtenida por promocion automatica desde waitlist
+- aviso por cambio de horario, clase o coach a reservas activas y waitlist activa
+- aviso por cancelacion administrativa, incluida la razon operativa
 - HTML responsive y fallback de texto
 - idempotencia, auditoria y recuperacion
 - monitor admin con filtros, detalle seguro y reintento manual auditable
@@ -103,5 +107,4 @@ Pendiente de decision de producto:
 
 - recordatorios previos
 - entrada y salida de waitlist
-- preferencias de comunicacion
-- panel admin de observabilidad
+- preferencias de canal y comunicacion

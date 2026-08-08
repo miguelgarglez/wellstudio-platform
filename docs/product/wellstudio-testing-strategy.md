@@ -322,6 +322,10 @@ Para agenda admin, el gate dirigido debe cubrir:
 - creacion, cambio de estado y persistencia tras recarga en E2E
 - edicion enfocada con feedback, persistencia tras recarga y rechazo de versiones obsoletas
 - confirmacion y razon auditada al cambiar clase, coach u horario con reservas o waitlist activa
+- outbox atomico por cada reserva y entrada de waitlist afectada al reprogramar o cancelar
+- idempotencia por operacion, audiencia y registro afectado, sin colisionar reprogramaciones sucesivas
+- emails responsive que comparan horario anterior/actual o explican cancelacion y razon
+- feedback admin visible sobre la sheet y aparicion segura del evento en Entregas
 - detalle de sesion a ancho completo en mobile
 - check-in cerrado hasta dos horas antes del inicio
 - consistencia entre `Reservation.status` y `attendanceStatus`

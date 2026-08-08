@@ -1032,7 +1032,9 @@ Eso deja una base suficientemente seria para construir sin caer ni en un schema 
 
 La superficie `/admin/sessions` opera sobre `ClassSession` sin duplicar estado de agenda. Los cambios sensibles generan `AuditLog` con actor y contexto.
 
-La cancelacion administrativa es una unica transaccion: cambia la sesion a `CANCELED`, cancela reservas `BOOKED`, devuelve consumos `CREDIT`, expira entradas `WAITING`/`NOTIFIED` y fija `reservedCount` a cero. No elimina filas ni promociona waitlist durante una cancelacion masiva.
+La cancelacion administrativa es una unica transaccion: toma la audiencia activa, crea jobs `SESSION_CANCELED`, cambia la sesion a `CANCELED`, cancela reservas `BOOKED`, devuelve consumos `CREDIT`, expira entradas `WAITING`/`NOTIFIED` y fija `reservedCount` a cero. No elimina filas ni promociona waitlist durante una cancelacion masiva. El email se entrega despues del commit y un fallo del proveedor no revierte la cancelacion.
+
+Una edicion material de horario, tipo de clase o coach con demanda crea jobs `SESSION_RESCHEDULED` en la misma transaccion que actualiza `ClassSession`. El payload conserva snapshots anterior y actual, razon, audiencia (`RESERVATION` o `WAITLIST`) y un `operationId` comun. Ubicacion, capacidad o configuracion de waitlist no disparan este evento en la slice actual.
 
 El catalogo operativo vive en `/admin/sessions/catalog` y administra `ClassType` y `Coach` sin duplicar esos conceptos en modelos de UI. Crear, editar, archivar, desactivar o reactivar genera `AuditLog`. El archivado nunca elimina historico y se bloquea mientras existan sesiones futuras operables (`DRAFT`, `PUBLISHED` o `CLOSED`) que dependan del recurso.
 
