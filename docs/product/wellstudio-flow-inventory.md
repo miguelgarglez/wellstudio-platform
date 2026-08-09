@@ -269,7 +269,7 @@ Cuando el socio cancela dentro de la ventana permitida, la misma transaccion que
 
 Si la cancelacion libera una plaza con waitlist activa, la misma transaccion promociona por orden a la primera entrada elegible, crea su reserva `SYSTEM`, marca la entrada como `PROMOTED` y persiste un job `WAITLIST_PROMOTED`. El email confirma una plaza efectiva, no una oferta pendiente de aceptar. Entrar o salir de waitlist no genera email en esta slice.
 
-Los recordatorios previos siguen fuera de esta slice: requieren reglas de producto propias y no deben inferirse del outbox base.
+Cada ejecucion diaria calcula la agenda del dia siguiente en `Europe/Madrid` y crea un unico job `RESERVATION_REMINDER` por reserva `BOOKED` sobre sesiones `PUBLISHED` o `CLOSED`. Antes del envio, el dispatcher revalida la reserva y suprime con estado `CANCELED` cualquier recordatorio obsoleto, sin registrar un intento de proveedor. El comportamiento esta cubierto frente a cambios DST, reejecuciones y cancelaciones posteriores a la programacion.
 
 ## 7. Bloqueo por elegibilidad
 

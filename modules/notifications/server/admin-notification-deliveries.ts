@@ -13,12 +13,13 @@ const LIST_LIMIT = 40
 const RECENT_WINDOW_MS = 24 * 60 * 60 * 1_000
 const WELLSTUDIO_TIME_ZONE = 'Europe/Madrid'
 
-export type AdminNotificationStatusFilter = 'all' | 'failed' | 'pending' | 'sent'
+export type AdminNotificationStatusFilter = 'all' | 'failed' | 'pending' | 'sent' | 'canceled'
 export type AdminNotificationEventFilter =
   | 'all'
   | 'booking'
   | 'cancellation'
   | 'promotion'
+  | 'reminder'
   | 'session'
   | 'purchase'
 
@@ -167,13 +168,15 @@ export function buildAdminNotificationDeliveryOverview(input: {
 export function parseAdminNotificationStatusFilter(
   value?: string | null,
 ): AdminNotificationStatusFilter {
-  return value === 'failed' || value === 'pending' || value === 'sent' ? value : 'all'
+  return value === 'failed' || value === 'pending' || value === 'sent' || value === 'canceled'
+    ? value
+    : 'all'
 }
 
 export function parseAdminNotificationEventFilter(
   value?: string | null,
 ): AdminNotificationEventFilter {
-  return value === 'booking' || value === 'cancellation' || value === 'promotion' || value === 'session' || value === 'purchase'
+  return value === 'booking' || value === 'cancellation' || value === 'promotion' || value === 'reminder' || value === 'session' || value === 'purchase'
     ? value
     : 'all'
 }
@@ -189,6 +192,8 @@ function buildNotificationListWhere(input: {
         ? ['PENDING', 'PROCESSING']
         : input.status === 'sent'
           ? ['SENT']
+          : input.status === 'canceled'
+            ? ['CANCELED']
           : undefined
   const eventType: Prisma.NotificationJobWhereInput['eventType'] =
     input.event === 'booking'
@@ -197,6 +202,8 @@ function buildNotificationListWhere(input: {
         ? 'RESERVATION_CANCELED'
         : input.event === 'promotion'
           ? 'WAITLIST_PROMOTED'
+          : input.event === 'reminder'
+            ? 'RESERVATION_REMINDER'
           : input.event === 'session'
           ? { in: ['SESSION_RESCHEDULED', 'SESSION_CANCELED'] }
           : input.event === 'purchase'
@@ -271,11 +278,15 @@ function readNotificationPayload(eventType: NotificationEventType, value: Prisma
 
   try {
     const payload = parseReservationNotificationPayload(value)
+    const isReminder = eventType === 'RESERVATION_REMINDER'
     return {
       ...payload,
-      contextTitle: 'Reserva comunicada',
-      audienceLabel: 'Reserva confirmada',
-      contextFields: buildSessionContextFields(payload, 'Reserva confirmada'),
+      contextTitle: isReminder ? 'Recordatorio programado' : 'Reserva comunicada',
+      audienceLabel: isReminder ? 'Agenda de mañana' : 'Reserva confirmada',
+      contextFields: buildSessionContextFields(
+        payload,
+        isReminder ? 'Agenda de mañana' : 'Reserva confirmada',
+      ),
     }
   } catch {
     try {
@@ -302,6 +313,8 @@ function formatNotificationEvent(eventType: NotificationEventType) {
       return 'Reserva confirmada'
     case 'RESERVATION_CANCELED':
       return 'Cancelación confirmada'
+    case 'RESERVATION_REMINDER':
+      return 'Recordatorio de reserva'
     case 'WAITLIST_PROMOTED':
       return 'Promoción desde waitlist'
     case 'SESSION_RESCHEDULED':
@@ -352,6 +365,7 @@ function assertNever(value: never): never {
 function formatNotificationStatus(status: NotificationJobStatus) {
   if (status === 'FAILED') return { label: 'Fallida', tone: 'danger' as const }
   if (status === 'SENT') return { label: 'Enviada', tone: 'success' as const }
+  if (status === 'CANCELED') return { label: 'Suprimida', tone: 'neutral' as const }
   if (status === 'PROCESSING') return { label: 'Procesando', tone: 'blue' as const }
   return { label: 'Pendiente', tone: 'neutral' as const }
 }

@@ -1,6 +1,7 @@
 import { NextResponse } from 'next/server'
 
 import { dispatchDueNotificationJobs } from '@/modules/notifications/server/notification-outbox'
+import { scheduleNextDayReservationReminders } from '@/modules/notifications/server/reservation-reminders'
 
 export async function GET(request: Request) {
   const cronSecret = process.env.CRON_SECRET
@@ -13,6 +14,7 @@ export async function GET(request: Request) {
     return NextResponse.json({ error: 'Unauthorized.' }, { status: 401 })
   }
 
-  const summary = await dispatchDueNotificationJobs()
-  return NextResponse.json(summary)
+  const reminders = await scheduleNextDayReservationReminders()
+  const delivery = await dispatchDueNotificationJobs({ limit: 100 })
+  return NextResponse.json({ reminders, delivery })
 }

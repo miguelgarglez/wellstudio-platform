@@ -177,6 +177,7 @@ enum LeadActivityType {
 enum NotificationEventType {
   RESERVATION_BOOKED
   RESERVATION_CANCELED
+  RESERVATION_REMINDER
   WAITLIST_PROMOTED
   SESSION_RESCHEDULED
   SESSION_CANCELED
@@ -188,6 +189,7 @@ enum NotificationJobStatus {
   PROCESSING
   SENT
   FAILED
+  CANCELED
 }
 
 enum NotificationAttemptStatus {

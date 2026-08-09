@@ -1,0 +1,2 @@
+ALTER TYPE "NotificationEventType" ADD VALUE 'RESERVATION_REMINDER';
+ALTER TYPE "NotificationJobStatus" ADD VALUE 'CANCELED';

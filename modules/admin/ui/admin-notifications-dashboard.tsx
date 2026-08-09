@@ -35,6 +35,7 @@ const STATUS_FILTERS: Array<{
   { value: 'failed', label: 'Fallidas' },
   { value: 'pending', label: 'En curso' },
   { value: 'sent', label: 'Enviadas' },
+  { value: 'canceled', label: 'Suprimidas' },
 ]
 
 const EVENT_FILTERS: Array<{
@@ -45,6 +46,7 @@ const EVENT_FILTERS: Array<{
   { value: 'booking', label: 'Reservas' },
   { value: 'cancellation', label: 'Cancelaciones' },
   { value: 'promotion', label: 'Waitlist' },
+  { value: 'reminder', label: 'Recordatorios' },
   { value: 'session', label: 'Agenda' },
   { value: 'purchase', label: 'Compras' },
 ]
@@ -285,11 +287,17 @@ function NotificationDetail({
       ) : (
         <section className="rounded-[1.25rem] border border-[color:color-mix(in_srgb,var(--wellstudio-blue)_12%,white)] bg-[color:color-mix(in_srgb,var(--wellstudio-blue)_5%,white)] px-4 py-4">
           <p className="font-medium text-[var(--wellstudio-ink)]">
-            {job.status === 'SENT' ? 'Entrega completada' : 'No requiere intervención'}
+            {job.status === 'SENT'
+              ? 'Entrega completada'
+              : job.status === 'CANCELED'
+                ? 'Recordatorio suprimido'
+                : 'No requiere intervención'}
           </p>
           <p className="mt-1 text-sm leading-6 text-[color:color-mix(in_srgb,var(--foreground)_66%,white)]">
             {job.status === 'SENT'
               ? `El proveedor confirmó el envío${job.sentAtLabel ? ` el ${job.sentAtLabel}` : ''}.`
+              : job.status === 'CANCELED'
+                ? job.lastError ?? 'La entrega dejó de ser relevante antes de contactar al proveedor.'
               : 'El dispatcher ya tiene esta entrega pendiente o en procesamiento.'}
           </p>
         </section>

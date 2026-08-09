@@ -14,6 +14,8 @@ import {
 import {
   ADMIN_NOTIFICATIONS_FAILED_JOB_ID,
   ADMIN_NOTIFICATIONS_FAILED_RECIPIENT,
+  ADMIN_NOTIFICATIONS_CANCELED_REMINDER_JOB_ID,
+  ADMIN_NOTIFICATIONS_CANCELED_REMINDER_RECIPIENT,
   ADMIN_NOTIFICATIONS_PURCHASE_JOB_ID,
   ADMIN_NOTIFICATIONS_PURCHASE_RECIPIENT,
   prepareSandboxAdminNotificationsFixture,
@@ -123,6 +125,38 @@ test.describe('Admin notification deliveries @admin @sandbox', () => {
     const screenshot = testInfo.outputPath('admin-notifications-purchase-desktop.png')
     await page.screenshot({ path: screenshot, fullPage: true })
     await testInfo.attach('admin-notifications-purchase-desktop', {
+      path: screenshot,
+      contentType: 'image/png',
+    })
+  })
+
+  test('admin identifies reminders suppressed before delivery', async ({ page }, testInfo) => {
+    await prepareSandboxAdminNotificationsFixture()
+    await loginAsSandboxAdmin(page)
+    await page.goto('/admin/notifications')
+
+    await page.getByRole('link', { name: 'Suprimidas', exact: true }).click()
+    await expect(page).toHaveURL(/status=canceled/)
+    await page.getByRole('link', { name: 'Recordatorios', exact: true }).click()
+    await expect(page).toHaveURL(/status=canceled.*event=reminder|event=reminder.*status=canceled/)
+    await page.getByRole('link', {
+      name: new RegExp(ADMIN_NOTIFICATIONS_CANCELED_REMINDER_RECIPIENT),
+    }).click()
+
+    const detail = page.getByRole('region', { name: 'Recordatorio de reserva' })
+    await expect(detail.getByRole('heading', { name: 'Recordatorio programado' })).toBeVisible()
+    await expect(detail.getByText('Recordatorio suprimido')).toBeVisible()
+    await expect(
+      detail.getByText('La reserva o la sesión dejó de ser válida antes del recordatorio.'),
+    ).toBeVisible()
+    await expect(detail.getByText('Agenda de mañana')).toBeVisible()
+    await expect(page).toHaveURL(
+      new RegExp(`delivery=${ADMIN_NOTIFICATIONS_CANCELED_REMINDER_JOB_ID}`),
+    )
+
+    const screenshot = testInfo.outputPath('admin-notifications-reminder-suppressed.png')
+    await page.screenshot({ path: screenshot, fullPage: true })
+    await testInfo.attach('admin-notifications-reminder-suppressed', {
       path: screenshot,
       contentType: 'image/png',
     })

@@ -8,6 +8,9 @@ const { prismaMock } = vi.hoisted(() => ({
       findMany: vi.fn(),
       update: vi.fn(),
     },
+    reservation: {
+      findFirst: vi.fn(),
+    },
     notificationDeliveryAttempt: {
       create: vi.fn(),
     },
@@ -430,10 +433,41 @@ describe('notification outbox', () => {
       sent: 0,
       failed: 0,
       skipped: 0,
+      canceled: 0,
     })
     expect(prismaMock.notificationJob.findMany).toHaveBeenCalledWith(
       expect.objectContaining({ take: 100 }),
     )
+  })
+
+  it('suppresses a stale reminder without calling the email provider', async () => {
+    prismaMock.notificationJob.updateMany.mockResolvedValue({ count: 1 })
+    prismaMock.notificationJob.findUniqueOrThrow.mockResolvedValue({
+      id: 'job-reminder-1',
+      eventType: 'RESERVATION_REMINDER',
+      recipient: 'ana@example.com',
+      payload,
+      idempotencyKey: 'reservation_reminder/reservation-1',
+      attemptCount: 1,
+    })
+    prismaMock.reservation.findFirst.mockResolvedValue(null)
+    const sender = { send: vi.fn() }
+
+    await expect(dispatchNotificationJob('job-reminder-1', { sender, now })).resolves.toEqual({
+      status: 'canceled',
+      jobId: 'job-reminder-1',
+    })
+
+    expect(sender.send).not.toHaveBeenCalled()
+    expect(prismaMock.notificationDeliveryAttempt.create).not.toHaveBeenCalled()
+    expect(prismaMock.notificationJob.update).toHaveBeenCalledWith({
+      where: { id: 'job-reminder-1' },
+      data: expect.objectContaining({
+        status: 'CANCELED',
+        lockedAt: null,
+        attemptCount: { decrement: 1 },
+      }),
+    })
   })
 })
 
@@ -496,6 +530,18 @@ describe('reservation email', () => {
     expect(email.subject).toContain('Ya tienes plaza')
     expect(email.html).toContain('Has conseguido plaza')
     expect(email.text).toContain('se ha convertido automáticamente en reserva')
+  })
+
+  it('renders a next-day reminder without implying a new booking', () => {
+    const email = buildReservationEmail({
+      eventType: 'RESERVATION_REMINDER',
+      payload,
+      portalUrl: 'https://wellstudio.example/app/reservations',
+    })
+
+    expect(email.subject).toBe('Recordatorio de reserva · Fuerza <Total>')
+    expect(email.html).toContain('Mañana tienes clase')
+    expect(email.text).toContain('Tu plaza sigue confirmada')
   })
 })
 

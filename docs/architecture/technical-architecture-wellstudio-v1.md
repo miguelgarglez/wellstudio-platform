@@ -652,12 +652,13 @@ Reglas operativas:
 - una operacion de negocio confirmada no se revierte si falla el proveedor de correo
 - el job y la reserva se crean o actualizan atomicamente
 - la cancelacion puede crear dos jobs en la misma transaccion: confirmacion para quien cancela y promocion para el siguiente socio elegible
-- los eventos actuales son `RESERVATION_BOOKED`, `RESERVATION_CANCELED`, `WAITLIST_PROMOTED`, `SESSION_RESCHEDULED` y `SESSION_CANCELED`
+- los eventos actuales son `RESERVATION_BOOKED`, `RESERVATION_CANCELED`, `WAITLIST_PROMOTED`, `RESERVATION_REMINDER`, `SESSION_RESCHEDULED` y `SESSION_CANCELED`
 - un cambio administrativo de horario, clase o coach crea un job por reserva `BOOKED` y entrada `WAITING`/`NOTIFIED`; una cancelacion toma esa audiencia antes de cerrar sus estados
 - cada operacion administrativa usa un `operationId` comun y una clave unica por audiencia y registro afectado, de modo que una reprogramacion posterior sea un evento nuevo sin duplicar la anterior
 - el transporte vive fuera de la transaccion de reserva
 - la clave estable por evento y entidad afectada se propaga a Resend para evitar duplicados
 - los intentos fallidos usan backoff y los locks abandonados se pueden reclamar
+- el cron diario calcula la agenda de manana en `Europe/Madrid`; la unicidad por reserva hace segura su reejecucion y el dispatcher suprime recordatorios que ya no son relevantes
 - el reintento admin usa estado y version esperados, conserva la numeracion de intentos y crea `AuditLog`
 - el read model admin transforma el payload a contexto seguro; no entrega JSON arbitrario a React
 

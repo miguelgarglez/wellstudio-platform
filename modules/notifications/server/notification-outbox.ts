@@ -320,6 +320,14 @@ export async function dispatchNotificationJob(
 
   if (!job) return { status: 'skipped' as const, jobId }
 
+  if (job.eventType === 'RESERVATION_REMINDER') {
+    const isRelevant = await isReservationReminderRelevant(job, now)
+    if (!isRelevant) {
+      await markNotificationCanceled(job, now)
+      return { status: 'canceled' as const, jobId }
+    }
+  }
+
   const sender = dependencies.sender ?? resendTransactionalEmailSender
 
   try {
@@ -364,7 +372,7 @@ export async function dispatchDueNotificationJobs(
     orderBy: [{ availableAt: 'asc' }, { createdAt: 'asc' }],
     take: Math.min(Math.max(input.limit ?? DEFAULT_BATCH_SIZE, 1), 100),
   })
-  const summary = { examined: ids.length, sent: 0, failed: 0, skipped: 0 }
+  const summary = { examined: ids.length, sent: 0, failed: 0, skipped: 0, canceled: 0 }
 
   for (const { id } of ids) {
     const result = await dispatchNotificationJobSafely(id, { now })
@@ -481,6 +489,34 @@ async function markNotificationFailed(
       },
     }),
   ])
+}
+
+async function isReservationReminderRelevant(job: ClaimedNotificationJob, now: Date) {
+  const payload = parseReservationNotificationPayload(job.payload)
+  return Boolean(await prisma.reservation.findFirst({
+    where: {
+      id: payload.reservationId,
+      status: 'BOOKED',
+      classSession: {
+        startsAt: { gt: now },
+        status: { in: ['PUBLISHED', 'CLOSED'] },
+      },
+    },
+    select: { id: true },
+  }))
+}
+
+async function markNotificationCanceled(job: ClaimedNotificationJob, now: Date) {
+  await prisma.notificationJob.update({
+    where: { id: job.id },
+    data: {
+      status: 'CANCELED',
+      lockedAt: null,
+      attemptCount: { decrement: 1 },
+      lastError: 'La reserva o la sesión dejó de ser válida antes del recordatorio.',
+      updatedAt: now,
+    },
+  })
 }
 
 function resolveReservationsUrl(override?: string) {

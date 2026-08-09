@@ -10,6 +10,10 @@ export const ADMIN_NOTIFICATIONS_FAILED_RECIPIENT =
 export const ADMIN_NOTIFICATIONS_PURCHASE_JOB_ID = 'e2e-admin-notification-purchase'
 export const ADMIN_NOTIFICATIONS_PURCHASE_RECIPIENT =
   'e2e.purchase.sandbox@wellstudio.test'
+export const ADMIN_NOTIFICATIONS_CANCELED_REMINDER_JOB_ID =
+  'e2e-admin-notification-canceled-reminder'
+export const ADMIN_NOTIFICATIONS_CANCELED_REMINDER_RECIPIENT =
+  'e2e.reminder.sandbox@wellstudio.test'
 const FIXTURE_REFERENCE_TYPE = 'e2e_admin_notifications'
 
 const payload = {
@@ -77,6 +81,13 @@ export async function prepareSandboxAdminNotificationsFixture() {
           'e2e_admin_notifications/purchase', $4, 'e2e-payment-purchase', 1,
           now() - interval '20 minutes', now() - interval '20 minutes',
           'e2e-provider-purchase', null, now() - interval '20 minutes', now() - interval '20 minutes'
+        ),
+        (
+          $8, 'RESERVATION_REMINDER', 'CANCELED', $9, $3::jsonb,
+          'e2e_admin_notifications/canceled-reminder', $4, 'e2e-reservation-reminder', 0,
+          now() - interval '10 minutes', null, null,
+          'La reserva o la sesión dejó de ser válida antes del recordatorio.',
+          now() - interval '10 minutes', now() - interval '10 minutes'
         )
       `,
       [
@@ -87,6 +98,8 @@ export async function prepareSandboxAdminNotificationsFixture() {
         ADMIN_NOTIFICATIONS_PURCHASE_JOB_ID,
         ADMIN_NOTIFICATIONS_PURCHASE_RECIPIENT,
         JSON.stringify(purchasePayload),
+        ADMIN_NOTIFICATIONS_CANCELED_REMINDER_JOB_ID,
+        ADMIN_NOTIFICATIONS_CANCELED_REMINDER_RECIPIENT,
       ],
     )
 

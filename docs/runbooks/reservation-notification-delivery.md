@@ -5,7 +5,7 @@ Estado: active operations guide
 
 ## Objetivo
 
-WellStudio envia emails transaccionales al socio cuando una reserva se confirma, se cancela, una entrada en waitlist se promociona o el centro cambia materialmente una sesion con demanda. El dominio es siempre la fuente de verdad: una incidencia de Resend no revierte ni convierte en error una operacion ya confirmada.
+WellStudio envia emails transaccionales al socio cuando una reserva se confirma, se cancela, una entrada en waitlist se promociona, el centro cambia materialmente una sesion con demanda o se acerca una reserva del dia siguiente. El dominio es siempre la fuente de verdad: una incidencia de Resend no revierte ni convierte en error una operacion ya confirmada.
 
 ## Flujo
 
@@ -14,7 +14,13 @@ WellStudio envia emails transaccionales al socio cuando una reserva se confirma,
 3. La server action responde al socio y programa el primer intento con `after()` de Next.js, siempre despues del commit y sin bloquear el feedback de UI.
 4. Resend recibe una `Idempotency-Key` estable. Las reservas usan `reservation_booked/<id>`, `reservation_canceled/<id>` o `waitlist_promoted/<id>`. Los cambios de agenda incluyen evento, sesion, operacion, audiencia y registro afectado para admitir varias reprogramaciones sin duplicar una misma operacion.
 5. Cada resultado crea un `NotificationDeliveryAttempt` y actualiza el estado del job.
-6. Los fallos quedan en `FAILED` con backoff; un cron protegido recupera jobs vencidos o locks abandonados.
+6. Los fallos quedan en `FAILED` con backoff; un cron protegido crea recordatorios para la agenda de manana y recupera jobs vencidos o locks abandonados.
+
+### Recordatorios del dia siguiente
+
+El cron diario calcula el siguiente dia natural en `Europe/Madrid`, no un intervalo movil de 24 horas. Selecciona reservas `BOOKED` de sesiones futuras `PUBLISHED` o `CLOSED` y crea como maximo un job `RESERVATION_REMINDER` por reserva con la clave `reservation_reminder/<reservationId>`. La insercion usa unicidad atomica en Postgres, por lo que reejecutar el cron es seguro incluso con workers concurrentes.
+
+Antes de contactar con Resend, el dispatcher vuelve a comprobar la reserva y la sesion. Si dejaron de ser validas, el job pasa a `CANCELED` sin crear `NotificationDeliveryAttempt` ni consumir un intento. Esta supresion evita recordatorios obsoletos sin borrar la trazabilidad.
 
 Resend conserva sus claves de idempotencia durante 24 horas. La unicidad permanente en Postgres complementa esa ventana e impide crear dos jobs para el mismo evento.
 
@@ -35,7 +41,7 @@ CRON_SECRET=un-secreto-largo-y-aleatorio
 
 `TRANSACTIONAL_NOTIFICATION_FROM` puede omitir temporalmente su valor y usar `LEAD_NOTIFICATION_FROM` como fallback, pero production debe declararla de forma explicita para separar responsabilidades.
 
-Los eventos `SESSION_RESCHEDULED` y `SESSION_CANCELED` requieren aplicar la migracion `20260808020000_mig124_session_change_notifications` en cada entorno mediante `pnpm db:migrate:deploy`. La migracion esta aplicada en sandbox/preview; production debe desplegarla antes de publicar el codigo que genere esos eventos.
+Los eventos `SESSION_RESCHEDULED` y `SESSION_CANCELED` requieren la migracion `20260808020000_mig124_session_change_notifications`. Los recordatorios y su estado terminal requieren `20260809140000_mig129_reservation_reminders`. Cada entorno debe aplicar ambas mediante `pnpm db:migrate:deploy` antes de publicar el codigo correspondiente.
 
 Vercel añade `Authorization: Bearer $CRON_SECRET` a la invocacion programada. El endpoint devuelve `401` sin token correcto y `503` cuando el entorno no esta configurado.
 
@@ -45,12 +51,13 @@ Vercel añade `Authorization: Bearer $CRON_SECRET` a la invocacion programada. E
 - `PROCESSING`: reclamado por un worker; un lock de mas de 10 minutos se considera abandonado.
 - `SENT`: Resend confirmo la entrega API y se guardo su message id.
 - `FAILED`: el ultimo intento fallo; `availableAt` marca el siguiente reintento.
+- `CANCELED`: el dispatcher suprimio deliberadamente un recordatorio obsoleto; no es un fallo ni se reintenta.
 
 El backoff es 5 minutos, 30 minutos, 2 horas, 12 horas y 24 horas. Tras cinco intentos el job conserva el error para inspeccion manual y deja de reclamarse automaticamente.
 
 ## Recuperacion
 
-El primer intento se registra como trabajo post-respuesta con `after()`: Vercel mantiene la funcion activa, pero el socio no espera a Resend para ver cerrarse el dialogo. El cron de `vercel.json` se ejecuta una vez al dia para ser compatible con Vercel Hobby. En planes Pro puede aumentarse la frecuencia sin cambiar el endpoint.
+El primer intento se registra como trabajo post-respuesta con `after()`: Vercel mantiene la funcion activa, pero el socio no espera a Resend para ver cerrarse el dialogo. El cron de `vercel.json` se ejecuta una vez al dia para ser compatible con Vercel Hobby y drena un maximo de 100 jobs por ejecucion. Este limite cubre la operacion V1 sin convertir una funcion serverless en un worker sin cota; si el volumen diario se acerca a ese umbral, se debe aumentar la frecuencia o adoptar un consumidor dedicado antes de escalar trafico.
 
 Ejecucion manual segura:
 
@@ -60,7 +67,7 @@ curl --fail \
   https://wellstudio.miguelgarglez.com/api/internal/notifications/dispatch
 ```
 
-La respuesta solo contiene contadores `examined`, `sent`, `failed` y `skipped`; no expone destinatarios ni payloads.
+La respuesta separa `reminders` y `delivery`. Solo contiene ventanas temporales y contadores `examined`, `scheduled`, `sent`, `failed`, `skipped` y `canceled`; no expone destinatarios ni payloads.
 
 ### Recuperacion desde admin
 
@@ -99,12 +106,13 @@ Incluido:
 - confirmacion de plaza obtenida por promocion automatica desde waitlist
 - aviso por cambio de horario, clase o coach a reservas activas y waitlist activa
 - aviso por cancelacion administrativa, incluida la razon operativa
+- recordatorio de la agenda del dia siguiente en zona horaria de Madrid
+- supresion trazable de recordatorios obsoletos
 - HTML responsive y fallback de texto
 - idempotencia, auditoria y recuperacion
 - monitor admin con filtros, detalle seguro y reintento manual auditable
 
 Pendiente de decision de producto:
 
-- recordatorios previos
 - entrada y salida de waitlist
 - preferencias de canal y comunicacion

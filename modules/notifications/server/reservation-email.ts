@@ -11,6 +11,7 @@ export type ReservationNotificationPayload = {
 export type ReservationEmailEvent =
   | 'RESERVATION_BOOKED'
   | 'RESERVATION_CANCELED'
+  | 'RESERVATION_REMINDER'
   | 'WAITLIST_PROMOTED'
 
 const TIME_ZONE = 'Europe/Madrid'
@@ -87,6 +88,13 @@ function buildEventCopy(eventType: ReservationEmailEvent, className: string) {
         heading: 'Tu reserva se ha cancelado',
         subject: `Reserva cancelada · ${className}`,
         summary: 'La plaza se ha liberado y tu portal ya refleja el cambio.',
+      }
+    case 'RESERVATION_REMINDER':
+      return {
+        eyebrow: 'Tu agenda de mañana',
+        heading: 'Mañana tienes clase',
+        subject: `Recordatorio de reserva · ${className}`,
+        summary: 'Tu plaza sigue confirmada. Aquí tienes los datos para llegar con todo claro.',
       }
     case 'WAITLIST_PROMOTED':
       return {

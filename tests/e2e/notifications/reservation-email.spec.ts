@@ -63,3 +63,21 @@ test('waitlist promotion email makes the automatic booking explicit', async ({ p
   expect(await page.evaluate(() => document.documentElement.scrollWidth - window.innerWidth)).toBeLessThanOrEqual(1)
   await page.screenshot({ path: testInfo.outputPath('waitlist-promoted-mobile.png'), fullPage: true })
 })
+
+test('next-day reminder is clear and responsive', async ({ page }, testInfo) => {
+  const email = buildReservationEmail({
+    eventType: 'RESERVATION_REMINDER',
+    payload,
+    portalUrl: 'https://wellstudio.miguelgarglez.com/app/reservations',
+  })
+
+  await page.setViewportSize({ width: 390, height: 844 })
+  await page.setContent(email.html)
+
+  await expect(page.getByRole('heading', { name: 'Mañana tienes clase' })).toBeVisible()
+  await expect(page.getByText('Tu plaza sigue confirmada')).toBeVisible()
+  await expect(page.getByText('Fuerza funcional')).toBeVisible()
+  await expect(page.getByRole('link', { name: 'Ver mis reservas' })).toBeVisible()
+  expect(await page.evaluate(() => document.documentElement.scrollWidth - window.innerWidth)).toBeLessThanOrEqual(1)
+  await page.screenshot({ path: testInfo.outputPath('reservation-reminder-mobile.png'), fullPage: true })
+})
