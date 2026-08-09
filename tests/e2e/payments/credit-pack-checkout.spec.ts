@@ -1,4 +1,4 @@
-import { expect, test } from '@playwright/test'
+import { expect, test, type Page } from '@playwright/test'
 
 import { loginAsSandboxMember } from '../support/auth'
 import {
@@ -65,6 +65,7 @@ test.describe('Credit pack checkout @sandbox @payments', () => {
   test('confirmed checkout grants one immutable credit account', async ({ page }) => {
     await page.setViewportSize({ width: 390, height: 844 })
     await page.reload()
+    const initialCredits = await readAvailableCredits(page)
     await page.getByRole('button', { name: new RegExp(PAYMENT_E2E_PACK_NAME) }).click()
     const sheet = page.getByRole('dialog', { name: PAYMENT_E2E_PACK_NAME })
     await expect(sheet).toBeVisible()
@@ -77,7 +78,7 @@ test.describe('Credit pack checkout @sandbox @payments', () => {
 
     await expect(page).toHaveURL(/checkout=success/)
     await expect(page.getByRole('status')).toContainText('Bono activado')
-    await expect(page.getByText('6 disponibles')).toBeVisible()
+    await expect(page.getByText(`${initialCredits + 6} disponibles`)).toBeVisible()
     await page.screenshot({ path: 'test-results/payment-confirmed-account-mobile.png' })
 
     const state = await readPaymentsFixtureState(fixture.memberId, fixture.creditPackId)
@@ -105,11 +106,7 @@ test.describe('Credit pack checkout @sandbox @payments', () => {
     await page.goto(`/app/account?checkout=success&payment=${paymentId}`)
     const processingFeedback = page.getByRole('status').filter({ hasText: 'Estamos confirmando el pago' })
     await expect(processingFeedback).toBeVisible()
-    const initialCreditsLocator = page.getByText(/^\d+ disponibles$/).first()
-    const initialCreditsLabel = await initialCreditsLocator.count() > 0
-      ? await initialCreditsLocator.textContent()
-      : null
-    const initialCredits = Number(initialCreditsLabel?.match(/^\d+/)?.[0] ?? 0)
+    const initialCredits = await readAvailableCredits(page)
 
     const processingScreenshot = testInfo.outputPath('payment-confirmation-processing.png')
     await page.waitForTimeout(250)
@@ -161,3 +158,10 @@ test.describe('Credit pack checkout @sandbox @payments', () => {
     await expect(feedback).toContainText('Estamos confirmando el pago')
   })
 })
+
+async function readAvailableCredits(page: Page) {
+  const credits = page.getByText(/^\d+ disponibles$/).first()
+  const label = await credits.count() > 0 ? await credits.textContent() : null
+
+  return Number(label?.match(/^\d+/)?.[0] ?? 0)
+}

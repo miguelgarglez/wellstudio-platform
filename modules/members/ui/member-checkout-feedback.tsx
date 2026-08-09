@@ -49,6 +49,16 @@ function CheckoutFeedbackSession({ notice }: { notice: NonNullable<MemberCheckou
     }
   }, [notice.kind, pollCycle, router])
 
+  useEffect(() => {
+    if (notice.kind !== 'success') return
+
+    const timeout = window.setTimeout(() => {
+      startTransition(() => router.refresh())
+    }, 300)
+
+    return () => window.clearTimeout(timeout)
+  }, [notice.kind, notice.instanceKey, router])
+
   function clearCheckoutContext() {
     router.replace('/app/account', { scroll: false })
   }
