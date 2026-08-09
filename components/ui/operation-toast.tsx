@@ -1,10 +1,15 @@
 'use client'
 
-import { useEffect, useState } from 'react'
+import { useEffect, useEffectEvent, useState, useSyncExternalStore } from 'react'
+import { createPortal } from 'react-dom'
 import { AlertCircle, CheckCircle2, Clock3, X } from 'lucide-react'
 
 import { Button } from '@/components/ui/button'
 import { cn } from '@/lib/utils'
+
+function subscribeToClient() {
+  return () => undefined
+}
 
 export function OperationToast({
   title,
@@ -12,23 +17,43 @@ export function OperationToast({
   duration = 5_000,
   className,
   variant = 'success',
+  actionLabel,
+  actionPending = false,
+  onAction,
+  onDismiss,
 }: {
   title: string
   description: string
-  duration?: number
+  duration?: number | null
   className?: string
   variant?: 'success' | 'neutral' | 'error' | 'processing'
+  actionLabel?: string
+  actionPending?: boolean
+  onAction?: () => void
+  onDismiss?: () => void
 }) {
   const [visible, setVisible] = useState(true)
+  const isClient = useSyncExternalStore(subscribeToClient, () => true, () => false)
+  const portalTarget = isClient ? document.body : null
+  const handleAutomaticDismiss = useEffectEvent(() => {
+    setVisible(false)
+    onDismiss?.()
+  })
 
   useEffect(() => {
-    const timeout = window.setTimeout(() => setVisible(false), duration)
+    if (duration === null) return
+    const timeout = window.setTimeout(handleAutomaticDismiss, duration)
     return () => window.clearTimeout(timeout)
   }, [duration])
 
-  if (!visible) return null
+  function dismiss() {
+    setVisible(false)
+    onDismiss?.()
+  }
 
-  return (
+  if (!visible || !portalTarget) return null
+
+  return createPortal(
     <div
       role="status"
       aria-live="polite"
@@ -56,17 +81,30 @@ export function OperationToast({
         <p className="mt-1 text-sm leading-6 text-[color:color-mix(in_srgb,var(--foreground)_70%,white)]">
           {description}
         </p>
+        {actionLabel && onAction ? (
+          <Button
+            type="button"
+            variant="ghost"
+            size="sm"
+            className="mt-2 -ml-3 rounded-full text-[var(--wellstudio-blue-deep)]"
+            disabled={actionPending}
+            onClick={onAction}
+          >
+            {actionPending ? 'Comprobando…' : actionLabel}
+          </Button>
+        ) : null}
       </div>
       <Button
         type="button"
         variant="ghost"
         size="icon-sm"
         className="-mr-2 -mt-2 shrink-0"
-        onClick={() => setVisible(false)}
+        onClick={dismiss}
       >
         <X className="size-4" aria-hidden="true" />
         <span className="sr-only">Cerrar confirmación</span>
       </Button>
-    </div>
+    </div>,
+    portalTarget,
   )
 }

@@ -2,6 +2,7 @@ import { describe, expect, it } from 'vitest'
 
 import type { AuthContext } from '@/modules/auth/server/identity'
 import {
+  buildCheckoutNotice,
   buildMemberAccountAlerts,
   buildMemberAccountOverview,
 } from '@/modules/members/server/member-account-overview'
@@ -39,6 +40,37 @@ describe('member account helpers', () => {
         hasLinkedCard: false,
       }).map((alert) => alert.kind),
     ).toEqual(['no-entitlement', 'pending-plan', 'no-card'])
+  })
+
+  it('observes only payments that are still awaiting provider confirmation', () => {
+    expect(buildCheckoutNotice({
+      checkout: 'success',
+      payment: { id: 'payment-pending', status: 'PENDING' },
+    })).toEqual({
+      kind: 'processing',
+      title: 'Estamos confirmando el pago',
+      description: 'El proveedor todavía está procesando la confirmación. Tus créditos aparecerán automáticamente.',
+      instanceKey: 'payment-pending',
+    })
+
+    expect(buildCheckoutNotice({
+      checkout: 'success',
+      payment: { id: 'payment-succeeded', status: 'SUCCEEDED' },
+    })).toMatchObject({ kind: 'success', instanceKey: 'payment-succeeded' })
+
+    expect(buildCheckoutNotice({
+      checkout: 'success',
+      payment: { id: 'payment-failed', status: 'FAILED' },
+    })).toMatchObject({ kind: 'failed', instanceKey: 'payment-failed' })
+  })
+
+  it('does not reveal whether a manipulated payment id belongs to another account', () => {
+    expect(buildCheckoutNotice({ checkout: 'success', payment: null })).toEqual({
+      kind: 'failed',
+      title: 'No pudimos verificar la compra',
+      description: 'No encontramos una compra vinculada a este regreso. Revisa tus pagos recientes o vuelve a intentarlo.',
+      instanceKey: 'checkout-success',
+    })
   })
 })
 

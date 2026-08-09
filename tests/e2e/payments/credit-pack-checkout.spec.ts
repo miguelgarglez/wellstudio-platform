@@ -87,4 +87,71 @@ test.describe('Credit pack checkout @sandbox @payments', () => {
       expect.objectContaining({ entryType: 'PURCHASE', creditsDelta: 6, balanceAfter: 6 }),
     ])
   })
+
+  test('late provider confirmation updates feedback and balance without a reload', async ({ page }, testInfo) => {
+    await page.getByRole('button', { name: new RegExp(PAYMENT_E2E_PACK_NAME) }).click()
+    const sheet = page.getByRole('dialog', { name: PAYMENT_E2E_PACK_NAME })
+    await sheet.getByRole('button', { name: /Continuar/ }).click()
+    await expect(page).toHaveURL(/\/checkout\/sandbox\?payment=/)
+
+    const paymentId = new URL(page.url()).searchParams.get('payment')
+    expect(paymentId).toBeTruthy()
+    await page.goto(`/app/account?checkout=success&payment=${paymentId}`)
+    const processingFeedback = page.getByRole('status').filter({ hasText: 'Estamos confirmando el pago' })
+    await expect(processingFeedback).toBeVisible()
+    const initialCreditsLocator = page.getByText(/^\d+ disponibles$/).first()
+    const initialCreditsLabel = await initialCreditsLocator.count() > 0
+      ? await initialCreditsLocator.textContent()
+      : null
+    const initialCredits = Number(initialCreditsLabel?.match(/^\d+/)?.[0] ?? 0)
+
+    const processingScreenshot = testInfo.outputPath('payment-confirmation-processing.png')
+    await page.waitForTimeout(250)
+    await page.screenshot({ path: processingScreenshot })
+    await testInfo.attach('payment-confirmation-processing', {
+      path: processingScreenshot,
+      contentType: 'image/png',
+    })
+
+    const completed = await page.evaluate(async (pendingPaymentId) => {
+      const formData = new FormData()
+      formData.set('paymentId', pendingPaymentId)
+      const response = await fetch('/checkout/sandbox/confirm', {
+        method: 'POST',
+        body: formData,
+      })
+      return response.ok
+    }, paymentId!)
+    expect(completed).toBe(true)
+
+    const confirmedFeedback = page.getByRole('status').filter({ hasText: 'Bono activado' })
+    await expect(confirmedFeedback).toBeVisible({ timeout: 10_000 })
+    await expect(page.getByText(`${initialCredits + 6} disponibles`)).toBeVisible()
+
+    const confirmedScreenshot = testInfo.outputPath('payment-confirmation-updated.png')
+    await page.waitForTimeout(250)
+    await page.screenshot({ path: confirmedScreenshot })
+    await testInfo.attach('payment-confirmation-updated', {
+      path: confirmedScreenshot,
+      contentType: 'image/png',
+    })
+  })
+
+  test('a slow confirmation stays honest and can be checked again', async ({ page }) => {
+    await page.getByRole('button', { name: new RegExp(PAYMENT_E2E_PACK_NAME) }).click()
+    const sheet = page.getByRole('dialog', { name: PAYMENT_E2E_PACK_NAME })
+    await sheet.getByRole('button', { name: /Continuar/ }).click()
+    await expect(page).toHaveURL(/\/checkout\/sandbox\?payment=/)
+
+    const paymentId = new URL(page.url()).searchParams.get('payment')
+    await page.goto(`/app/account?checkout=success&payment=${paymentId}`)
+
+    const feedback = page.getByRole('status')
+    await expect(feedback).toContainText('La confirmación tarda más de lo habitual', {
+      timeout: 23_000,
+    })
+    await expect(feedback.getByRole('button', { name: 'Comprobar ahora' })).toBeVisible()
+    await feedback.getByRole('button', { name: 'Comprobar ahora' }).click()
+    await expect(feedback).toContainText('Estamos confirmando el pago')
+  })
 })

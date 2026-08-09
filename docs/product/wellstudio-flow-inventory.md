@@ -429,8 +429,9 @@ Estado actual de catalogo:
 
 - `/plans` permite comparar planes y bonos `ACTIVE` y publicos sin autenticacion
 - muestra precio, periodicidad, regla efectiva de reservas, creditos y vigencia sin exponer configuracion interna
-- los CTA derivan a contacto o agenda; no existe compra o activacion publica en V1
-- el checkout descrito a continuacion permanece diferido a fase 2
+- los CTA publicos derivan a contacto o agenda
+- `Cuenta` permite al socio autenticado comprar bonos de creditos publicos mediante checkout alojado
+- la compra online de memberships recurrentes permanece diferida
 
 Actor:
 
@@ -451,23 +452,25 @@ Happy path:
 2. el sistema muestra catalogo
 3. el usuario selecciona producto
 4. el sistema inicia pago
-5. el pago se confirma
-6. el sistema activa suscripcion o asigna creditos
+5. el proveedor confirma el pago mediante webhook firmado
+6. el sistema asigna creditos en una transaccion idempotente
+7. si el redirect llega antes que el webhook, la cuenta muestra procesamiento y observa el estado hasta reflejar el saldo confirmado
 
 Errores y bloqueos:
 
 - catalogo no publicado
 - pago fallido
 - webhook no procesado
+- confirmacion lenta: el estado sigue pendiente y permite comprobar de nuevo sin asumir exito
 
 Postcondiciones:
 
-- membresia o creditos activos
+- creditos activos para el flujo implementado
 - elegibilidad actualizada
 
 Nivel de certeza:
 
-- catalogo informativo implementado y validado; compra online confirmada solo como concepto de fase 2
+- catalogo informativo y compra puntual de bonos implementados y validados; memberships recurrentes pendientes
 
 ## 12. Gestion de perfil
 

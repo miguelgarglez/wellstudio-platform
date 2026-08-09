@@ -15,8 +15,11 @@ The checkout is hosted by the payment provider. WellStudio never receives PAN, C
 5. The browser leaves WellStudio for checkout.
 6. A signed provider event returns independently of the browser.
 7. One serializable transaction marks the payment `SUCCEEDED`, creates one `MemberCreditAccount` and appends one `PURCHASE` ledger entry.
+8. If the browser reaches the success URL before the signed event, the account view observes the local payment with bounded server refreshes and moves from processing to the terminal state without requiring a manual reload.
 
 The success URL only renders status. It never fulfills the purchase.
+
+The webhook remains the sole source of truth. Browser observation is read-only, is limited to the authenticated member's payment and stops on a terminal state. After the bounded observation window, the UI keeps an honest pending state and offers `Comprobar ahora`; it never assumes success from the redirect alone.
 
 ## Modes
 
@@ -100,3 +103,5 @@ pnpm test:e2e:payments:sandbox
 ```
 
 Before production enablement, verify a Stripe test payment, webhook delivery, duplicate event replay, cancellation and account balance. Production migration and live-mode smoke remain explicit operations.
+
+The sandbox E2E also delays provider confirmation deliberately. It verifies that the processing feedback is visible, the webhook-equivalent confirmation updates the balance automatically and a slow confirmation degrades to a manual status check without granting credits early.

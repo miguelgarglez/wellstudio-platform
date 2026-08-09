@@ -80,6 +80,7 @@ export type MemberCheckoutNotice = {
   kind: 'success' | 'processing' | 'canceled' | 'failed'
   title: string
   description: string
+  instanceKey: string
 } | null
 
 export type MemberAccountOverview = {
@@ -218,7 +219,7 @@ export const getMemberAccountOverview = cache(async (options: {
         memberId,
         paymentType: 'CREDIT_PACK_PURCHASE',
       },
-      select: { status: true },
+      select: { id: true, status: true },
     }),
   ])
 
@@ -265,7 +266,7 @@ export function buildMemberAccountOverview({
   }>
   selectedPackSlug?: string
   checkout?: string
-  checkoutPayment?: { status: PaymentStatus } | null
+  checkoutPayment?: { id?: string; status: PaymentStatus } | null
   now: Date
 }): MemberAccountOverview {
   const summary = buildMemberShellSummary(authContext)
@@ -311,7 +312,7 @@ export function buildMemberAccountOverview({
     payments: payments.map((payment) => mapPaymentItem(payment)),
     purchasableCreditPacks: creditPacks.map(mapPurchasableCreditPack),
     selectedCreditPackId: creditPacks.find((pack) => pack.slug === selectedPackSlug)?.id ?? null,
-    checkoutNotice: buildCheckoutNotice(checkout, checkoutPayment?.status ?? null),
+    checkoutNotice: buildCheckoutNotice({ checkout, payment: checkoutPayment }),
   }
 }
 
@@ -339,12 +340,21 @@ function mapPurchasableCreditPack(pack: {
   }
 }
 
-function buildCheckoutNotice(checkout: string | undefined, paymentStatus: PaymentStatus | null): MemberCheckoutNotice {
+export function buildCheckoutNotice({
+  checkout,
+  payment,
+}: {
+  checkout: string | undefined
+  payment?: { id?: string; status: PaymentStatus } | null
+}): MemberCheckoutNotice {
+  const instanceKey = payment?.id ?? `checkout-${checkout ?? 'idle'}`
+
   if (checkout === 'canceled') {
     return {
       kind: 'canceled',
       title: 'Compra cancelada',
       description: 'No se ha realizado ningún cobro ni se han activado créditos.',
+      instanceKey,
     }
   }
   if (checkout === 'failed') {
@@ -352,15 +362,53 @@ function buildCheckoutNotice(checkout: string | undefined, paymentStatus: Paymen
       kind: 'failed',
       title: 'No pudimos confirmar la compra',
       description: 'No se han activado créditos. Puedes volver a intentarlo desde esta página.',
+      instanceKey,
     }
   }
   if (checkout !== 'success') return null
 
-  if (paymentStatus === 'SUCCEEDED') {
+  if (!payment) {
+    return {
+      kind: 'failed',
+      title: 'No pudimos verificar la compra',
+      description: 'No encontramos una compra vinculada a este regreso. Revisa tus pagos recientes o vuelve a intentarlo.',
+      instanceKey,
+    }
+  }
+
+  if (payment.status === 'SUCCEEDED') {
     return {
       kind: 'success',
       title: 'Bono activado',
       description: 'El pago está confirmado y tus nuevas reservas ya aparecen en el saldo.',
+      instanceKey,
+    }
+  }
+
+  if (payment.status === 'FAILED') {
+    return {
+      kind: 'failed',
+      title: 'No pudimos confirmar la compra',
+      description: 'No se han activado créditos. Puedes volver a intentarlo desde esta página.',
+      instanceKey,
+    }
+  }
+
+  if (payment.status === 'CANCELED') {
+    return {
+      kind: 'canceled',
+      title: 'Compra no completada',
+      description: 'El checkout ya no está activo y no se han concedido créditos.',
+      instanceKey,
+    }
+  }
+
+  if (payment.status === 'REFUNDED') {
+    return {
+      kind: 'failed',
+      title: 'Compra reembolsada',
+      description: 'Este pago figura como reembolsado. Si necesitas ayuda, contacta con el centro.',
+      instanceKey,
     }
   }
 
@@ -368,6 +416,7 @@ function buildCheckoutNotice(checkout: string | undefined, paymentStatus: Paymen
     kind: 'processing',
     title: 'Estamos confirmando el pago',
     description: 'El proveedor todavía está procesando la confirmación. Tus créditos aparecerán automáticamente.',
+    instanceKey,
   }
 }
 
