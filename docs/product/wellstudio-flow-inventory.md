@@ -427,7 +427,7 @@ Postcondiciones:
 
 Nivel de certeza:
 
-- confirmado en sistema actual
+- confirmado en sistema actual; en WellStudio V1 la vinculación usa Checkout alojado `mode: setup`, sandbox determinista y confirmación por webhook firmado
 
 ## 11. Compra de suscripcion o bono
 

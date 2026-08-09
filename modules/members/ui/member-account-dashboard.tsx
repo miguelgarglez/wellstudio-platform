@@ -12,6 +12,7 @@ import {
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Skeleton } from '@/components/ui/skeleton'
 import { LogoutButton } from '@/modules/auth/ui/logout-button'
+import { MemberCardLinking } from '@/modules/members/ui/member-card-linking'
 import { MemberCheckoutFeedback } from '@/modules/members/ui/member-checkout-feedback'
 import { MemberCreditPackPurchase } from '@/modules/members/ui/member-credit-pack-purchase'
 import type {
@@ -29,6 +30,7 @@ export function MemberAccountDashboard({ overview }: MemberAccountDashboardProps
   return (
     <>
       <MemberCheckoutFeedback notice={overview.checkoutNotice} />
+      <MemberCheckoutFeedback notice={overview.cardLinkNotice} />
       <MemberAccountDashboardLayout
         summaryTiles={
           <>
@@ -51,6 +53,12 @@ export function MemberAccountDashboard({ overview }: MemberAccountDashboardProps
               description={overview.highlights.card.description}
             />
           </>
+        }
+        cardContent={
+          <MemberCardLinking
+            hasLinkedCard={overview.hasLinkedCard}
+            cardLabel={overview.linkedCardLabel}
+          />
         }
         purchaseContent={
           <MemberCreditPackPurchase
@@ -121,6 +129,7 @@ export function MemberAccountDashboardSkeletonBody() {
           ))}
         </>
       }
+      cardContent={<PaymentRowSkeleton />}
       purchaseContent={
         <div className="grid gap-3 md:grid-cols-2">
           <PaymentRowSkeleton />
@@ -156,12 +165,14 @@ export function MemberAccountDashboardSkeletonBody() {
 
 function MemberAccountDashboardLayout({
   summaryTiles,
+  cardContent,
   purchaseContent,
   paymentsContent,
   alertsContent,
   securityContent,
 }: {
   summaryTiles: ReactNode
+  cardContent: ReactNode
   purchaseContent: ReactNode
   paymentsContent: ReactNode
   alertsContent: ReactNode
@@ -170,6 +181,8 @@ function MemberAccountDashboardLayout({
   return (
     <div className="space-y-4">
       <div className="grid gap-4 xl:grid-cols-3">{summaryTiles}</div>
+
+      <SectionCard title="Tarjeta vinculada">{cardContent}</SectionCard>
 
       <SectionCard title="Comprar bonos">{purchaseContent}</SectionCard>
 

@@ -37,7 +37,11 @@ describe('Stripe checkout provider', () => {
       payment_method_types: ['card'],
       customer_email: 'member@example.com',
       client_reference_id: 'payment-1',
-      metadata: { paymentId: 'payment-1', memberId: 'member-1' },
+      metadata: {
+        paymentId: 'payment-1',
+        memberId: 'member-1',
+        purpose: 'credit_pack_purchase',
+      },
       payment_intent_data: {
         metadata: { paymentId: 'payment-1', memberId: 'member-1' },
       },
@@ -107,16 +111,93 @@ describe('Stripe checkout provider', () => {
       providerEventType: 'payment_intent.created',
       occurredAt: new Date(1_786_179_600_000),
       kind: 'UNSUPPORTED',
+      mode: null,
       checkoutSessionId: null,
       paymentIntentId: null,
+      setupIntentId: null,
+      paymentMethodId: null,
+      customerId: null,
       paymentStatus: null,
       paymentId: null,
       amountTotal: null,
       currency: null,
+      card: null,
       safePayload: {
         eventId: 'evt_other',
         eventType: 'payment_intent.created',
         created: 1_786_179_600,
+      },
+    })
+  })
+
+  it('creates a hosted setup checkout and expands payment method details on completion', async () => {
+    const customersCreate = vi.fn().mockResolvedValue({ id: 'cus_1' })
+    const setupIntentsRetrieve = vi.fn().mockResolvedValue({
+      id: 'seti_1',
+      payment_method: {
+        id: 'pm_1',
+        card: {
+          brand: 'visa',
+          last4: '4242',
+          exp_month: 12,
+          exp_year: 2030,
+        },
+      },
+    })
+    sessionsCreate.mockResolvedValue({
+      id: 'cs_setup_1',
+      url: 'https://checkout.stripe.test/cs_setup_1',
+      expires_at: 1_786_181_400,
+    })
+    constructEventAsync.mockResolvedValue({
+      id: 'evt_setup_1',
+      type: 'checkout.session.completed',
+      created: 1_786_179_600,
+      data: {
+        object: {
+          id: 'cs_setup_1',
+          mode: 'setup',
+          amount_total: 0,
+          currency: 'eur',
+          customer: 'cus_1',
+          setup_intent: 'seti_1',
+          payment_status: 'no_payment_required',
+          metadata: { paymentId: 'payment-setup-1', memberId: 'member-1', purpose: 'card_setup' },
+        },
+      },
+    } as unknown as Stripe.Event)
+
+    const stripe = {
+      customers: { create: customersCreate },
+      checkout: { sessions: { create: sessionsCreate } },
+      setupIntents: { retrieve: setupIntentsRetrieve },
+      webhooks: { constructEventAsync },
+    } as unknown as Stripe
+    const provider = new StripeCheckoutProvider(stripe, 'whsec_test')
+
+    await expect(provider.createCardSetupCheckout({
+      paymentId: 'payment-setup-1',
+      memberId: 'member-1',
+      customerEmail: 'member@example.com',
+      customerId: null,
+      successUrl: 'https://wellstudio.test/app/account?card=success',
+      cancelUrl: 'https://wellstudio.test/app/account?card=canceled',
+    })).resolves.toMatchObject({
+      id: 'cs_setup_1',
+      url: 'https://checkout.stripe.test/cs_setup_1',
+      customerId: 'cus_1',
+    })
+
+    await expect(provider.verifyWebhook('{}', 'signature')).resolves.toMatchObject({
+      kind: 'CHECKOUT_COMPLETED',
+      mode: 'setup',
+      paymentMethodId: 'pm_1',
+      customerId: 'cus_1',
+      card: {
+        brand: 'visa',
+        last4: '4242',
+        expMonth: 12,
+        expYear: 2030,
       },
     })
   })
@@ -157,6 +238,7 @@ function buildStripeEvent(type: 'checkout.session.completed' | 'checkout.session
     data: {
       object: {
         id: 'cs_test_1',
+        mode: 'payment',
         amount_total: 7200,
         currency: 'eur',
         payment_intent: 'pi_1',

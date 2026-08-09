@@ -274,6 +274,7 @@ function buildProvider(): PaymentCheckoutProvider {
       url: 'http://checkout.test/session-1',
       expiresAt: new Date('2026-08-08T10:30:00.000Z'),
     }),
+    createCardSetupCheckout: vi.fn(),
     verifyWebhook: vi.fn(),
   }
 }
@@ -284,12 +285,17 @@ function buildEvent(overrides: Partial<VerifiedCheckoutEvent> = {}): VerifiedChe
     providerEventType: 'checkout.session.completed',
     occurredAt: now,
     kind: 'CHECKOUT_COMPLETED',
+    mode: 'payment',
     checkoutSessionId: 'session-1',
     paymentIntentId: 'intent-1',
+    setupIntentId: null,
+    paymentMethodId: null,
+    customerId: null,
     paymentStatus: 'paid',
     paymentId: 'payment-1',
     amountTotal: 7200,
     currency: 'eur',
+    card: null,
     safePayload: { id: 'provider-event-1' },
     ...overrides,
   }

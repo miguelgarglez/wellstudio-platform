@@ -2,6 +2,7 @@ import { describe, expect, it } from 'vitest'
 
 import type { AuthContext } from '@/modules/auth/server/identity'
 import {
+  buildCardLinkNotice,
   buildCheckoutNotice,
   buildMemberAccountAlerts,
   buildMemberAccountOverview,
@@ -70,6 +71,23 @@ describe('member account helpers', () => {
       title: 'No pudimos verificar la compra',
       description: 'No encontramos una compra vinculada a este regreso. Revisa tus pagos recientes o vuelve a intentarlo.',
       instanceKey: 'checkout-success',
+    })
+  })
+
+  it('observes card linking without inventing success from the redirect alone', () => {
+    expect(buildCardLinkNotice({
+      card: 'success',
+      payment: { id: 'card-pending', status: 'PENDING' },
+    })).toMatchObject({ kind: 'processing', instanceKey: 'card-pending' })
+
+    expect(buildCardLinkNotice({
+      card: 'success',
+      payment: { id: 'card-succeeded', status: 'SUCCEEDED' },
+    })).toMatchObject({ kind: 'success', title: 'Tarjeta vinculada' })
+
+    expect(buildCardLinkNotice({ card: 'canceled', payment: null })).toMatchObject({
+      kind: 'canceled',
+      title: 'Vinculación cancelada',
     })
   })
 })
@@ -159,6 +177,8 @@ describe('buildMemberAccountOverview', () => {
     expect(overview.highlights.plan.title).toBe('Fuerza Base')
     expect(overview.highlights.credits.title).toBe('6 disponibles')
     expect(overview.highlights.card.title).toBe('visa terminada en 4242')
+    expect(overview.hasLinkedCard).toBe(true)
+    expect(overview.linkedCardLabel).toBe('visa terminada en 4242')
     expect(overview.alerts).toEqual([])
     expect(overview.payments[0]).toMatchObject({
       title: 'Compra de membresía',

@@ -84,6 +84,13 @@ export type MemberCheckoutNotice = {
   instanceKey: string
 } | null
 
+export type MemberCardLinkNotice = {
+  kind: 'success' | 'processing' | 'canceled' | 'failed'
+  title: string
+  description: string
+  instanceKey: string
+} | null
+
 export type MemberAccountOverview = {
   summary: MemberShellSummary
   highlights: {
@@ -95,12 +102,16 @@ export type MemberAccountOverview = {
   payments: MemberPaymentItem[]
   purchasableCreditPacks: MemberPurchasableCreditPack[]
   selectedCreditPackId: string | null
+  linkedCardLabel: string | null
+  hasLinkedCard: boolean
   checkoutNotice: MemberCheckoutNotice
+  cardLinkNotice: MemberCardLinkNotice
 }
 
 export const getMemberAccountOverview = cache(async (options: {
   selectedPackSlug?: string
   checkout?: string
+  card?: string
   paymentId?: string
 } = {}): Promise<MemberAccountOverview> => {
   const { requireAuthenticatedContext } = await import('@/modules/auth/server/identity')
@@ -115,7 +126,7 @@ export const getMemberAccountOverview = cache(async (options: {
 
   const now = new Date()
 
-  const [memberships, creditAccounts, cards, payments, creditPacks, checkoutPayment] = await prisma.$transaction([
+  const [memberships, creditAccounts, cards, payments, creditPacks, checkoutPayment, cardSetupPayment] = await prisma.$transaction([
     prisma.memberMembership.findMany({
       where: {
         memberId,
@@ -180,6 +191,7 @@ export const getMemberAccountOverview = cache(async (options: {
     prisma.payment.findMany({
       where: {
         memberId,
+        paymentType: { not: 'CARD_SETUP' },
       },
       select: {
         id: true,
@@ -222,6 +234,14 @@ export const getMemberAccountOverview = cache(async (options: {
       },
       select: { id: true, status: true },
     }),
+    prisma.payment.findFirst({
+      where: {
+        id: options.paymentId || '__no_payment__',
+        memberId,
+        paymentType: 'CARD_SETUP',
+      },
+      select: { id: true, status: true },
+    }),
   ])
 
   return buildMemberAccountOverview({
@@ -233,7 +253,9 @@ export const getMemberAccountOverview = cache(async (options: {
     creditPacks,
     selectedPackSlug: options.selectedPackSlug,
     checkout: options.checkout,
+    card: options.card,
     checkoutPayment,
+    cardSetupPayment,
     now,
   })
 })
@@ -247,7 +269,9 @@ export function buildMemberAccountOverview({
   creditPacks = [],
   selectedPackSlug,
   checkout,
+  card,
   checkoutPayment,
+  cardSetupPayment,
   now,
 }: {
   authContext: Extract<AuthContext, { isAuthenticated: true }>
@@ -267,7 +291,9 @@ export function buildMemberAccountOverview({
   }>
   selectedPackSlug?: string
   checkout?: string
+  card?: string
   checkoutPayment?: { id?: string; status: PaymentStatus } | null
+  cardSetupPayment?: { id?: string; status: PaymentStatus } | null
   now: Date
 }): MemberAccountOverview {
   const summary = buildMemberShellSummary(authContext)
@@ -276,6 +302,7 @@ export function buildMemberAccountOverview({
   const effectiveCreditAccounts = selectEffectiveCreditAccounts(creditAccounts, now)
   const creditsRemaining = calculateCreditsRemaining(creditAccounts, now)
   const primaryCard = selectPrimaryCard(cards)
+  const linkedCardLabel = primaryCard ? formatCardLabel(primaryCard) : null
 
   return {
     summary,
@@ -299,10 +326,10 @@ export function buildMemberAccountOverview({
       },
       card: {
         eyebrow: 'Tarjeta principal',
-        title: primaryCard ? formatCardLabel(primaryCard) : 'Sin tarjeta vinculada',
+        title: linkedCardLabel ?? 'Sin tarjeta vinculada',
         description: primaryCard
           ? buildCardMetaLabel(primaryCard)
-          : 'Las compras puntuales se completan en un checkout seguro sin guardar la tarjeta en WellStudio.',
+          : 'Puedes vincular una tarjeta de forma segura desde esta página. WellStudio solo guarda la referencia del proveedor.',
       },
     },
     alerts: buildMemberAccountAlerts({
@@ -314,7 +341,10 @@ export function buildMemberAccountOverview({
     payments: payments.map((payment) => mapPaymentItem(payment)),
     purchasableCreditPacks: creditPacks.map(mapPurchasableCreditPack),
     selectedCreditPackId: creditPacks.find((pack) => pack.slug === selectedPackSlug)?.id ?? null,
+    linkedCardLabel,
+    hasLinkedCard: Boolean(primaryCard),
     checkoutNotice: buildCheckoutNotice({ checkout, payment: checkoutPayment }),
+    cardLinkNotice: buildCardLinkNotice({ card, payment: cardSetupPayment }),
   }
 }
 
@@ -422,6 +452,77 @@ export function buildCheckoutNotice({
   }
 }
 
+export function buildCardLinkNotice({
+  card,
+  payment,
+}: {
+  card: string | undefined
+  payment?: { id?: string; status: PaymentStatus } | null
+}): MemberCardLinkNotice {
+  const instanceKey = payment?.id ?? `card-${card ?? 'idle'}`
+
+  if (card === 'canceled') {
+    return {
+      kind: 'canceled',
+      title: 'Vinculación cancelada',
+      description: 'No se ha guardado ninguna tarjeta en tu cuenta.',
+      instanceKey,
+    }
+  }
+  if (card === 'failed') {
+    return {
+      kind: 'failed',
+      title: 'No pudimos vincular la tarjeta',
+      description: 'Puedes volver a intentarlo desde esta página cuando quieras.',
+      instanceKey,
+    }
+  }
+  if (card !== 'success') return null
+
+  if (!payment) {
+    return {
+      kind: 'failed',
+      title: 'No pudimos verificar la vinculación',
+      description: 'No encontramos una sesión de tarjeta asociada a este regreso.',
+      instanceKey,
+    }
+  }
+
+  if (payment.status === 'SUCCEEDED') {
+    return {
+      kind: 'success',
+      title: 'Tarjeta vinculada',
+      description: 'Tu método de pago principal ya está disponible en la cuenta.',
+      instanceKey,
+    }
+  }
+
+  if (payment.status === 'FAILED') {
+    return {
+      kind: 'failed',
+      title: 'No pudimos vincular la tarjeta',
+      description: 'Puedes volver a intentarlo desde esta página cuando quieras.',
+      instanceKey,
+    }
+  }
+
+  if (payment.status === 'CANCELED') {
+    return {
+      kind: 'canceled',
+      title: 'Vinculación no completada',
+      description: 'La sesión ya no está activa y no se ha guardado ninguna tarjeta.',
+      instanceKey,
+    }
+  }
+
+  return {
+    kind: 'processing',
+    title: 'Estamos confirmando la tarjeta',
+    description: 'El proveedor todavía está procesando la vinculación. La tarjeta aparecerá automáticamente.',
+    instanceKey,
+  }
+}
+
 export function buildMemberAccountAlerts({
   currentPlanName,
   pendingPlanName,
@@ -495,6 +596,8 @@ function buildPaymentTypeLabel(paymentType: PaymentType) {
       return 'Compra de créditos'
     case 'MANUAL_CHARGE':
       return 'Cargo manual'
+    case 'CARD_SETUP':
+      return 'Vinculación de tarjeta'
     default:
       return 'Pago'
   }

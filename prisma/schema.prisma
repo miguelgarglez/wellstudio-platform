@@ -147,6 +147,7 @@ enum PaymentType {
   MEMBERSHIP_PURCHASE
   CREDIT_PACK_PURCHASE
   MANUAL_CHARGE
+  CARD_SETUP
 }
 
 enum PaymentItemType {

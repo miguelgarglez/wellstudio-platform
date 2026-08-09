@@ -1,4 +1,5 @@
 import type { PaymentCheckoutProvider } from '@/modules/payments/server/checkout-provider'
+import { processCardSetupEvent } from '@/modules/payments/server/card-setup-checkout'
 import { processCheckoutEvent } from '@/modules/payments/server/credit-pack-checkout'
 
 export type ProcessPaymentWebhookResult =
@@ -25,6 +26,24 @@ export async function processPaymentWebhook(input: {
     event = await input.provider.verifyWebhook(input.rawBody, input.signature)
   } catch {
     return { accepted: false, code: 'INVALID_SIGNATURE', retryable: false }
+  }
+
+  if (event.mode === 'setup') {
+    const result = await processCardSetupEvent({
+      provider: input.provider.provider,
+      event,
+    })
+
+    if (!result.success) {
+      return { accepted: false, code: 'PROCESSING_FAILED', retryable: true }
+    }
+
+    return {
+      accepted: true,
+      outcome: result.outcome,
+      paymentId: result.paymentId,
+      notificationJobIds: [],
+    }
   }
 
   const result = await processCheckoutEvent({

@@ -8,7 +8,7 @@ import { MemberPortalSectionShell } from '@/modules/members/ui/member-portal-sec
 export default async function MemberAccountPage({
   searchParams,
 }: {
-  searchParams: Promise<{ pack?: string; checkout?: string; payment?: string }>
+  searchParams: Promise<{ pack?: string; checkout?: string; card?: string; payment?: string }>
 }) {
   const params = await searchParams
   return (
@@ -25,11 +25,12 @@ export default async function MemberAccountPage({
 }
 
 async function MemberAccountSection({ params }: {
-  params: { pack?: string; checkout?: string; payment?: string }
+  params: { pack?: string; checkout?: string; card?: string; payment?: string }
 }) {
   const overview = await getMemberAccountOverview({
     selectedPackSlug: params.pack,
     checkout: params.checkout,
+    card: params.card,
     paymentId: params.payment,
   })
 

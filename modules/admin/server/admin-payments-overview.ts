@@ -1,6 +1,7 @@
 import type {
   PaymentEventProcessingStatus,
   PaymentStatus,
+  PaymentType,
   Prisma,
 } from '@prisma/client'
 
@@ -279,7 +280,7 @@ function formatMemberName(member: { firstName: string; lastName: string }) {
 function formatProductSummary(
   items: Array<{ itemType: 'MEMBERSHIP_PLAN' | 'CREDIT_PACK'; referenceId: string }>,
   productNames: Record<string, string>,
-  paymentType: 'MEMBERSHIP_PURCHASE' | 'CREDIT_PACK_PURCHASE' | 'MANUAL_CHARGE',
+  paymentType: PaymentType,
 ) {
   if (items.length === 0) return formatPaymentType(paymentType)
   const first = productNames[items[0].referenceId] ?? formatMissingProduct(items[0].itemType)
@@ -328,9 +329,10 @@ function formatEventStatus(status: PaymentEventProcessingStatus) {
   }
 }
 
-function formatPaymentType(type: 'MEMBERSHIP_PURCHASE' | 'CREDIT_PACK_PURCHASE' | 'MANUAL_CHARGE') {
+function formatPaymentType(type: PaymentType) {
   if (type === 'MEMBERSHIP_PURCHASE') return 'Compra de plan'
   if (type === 'CREDIT_PACK_PURCHASE') return 'Compra de bono'
+  if (type === 'CARD_SETUP') return 'Vinculación de tarjeta'
   return 'Cobro manual'
 }
 

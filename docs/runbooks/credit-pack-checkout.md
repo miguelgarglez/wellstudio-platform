@@ -2,7 +2,7 @@
 
 ## Scope
 
-WellStudio supports one-time purchases of active, public `CreditPack` products. Membership subscriptions, saved cards, refunds and fiscal invoicing are separate product slices.
+WellStudio supports one-time purchases of active, public `CreditPack` products. Membership subscriptions, refunds and fiscal invoicing are separate product slices. Card linking uses a dedicated hosted Checkout `mode: 'setup'` flow documented in [card-setup-checkout.md](./card-setup-checkout.md).
 
 The checkout is hosted by the payment provider. WellStudio never receives PAN, CVC or authentication challenge data.
 

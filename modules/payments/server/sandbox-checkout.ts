@@ -1,7 +1,11 @@
 import { prisma } from '@/lib/db/prisma'
+import { processCardSetupEvent } from '@/modules/payments/server/card-setup-checkout'
 import { processCheckoutEvent } from '@/modules/payments/server/credit-pack-checkout'
 import { ensureSandboxCheckoutEnabled } from '@/modules/payments/server/payment-environment'
-import { buildSandboxCompletedEvent } from '@/modules/payments/server/sandbox-checkout-provider'
+import {
+  buildSandboxCardSetupCompletedEvent,
+  buildSandboxCompletedEvent,
+} from '@/modules/payments/server/sandbox-checkout-provider'
 
 export type SandboxCheckoutOverview = {
   paymentId: string
@@ -11,6 +15,12 @@ export type SandboxCheckoutOverview = {
   validityLabel: string
   amountLabel: string
   status: 'PENDING' | 'SUCCEEDED' | 'CANCELED' | 'FAILED'
+}
+
+export type SandboxCardSetupOverview = {
+  paymentId: string
+  status: 'PENDING' | 'SUCCEEDED' | 'CANCELED' | 'FAILED'
+  cardPreviewLabel: string
 }
 
 export async function getSandboxCheckoutOverview(input: {
@@ -50,6 +60,31 @@ export async function getSandboxCheckoutOverview(input: {
   }
 }
 
+export async function getSandboxCardSetupOverview(input: {
+  paymentId: string
+  memberId: string
+}): Promise<SandboxCardSetupOverview | null> {
+  ensureSandboxMode()
+
+  const payment = await prisma.payment.findFirst({
+    where: {
+      id: input.paymentId,
+      memberId: input.memberId,
+      provider: 'sandbox',
+      paymentType: 'CARD_SETUP',
+    },
+    select: { id: true, status: true },
+  })
+
+  if (!payment) return null
+
+  return {
+    paymentId: payment.id,
+    status: normalizeStatus(payment.status),
+    cardPreviewLabel: 'Visa terminada en 4242',
+  }
+}
+
 export async function completeSandboxCheckout(input: { paymentId: string; memberId: string }) {
   ensureSandboxMode()
 
@@ -79,6 +114,36 @@ export async function completeSandboxCheckout(input: { paymentId: string; member
       checkoutSessionId: payment.providerCheckoutSessionId,
       amount: payment.amount,
       currency: payment.currency,
+    }),
+  })
+}
+
+export async function completeSandboxCardSetup(input: { paymentId: string; memberId: string }) {
+  ensureSandboxMode()
+
+  const payment = await prisma.payment.findFirst({
+    where: {
+      id: input.paymentId,
+      memberId: input.memberId,
+      provider: 'sandbox',
+      paymentType: 'CARD_SETUP',
+    },
+    select: {
+      id: true,
+      providerCheckoutSessionId: true,
+    },
+  })
+
+  if (!payment?.providerCheckoutSessionId) {
+    return { success: false as const, message: 'La vinculación de prueba ya no está disponible.' }
+  }
+
+  return processCardSetupEvent({
+    provider: 'sandbox',
+    event: buildSandboxCardSetupCompletedEvent({
+      paymentId: payment.id,
+      memberId: input.memberId,
+      checkoutSessionId: payment.providerCheckoutSessionId,
     }),
   })
 }
