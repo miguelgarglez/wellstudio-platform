@@ -77,7 +77,7 @@ export function buildMemberReservationsFlowTimeline(now = new Date()) {
   return {
     available: buildSlot(now, 1, 18, 0, MANAGED_CLASS_TYPES.reservable.durationMinutes),
     cancelable: buildSlot(now, 2, 18, 30, MANAGED_CLASS_TYPES.reservable.durationMinutes),
-    fullWaitlist: buildSlot(now, 3, 19, 0, MANAGED_CLASS_TYPES.full.durationMinutes),
+    fullWaitlist: buildSlot(now, 2, 20, 0, MANAGED_CLASS_TYPES.full.durationMinutes),
     attended: buildSlot(now, -2, 18, 15, MANAGED_CLASS_TYPES.reservable.durationMinutes),
     canceled: buildSlot(now, -4, 18, 45, MANAGED_CLASS_TYPES.reservable.durationMinutes),
     noShow: buildSlot(now, -6, 19, 15, MANAGED_CLASS_TYPES.reservable.durationMinutes),

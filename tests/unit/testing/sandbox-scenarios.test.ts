@@ -48,9 +48,15 @@ describe('sandbox scenario helpers', () => {
     expect(timeline.cancelable.startsAt.getHours()).toBe(18)
     expect(timeline.cancelable.startsAt.getMinutes()).toBe(30)
 
-    expect(timeline.fullWaitlist.startsAt.getDate()).toBe(6)
-    expect(timeline.fullWaitlist.startsAt.getHours()).toBe(19)
+    expect(timeline.fullWaitlist.startsAt.getDate()).toBe(5)
+    expect(timeline.fullWaitlist.startsAt.getHours()).toBe(20)
     expect(timeline.fullWaitlist.startsAt.getMinutes()).toBe(0)
+    expect(timeline.fullWaitlist.startsAt.getTime()).toBeGreaterThan(
+      timeline.cancelable.endsAt.getTime(),
+    )
+    expect(timeline.fullWaitlist.startsAt.getTime()).toBeLessThan(
+      new Date('2026-04-06T00:00:00.000Z').getTime(),
+    )
 
     expect(timeline.attended.startsAt.getDate()).toBe(1)
     expect(timeline.attended.startsAt.getHours()).toBe(18)
