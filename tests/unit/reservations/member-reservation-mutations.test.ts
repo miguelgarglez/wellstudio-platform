@@ -60,6 +60,9 @@ function createTransactionMock() {
     notificationJob: {
       upsert: vi.fn().mockResolvedValue({ id: 'notification-job-1' }),
     },
+    auditLog: {
+      create: vi.fn().mockResolvedValue({ id: 'audit-1' }),
+    },
   }
 }
 
@@ -202,6 +205,74 @@ describe('member reservation mutations', () => {
     })
     expect(tx.reservation.create).not.toHaveBeenCalled()
     expect(tx.notificationJob.upsert).not.toHaveBeenCalled()
+  })
+
+  it('books for staff with a STAFF source and atomic audit evidence', async () => {
+    const tx = createTransactionMock()
+    withTransaction(tx)
+    tx.classSession.findUnique.mockResolvedValue({
+      id: 'session-1',
+      startsAt: new Date('2026-04-05T18:00:00.000Z'),
+      endsAt: new Date('2026-04-05T18:45:00.000Z'),
+      capacity: 10,
+      reservedCount: 6,
+      waitlistEnabled: true,
+      status: 'PUBLISHED',
+      classType: {
+        name: 'Grupo Premium',
+        eligibilityRules: [{
+          id: 'rule-membership',
+          ruleType: 'MEMBERSHIP_PLAN',
+          membershipPlanId: 'plan-premium',
+          creditCost: null,
+          priority: 0,
+          createdAt: new Date('2026-03-01T00:00:00.000Z'),
+          isActive: true,
+        }],
+      },
+    })
+    tx.reservation.findFirst.mockResolvedValue(null)
+    tx.waitlistEntry.findFirst.mockResolvedValue(null)
+    tx.memberMembership.findMany.mockResolvedValue([{
+      id: 'membership-1',
+      membershipPlanId: 'plan-premium',
+      status: 'ACTIVE',
+      startsAt: new Date('2026-04-01T00:00:00.000Z'),
+      endsAt: null,
+      membershipPlan: { bookingPolicyType: 'OPEN_MEMBERSHIP_ACCESS', bookingPolicy: null },
+      bookingOverrides: [],
+      usages: [],
+    }])
+    tx.memberCreditAccount.findMany.mockResolvedValue([])
+    tx.reservation.create.mockResolvedValue({ id: 'reservation-staff' })
+    tx.reservationEntitlementUsage.create.mockResolvedValue({ id: 'usage-staff' })
+    tx.classSession.update.mockResolvedValue({})
+
+    const result = await reservePublishedSession({
+      memberId: 'member-1',
+      userId: 'admin-1',
+      classSessionId: 'session-1',
+      now: new Date('2026-04-03T10:00:00.000Z'),
+      staffOperation: { actorDisplayName: 'Admin Sandbox' },
+    })
+
+    expect(result.code).toBe('BOOKED')
+    expect(tx.reservation.create).toHaveBeenCalledWith({
+      data: expect.objectContaining({ source: 'STAFF' }),
+    })
+    expect(tx.auditLog.create).toHaveBeenCalledWith({
+      data: {
+        actorUserId: 'admin-1',
+        actionType: 'STAFF_RESERVATION_BOOKED',
+        entityType: 'Reservation',
+        entityId: 'reservation-staff',
+        contextJson: {
+          memberId: 'member-1',
+          classSessionId: 'session-1',
+          actorDisplayName: 'Admin Sandbox',
+        },
+      },
+    })
   })
 
   it('books a published session with manual override entitlement usage', async () => {
@@ -458,6 +529,79 @@ describe('member reservation mutations', () => {
     })
   })
 
+  it('allows staff cancellation outside the member window only with an audited reason', async () => {
+    const tx = createTransactionMock()
+    withTransaction(tx)
+    tx.reservation.findFirst.mockResolvedValue({
+      id: 'reservation-1',
+      memberId: 'member-1',
+      status: 'BOOKED',
+      classSession: {
+        id: 'session-1',
+        startsAt: new Date('2026-04-05T18:00:00.000Z'),
+        capacity: 10,
+        reservedCount: 7,
+        waitlistEnabled: true,
+        status: 'PUBLISHED',
+        classType: { name: 'Grupo Premium', eligibilityRules: [] },
+      },
+      entitlementUsages: [],
+    })
+    tx.reservation.update.mockResolvedValue({})
+    tx.classSession.update.mockResolvedValue({})
+    tx.classSession.findUnique.mockResolvedValue({
+      id: 'session-1',
+      startsAt: new Date('2026-04-05T18:00:00.000Z'),
+      endsAt: new Date('2026-04-05T18:45:00.000Z'),
+      capacity: 10,
+      reservedCount: 6,
+      waitlistEnabled: true,
+      status: 'PUBLISHED',
+      classType: { name: 'Grupo Premium', eligibilityRules: [] },
+    })
+    tx.waitlistEntry.findFirst.mockResolvedValue(null)
+
+    const result = await cancelMemberReservation({
+      memberId: 'member-1',
+      userId: 'admin-1',
+      reservationId: 'reservation-1',
+      now: new Date('2026-04-05T16:15:00.000Z'),
+      staffOperation: {
+        actorDisplayName: 'Admin Sandbox',
+        reason: 'Incidencia comunicada por teléfono',
+      },
+    })
+
+    expect(result.code).toBe('CANCELED')
+    expect(tx.reservation.update).toHaveBeenCalledWith({
+      where: { id: 'reservation-1' },
+      data: expect.objectContaining({
+        canceledByUserId: 'admin-1',
+        cancellationReason: 'Staff-assisted cancellation: Incidencia comunicada por teléfono',
+      }),
+    })
+    expect(tx.auditLog.create).toHaveBeenCalledWith({
+      data: expect.objectContaining({
+        actionType: 'STAFF_RESERVATION_CANCELED',
+        contextJson: expect.objectContaining({
+          reason: 'Incidencia comunicada por teléfono',
+        }),
+      }),
+    })
+  })
+
+  it('rejects a staff cancellation without a meaningful reason before opening a transaction', async () => {
+    const result = await cancelMemberReservation({
+      memberId: 'member-1',
+      userId: 'admin-1',
+      reservationId: 'reservation-1',
+      staffOperation: { actorDisplayName: 'Admin Sandbox', reason: 'no' },
+    })
+
+    expect(result).toMatchObject({ success: false, code: 'INVALID_REASON' })
+    expect(transactionMock).not.toHaveBeenCalled()
+  })
+
   it('joins waitlist with the next available position after eligibility succeeds', async () => {
     const tx = createTransactionMock()
     withTransaction(tx)
@@ -570,6 +714,73 @@ describe('member reservation mutations', () => {
       data: {
         position: 1,
       },
+    })
+  })
+
+  it('audits staff waitlist entry and removal without bypassing eligibility', async () => {
+    const tx = createTransactionMock()
+    withTransaction(tx)
+    tx.classSession.findUnique.mockResolvedValue({
+      id: 'session-1',
+      startsAt: new Date('2026-04-05T18:00:00.000Z'),
+      endsAt: new Date('2026-04-05T18:45:00.000Z'),
+      capacity: 4,
+      reservedCount: 4,
+      waitlistEnabled: true,
+      status: 'PUBLISHED',
+      classType: {
+        name: 'Grupo Premium',
+        eligibilityRules: [{
+          id: 'membership-rule',
+          ruleType: 'MEMBERSHIP_PLAN',
+          membershipPlanId: 'plan-premium',
+          creditCost: null,
+          priority: 0,
+          createdAt: new Date('2026-03-01T00:00:00.000Z'),
+          isActive: true,
+        }],
+      },
+    })
+    tx.reservation.findFirst.mockResolvedValue(null)
+    tx.waitlistEntry.findFirst
+      .mockResolvedValueOnce(null)
+      .mockResolvedValueOnce(null)
+      .mockResolvedValueOnce({
+        id: 'waitlist-staff',
+        classSession: { id: 'session-1', classType: { name: 'Grupo Premium' } },
+      })
+    tx.memberMembership.findMany.mockResolvedValue([{
+      id: 'membership-1',
+      membershipPlanId: 'plan-premium',
+      status: 'ACTIVE',
+      startsAt: new Date('2026-04-01T00:00:00.000Z'),
+      endsAt: null,
+      membershipPlan: { bookingPolicyType: 'OPEN_MEMBERSHIP_ACCESS', bookingPolicy: null },
+      bookingOverrides: [],
+      usages: [],
+    }])
+    tx.memberCreditAccount.findMany.mockResolvedValue([])
+    tx.waitlistEntry.create.mockResolvedValue({ id: 'waitlist-staff' })
+    tx.waitlistEntry.update.mockResolvedValue({})
+    tx.waitlistEntry.findMany.mockResolvedValue([])
+
+    const actor = { actorDisplayName: 'Admin Sandbox' }
+    const joined = await joinSessionWaitlist({
+      memberId: 'member-1', userId: 'admin-1', classSessionId: 'session-1',
+      now: new Date('2026-04-03T10:00:00.000Z'), staffOperation: actor,
+    })
+    const left = await leaveSessionWaitlist({
+      memberId: 'member-1', userId: 'admin-1', waitlistEntryId: 'waitlist-staff',
+      staffOperation: actor,
+    })
+
+    expect(joined.code).toBe('WAITLIST_JOINED')
+    expect(left.code).toBe('WAITLIST_LEFT')
+    expect(tx.auditLog.create).toHaveBeenNthCalledWith(1, {
+      data: expect.objectContaining({ actionType: 'STAFF_WAITLIST_JOINED' }),
+    })
+    expect(tx.auditLog.create).toHaveBeenNthCalledWith(2, {
+      data: expect.objectContaining({ actionType: 'STAFF_WAITLIST_LEFT' }),
     })
   })
 

@@ -53,6 +53,7 @@ import {
   AdminEndMembershipAction,
 } from '@/modules/admin/ui/admin-member-membership-actions'
 import { AdminManageCreditsAction } from '@/modules/admin/ui/admin-member-credit-actions'
+import { AdminMemberBookingActions } from '@/modules/admin/ui/admin-member-booking-actions'
 import { AdminResponsiveDetailFrame } from '@/modules/admin/ui/admin-responsive-detail-frame'
 import { AdminOperationToast } from '@/modules/admin/ui/admin-operation-toast'
 import type { AdminMemberOperableStatus } from '@/modules/members/server/admin-member-status'
@@ -80,6 +81,10 @@ export function AdminMembersDashboard({
     | 'credits-adjusted'
     | 'credit-account-opened'
     | 'member-note-added'
+    | 'staff-reservation-booked'
+    | 'staff-reservation-canceled'
+    | 'staff-waitlist-joined'
+    | 'staff-waitlist-left'
     | null
   noticeId: string | null
 }) {
@@ -304,6 +309,7 @@ function MemberDetail({
             <a href={`tel:${member.phone.replace(/\s/g, '')}`} className={buttonVariants({ variant: 'outline', size: 'sm', className: 'rounded-full' })}><Phone className="size-4" aria-hidden="true" />Llamar</a>
           ) : null}
           <a href={`mailto:${member.email}`} className={buttonVariants({ variant: 'outline', size: 'sm', className: 'rounded-full' })}><Mail className="size-4" aria-hidden="true" />Email</a>
+          <AdminMemberBookingActions member={member} returnTo={returnTo} />
           <Link href={`/admin/overrides?member=${encodeURIComponent(member.id)}`} className={buttonVariants({ size: 'sm', className: 'rounded-full' })}>
             <TicketCheck className="size-4" aria-hidden="true" />Operar excepciones
           </Link>

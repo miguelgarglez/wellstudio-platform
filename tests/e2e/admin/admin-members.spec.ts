@@ -1,7 +1,14 @@
 import { expect, test } from '@playwright/test'
 
 import { prepareSandboxAdminOverridesFixture } from '../support/admin-overrides'
-import { ADMIN_MEMBER_NOTE_E2E_PREFIX, cleanupSandboxAdminMemberNotes } from '../support/admin-members'
+import {
+  ADMIN_MEMBER_NOTE_E2E_PREFIX,
+  ADMIN_STAFF_BOOKING_EMAIL,
+  cleanupSandboxAdminMemberNotes,
+  cleanupSandboxStaffBookingFixture,
+  getSandboxStaffBookingEvidence,
+  prepareSandboxStaffBookingFixture,
+} from '../support/admin-members'
 import {
   ensureSandboxAdminAccess,
   loginAsSandboxAdmin,
@@ -34,6 +41,7 @@ test.describe('Admin members @admin @sandbox', () => {
   test.afterEach(async () => {
     await prepareSandboxAdminOverridesFixture()
     await cleanupSandboxAdminMemberNotes()
+    await cleanupSandboxStaffBookingFixture()
   })
 
   test('member cannot access the operational member directory', async ({ page }) => {
@@ -271,6 +279,105 @@ test.describe('Admin members @admin @sandbox', () => {
     }
   })
 
+  test('admin books, cancels, joins and leaves a waitlist for a member with an audit trail', async ({ page }, testInfo) => {
+    test.setTimeout(120_000)
+    await resetSandboxAdminPlaygroundScenario()
+    await prepareSandboxStaffBookingFixture()
+
+    try {
+      await loginAsSandboxAdmin(page)
+      await page.goto(`/admin/members?q=${encodeURIComponent(ADMIN_STAFF_BOOKING_EMAIL)}`)
+      await page.getByRole('link', { name: new RegExp(ADMIN_STAFF_BOOKING_EMAIL, 'i') }).click()
+      await page.getByRole('button', { name: 'Gestionar agenda' }).click()
+
+      let sheet = page.getByRole('dialog', { name: /Agenda de Nora Ilimitada/i })
+      await expect(sheet).toBeVisible()
+      await expect(sheet.getByText('E2E Staff Assisted').first()).toBeVisible()
+      await page.waitForTimeout(250)
+      await testInfo.attach('admin-staff-booking-desktop', {
+        body: await page.screenshot({ path: 'test-results/mig-132-staff-booking-desktop.png' }),
+        contentType: 'image/png',
+      })
+
+      const availableSession = sheet.getByRole('article')
+        .filter({ hasText: 'E2E Staff Assisted' })
+        .filter({ hasText: '4 plazas libres' })
+      await availableSession.getByRole('button', { name: 'Reservar para el socio' }).click()
+      await expect(page).toHaveURL(/updated=staff-reservation-booked/, { timeout: 15_000 })
+      const bookedToast = page.getByRole('status')
+      await expect(bookedToast.getByText('Reserva asistida confirmada')).toBeVisible()
+      await bookedToast.getByRole('button', { name: 'Cerrar notificación' }).click({ force: true })
+      await expect(bookedToast).toBeHidden()
+
+      let evidence = await getSandboxStaffBookingEvidence()
+      expect(evidence.reservation).toMatchObject({ status: 'BOOKED', source: 'STAFF' })
+      expect(evidence.auditActions).toContain('STAFF_RESERVATION_BOOKED')
+
+      sheet = page.getByRole('dialog', { name: /Agenda de Nora Ilimitada/i })
+      const cancelReservationButton = sheet.getByRole('button', { name: 'Cancelar en nombre del socio' })
+      await expect(cancelReservationButton).toBeVisible()
+      await page.waitForTimeout(350)
+      await cancelReservationButton.dispatchEvent('click')
+      const cancelDialog = page.getByRole('alertdialog', { name: 'Cancelar una reserva asistida' })
+      await expect(cancelDialog).toBeVisible()
+      await cancelDialog.getByLabel('Motivo operativo').fill('Cambio solicitado por teléfono durante E2E')
+      await page.waitForTimeout(250)
+      await testInfo.attach('admin-staff-cancellation-dialog', {
+        body: await page.screenshot({ path: 'test-results/mig-132-staff-cancellation-dialog.png' }),
+        contentType: 'image/png',
+      })
+      await cancelDialog.getByRole('button', { name: 'Confirmar cancelación' }).click()
+      await expect(page).toHaveURL(/updated=staff-reservation-canceled/, { timeout: 15_000 })
+      const canceledToast = page.getByRole('status')
+      await expect(canceledToast.getByText('Reserva asistida cancelada')).toBeVisible()
+      await canceledToast.getByRole('button', { name: 'Cerrar notificación' }).click({ force: true })
+      await expect(canceledToast).toBeHidden()
+
+      evidence = await getSandboxStaffBookingEvidence()
+      expect(evidence.reservation).toMatchObject({
+        status: 'CANCELED',
+        source: 'STAFF',
+        cancellation_reason: 'Staff-assisted cancellation: Cambio solicitado por teléfono durante E2E',
+      })
+      expect(evidence.auditActions).toContain('STAFF_RESERVATION_CANCELED')
+
+      await page.setViewportSize({ width: 390, height: 844 })
+      sheet = await ensureStaffAgendaOpen(page)
+      await page.waitForTimeout(250)
+      const mobileBox = await sheet.boundingBox()
+      expect(mobileBox?.width).toBeGreaterThanOrEqual(388)
+      const fullSession = sheet.getByRole('article')
+        .filter({ hasText: 'E2E Staff Assisted' })
+      await fullSession.getByRole('button', { name: 'Añadir a waitlist' }).evaluate((button: HTMLButtonElement) => button.click())
+      await expect(page).toHaveURL(/updated=staff-waitlist-joined/, { timeout: 15_000 })
+      const joinedToast = page.getByRole('status')
+      await expect(joinedToast.getByText('Socio añadido a waitlist')).toBeVisible()
+      await joinedToast.getByRole('button', { name: 'Cerrar notificación' }).click({ force: true })
+      await expect(joinedToast).toBeHidden()
+
+      sheet = await ensureStaffAgendaOpen(page)
+      await expect(sheet.getByRole('button', { name: 'Retirar de waitlist' })).toBeVisible()
+      await page.waitForTimeout(250)
+      await testInfo.attach('admin-staff-waitlist-mobile', {
+        body: await page.screenshot({ path: 'test-results/mig-132-staff-waitlist-mobile.png' }),
+        contentType: 'image/png',
+      })
+      await sheet.getByRole('button', { name: 'Retirar de waitlist' }).evaluate((button: HTMLButtonElement) => button.click())
+      await expect(page).toHaveURL(/updated=staff-waitlist-left/, { timeout: 15_000 })
+      await expect(page.getByRole('status').getByText('Socio retirado de waitlist')).toBeVisible()
+
+      evidence = await getSandboxStaffBookingEvidence()
+      expect(evidence.waitlist).toMatchObject({ status: 'REMOVED' })
+      expect(evidence.auditActions).toEqual(expect.arrayContaining([
+        'STAFF_WAITLIST_JOINED',
+        'STAFF_WAITLIST_LEFT',
+      ]))
+    } finally {
+      await cleanupSandboxStaffBookingFixture()
+      await resetSandboxAdminPlaygroundScenario()
+    }
+  })
+
   test('mobile member detail uses the full viewport and returns to the filtered list', async ({ page }, testInfo) => {
     const { email } = getSandboxCredentials()
 
@@ -322,4 +429,13 @@ async function waitForMotionToSettle(locator: import('@playwright/test').Locator
   await locator.evaluate((element) => Promise.all(
     element.getAnimations({ subtree: true }).map((animation) => animation.finished.catch(() => undefined)),
   ))
+}
+
+async function ensureStaffAgendaOpen(page: import('@playwright/test').Page) {
+  const sheet = page.getByRole('dialog', { name: /Agenda de Nora Ilimitada/i })
+  if (!(await sheet.isVisible())) {
+    await page.getByRole('button', { name: 'Gestionar agenda' }).click()
+  }
+  await expect(sheet).toBeVisible()
+  return sheet
 }

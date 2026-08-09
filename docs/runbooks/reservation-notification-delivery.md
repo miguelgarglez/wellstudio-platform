@@ -103,6 +103,8 @@ Incluido:
 
 - confirmacion de reserva directa
 - confirmacion de cancelacion por el socio
+- confirmacion de reserva asistida por admin/staff con `Reservation.source = STAFF`
+- confirmacion de cancelacion asistida; el motivo operativo queda en auditoria y no se incluye como dato libre en el email
 - confirmacion de plaza obtenida por promocion automatica desde waitlist
 - aviso por cambio de horario, clase o coach a reservas activas y waitlist activa
 - aviso por cancelacion administrativa, incluida la razon operativa

@@ -4,6 +4,7 @@ import { prisma } from '@/lib/db/prisma'
 import { normalizeEmail } from '@/modules/auth/lib/normalize-email'
 import { buildPlanWindowLabel } from '@/modules/members/server/member-commercial'
 import { resolveEffectiveMembershipBookingPolicy } from '@/modules/reservations/server/membership-booking-policy'
+import { getMemberReservationsOverviewForMember } from '@/modules/reservations/server/member-reservations-overview'
 
 const MEMBER_LIST_LIMIT = 30
 const DETAIL_HISTORY_LIMIT = 10
@@ -233,6 +234,13 @@ export async function getAdminMembersOverview(input: {
   ])
 
   const countsByStatus = new Map(statusGroups.map((group) => [group.status, group._count._all]))
+  const bookingOverview = selectedMemberRecord
+    ? await getMemberReservationsOverviewForMember({
+        memberId: selectedMemberRecord.id,
+        memberStatus: selectedMemberRecord.status,
+        now,
+      })
+    : null
 
   return {
     query,
@@ -250,7 +258,7 @@ export async function getAdminMembersOverview(input: {
       joinedAtLabel: member.joinedAt ? `Alta ${formatDate(member.joinedAt)}` : `Creado ${formatDate(member.updatedAt)}`,
     })),
     selectedMember: selectedMemberRecord
-      ? mapSelectedMember(selectedMemberRecord, now)
+      ? mapSelectedMember(selectedMemberRecord, now, bookingOverview)
       : null,
     membershipPlans: membershipPlans.map(mapMembershipPlanOption),
     creditPacks: creditPacks.map((pack) => ({
@@ -273,7 +281,11 @@ export async function getAdminMembersOverview(input: {
   }
 }
 
-function mapSelectedMember(member: AdminMemberDetailRecord, now: Date) {
+function mapSelectedMember(
+  member: AdminMemberDetailRecord,
+  now: Date,
+  bookingOverview: Awaited<ReturnType<typeof getMemberReservationsOverviewForMember>> | null,
+) {
   const reservations = member.reservations.map((reservation) => ({
     id: reservation.id,
     sessionId: reservation.classSession.id,
@@ -346,6 +358,14 @@ function mapSelectedMember(member: AdminMemberDetailRecord, now: Date) {
       statusLabel: entry.status === 'NOTIFIED' ? 'Plaza notificada' : 'En espera',
       positionLabel: entry.position ? `Posición ${entry.position}` : 'Posición pendiente',
     })),
+    bookingWorkspace: bookingOverview
+      ? {
+          bookingState: bookingOverview.bookingState,
+          schedulePreview: bookingOverview.schedulePreview,
+          upcomingReservations: bookingOverview.upcomingReservations,
+          activeWaitlists: bookingOverview.activeWaitlists,
+        }
+      : null,
     payments: member.payments.map((payment) => ({
       id: payment.id,
       typeLabel: paymentTypeLabel(payment.paymentType),

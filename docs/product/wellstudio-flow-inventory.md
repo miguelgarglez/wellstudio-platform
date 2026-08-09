@@ -647,7 +647,9 @@ Happy path:
 3. puede cambiar su estado basico con un motivo operativo
 4. puede asignar o finalizar una membership interna con vigencia y motivo
 5. puede ajustar creditos existentes o abrir una cuenta interna sin registrar un pago ficticio
-6. puede realizar las demas acciones permitidas desde sus superficies de dominio
+6. puede reservar una sesion o entrar/salir de waitlist en nombre del socio con las mismas reglas de elegibilidad
+7. puede cancelar una reserva futura fuera de la ventana del socio indicando un motivo operativo
+8. puede realizar las demas acciones permitidas desde sus superficies de dominio
 
 Errores y bloqueos:
 
@@ -677,6 +679,12 @@ Estado V1 implementado:
 - el admin puede añadir o retirar creditos mediante un movimiento `MANUAL_ADJUSTMENT`; el saldo no puede quedar negativo y cada delta conserva motivo, actor y saldo resultante
 - si no existe una cuenta operable, puede abrirse una cuenta interna sobre un bono activo sin crear `Payment`; no se duplica una cuenta vigente del mismo bono ni se reabren cuentas expiradas o canceladas
 - desde la ficha se enlaza con Excepciones y con la sesión concreta de Agenda conservando un único contexto operativo
+- `Gestionar agenda` abre una workspace enfocada con reservas futuras, waitlists activas y las proximas sesiones publicadas; no introduce formularios permanentes en el dossier
+- reservar y entrar en waitlist en nombre del socio reutiliza exactamente el motor de elegibilidad, aforo y consumo vigente; el staff no obtiene un bypass silencioso y debe acudir a Excepciones cuando falta cobertura
+- las reservas asistidas persisten `Reservation.source = STAFF`; altas y bajas de waitlist conservan el mismo contrato de dominio que el portal
+- la cancelacion asistida solo se admite antes de empezar la sesion, puede superar la ventana ordinaria del socio y exige un motivo de 5 a 240 caracteres
+- reserva, cancelacion y cambios de waitlist generan `AuditLog` atomico con actor, socio y sesion; la cancelacion mantiene devolucion de creditos, promocion de waitlist y notificacion transaccional
+- la workspace es full viewport en mobile y acotada a `52rem` en desktop; feedback y confirmaciones mantienen foco sin perder el contexto del socio
 - `/admin/overrides` permite buscar socios por nombre o email
 - opera solo sobre memberships activas
 - permite conceder `extra_allowance` para la ventana vigente de una politica periodica

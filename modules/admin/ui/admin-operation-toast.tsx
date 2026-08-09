@@ -44,6 +44,10 @@ type AdminOperationToastState =
   | 'credits-adjusted'
   | 'credit-account-opened'
   | 'member-note-added'
+  | 'staff-reservation-booked'
+  | 'staff-reservation-canceled'
+  | 'staff-waitlist-joined'
+  | 'staff-waitlist-left'
   | 'notification-retry'
   | null
 
@@ -242,6 +246,26 @@ const TOAST_COPY: Record<
     tone: 'success',
     title: 'Nota interna añadida',
     description: 'El contexto ya aparece en el dossier y queda asociado al operador.',
+  },
+  'staff-reservation-booked': {
+    tone: 'success',
+    title: 'Reserva asistida confirmada',
+    description: 'La plaza ya aparece en la agenda del socio con origen Staff y auditoría operativa.',
+  },
+  'staff-reservation-canceled': {
+    tone: 'success',
+    title: 'Reserva asistida cancelada',
+    description: 'La plaza se ha liberado, el motivo queda auditado y la waitlist se ha reevaluado.',
+  },
+  'staff-waitlist-joined': {
+    tone: 'success',
+    title: 'Socio añadido a waitlist',
+    description: 'La posición ya está registrada y se respetará en una futura promoción automática.',
+  },
+  'staff-waitlist-left': {
+    tone: 'success',
+    title: 'Socio retirado de waitlist',
+    description: 'La lista se ha reordenado y la operación queda asociada al operador.',
   },
   'notification-retry': {
     tone: 'success',

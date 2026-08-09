@@ -1,11 +1,12 @@
 import { beforeEach, describe, expect, it, vi } from 'vitest'
 
-const { memberFindManyMock, memberFindUniqueMock, memberGroupByMock, membershipPlanFindManyMock, creditPackFindManyMock } = vi.hoisted(() => ({
+const { memberFindManyMock, memberFindUniqueMock, memberGroupByMock, membershipPlanFindManyMock, creditPackFindManyMock, bookingOverviewMock } = vi.hoisted(() => ({
   memberFindManyMock: vi.fn(),
   memberFindUniqueMock: vi.fn(),
   memberGroupByMock: vi.fn(),
   membershipPlanFindManyMock: vi.fn(),
   creditPackFindManyMock: vi.fn(),
+  bookingOverviewMock: vi.fn(),
 }))
 
 vi.mock('@/lib/db/prisma', () => ({
@@ -18,6 +19,10 @@ vi.mock('@/lib/db/prisma', () => ({
     membershipPlan: { findMany: membershipPlanFindManyMock },
     creditPack: { findMany: creditPackFindManyMock },
   },
+}))
+
+vi.mock('@/modules/reservations/server/member-reservations-overview', () => ({
+  getMemberReservationsOverviewForMember: bookingOverviewMock,
 }))
 
 import {
@@ -35,6 +40,17 @@ describe('admin members overview', () => {
     memberGroupByMock.mockResolvedValue([])
     membershipPlanFindManyMock.mockResolvedValue([])
     creditPackFindManyMock.mockResolvedValue([])
+    bookingOverviewMock.mockResolvedValue({
+      bookingState: {
+        canBook: true,
+        reason: 'ready',
+        advisoryLabel: 'Con capacidad operativa para reservar',
+        description: 'Plan activo.',
+      },
+      schedulePreview: [],
+      upcomingReservations: [],
+      activeWaitlists: [],
+    })
   })
 
   it('normalizes unsupported filters to the safe active default', () => {
@@ -132,6 +148,10 @@ describe('admin members overview', () => {
       activeWaitlist: [{ className: 'Movilidad', statusLabel: 'En espera', positionLabel: 'Posición 2' }],
       payments: [{ typeLabel: 'Membresía', statusLabel: 'Pagado', amountLabel: '79,00 €' }],
       notes: [{ body: 'Prefiere horario de tarde', visibilityLabel: 'INTERNAL' }],
+      bookingWorkspace: {
+        bookingState: { canBook: true },
+        schedulePreview: [],
+      },
     })
     expect(overview.selectedMember?.memberships[0].canEndManually).toBe(true)
     expect(overview.membershipPlans).toEqual([expect.objectContaining({

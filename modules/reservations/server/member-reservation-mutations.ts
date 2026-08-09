@@ -32,6 +32,7 @@ export type ReservationMutationCode =
   | 'RESERVATION_NOT_FOUND'
   | 'WAITLIST_NOT_FOUND'
   | 'MEMBER_NOT_ACTIVE'
+  | 'INVALID_REASON'
 
 export type ReservationMutationResult = {
   success: boolean
@@ -64,6 +65,10 @@ type MutationContext = {
   memberId: string
   userId: string
   now?: Date
+  staffOperation?: {
+    actorDisplayName: string
+    reason?: string
+  }
 }
 
 export async function evaluateReservationEligibility(input: {
@@ -162,7 +167,7 @@ export async function reservePublishedSession(
       memberId: input.memberId,
       classSessionId: session.id,
       usage: eligibility.usage,
-      source: 'MEMBER_APP',
+      source: input.staffOperation ? 'STAFF' : 'MEMBER_APP',
       now,
     })
 
@@ -185,6 +190,18 @@ export async function reservePublishedSession(
       occurredAt: now,
     })
 
+    if (input.staffOperation) {
+      await createStaffReservationAudit(tx, {
+        actorUserId: input.userId,
+        actorDisplayName: input.staffOperation.actorDisplayName,
+        actionType: 'STAFF_RESERVATION_BOOKED',
+        entityType: 'Reservation',
+        entityId: reservation.id,
+        memberId: input.memberId,
+        classSessionId: session.id,
+      })
+    }
+
     return buildMutationOutcome(
       buildMutationResult(
         'BOOKED',
@@ -204,6 +221,14 @@ export async function cancelMemberReservation(
     reservationId: string
   },
 ): Promise<ReservationMutationExecutionResult> {
+  const staffReason = input.staffOperation?.reason?.trim() ?? ''
+  if (input.staffOperation && (staffReason.length < 5 || staffReason.length > 240)) {
+    return buildMutationResult(
+      'INVALID_REASON',
+      'Explica la cancelación asistida con un motivo de entre 5 y 240 caracteres.',
+    )
+  }
+
   const outcome = await runSerializableReservationTransaction(async (tx) => {
     const now = input.now ?? new Date()
     const reservation = await tx.reservation.findFirst({
@@ -275,7 +300,7 @@ export async function cancelMemberReservation(
       now,
     })
 
-    if (cutoffAt.getTime() <= now.getTime()) {
+    if (!input.staffOperation && cutoffAt.getTime() <= now.getTime()) {
       return buildMutationOutcome(
         buildMutationResult(
           'CANCELLATION_WINDOW_CLOSED',
@@ -293,7 +318,9 @@ export async function cancelMemberReservation(
         status: 'CANCELED',
         canceledAt: now,
         canceledByUserId: input.userId,
-        cancellationReason: 'Canceled by member from private portal',
+        cancellationReason: input.staffOperation
+          ? `Staff-assisted cancellation: ${staffReason}`
+          : 'Canceled by member from private portal',
       },
     })
 
@@ -318,6 +345,9 @@ export async function cancelMemberReservation(
         creditsUsed: creditUsage.creditsUsed,
         reservationId: reservation.id,
         now,
+        notes: input.staffOperation
+          ? 'Credit refunded after staff-assisted cancellation'
+          : undefined,
       })
     }
 
@@ -333,6 +363,19 @@ export async function cancelMemberReservation(
       classSessionId: reservation.classSession.id,
       occurredAt: now,
     })
+
+    if (input.staffOperation) {
+      await createStaffReservationAudit(tx, {
+        actorUserId: input.userId,
+        actorDisplayName: input.staffOperation.actorDisplayName,
+        actionType: 'STAFF_RESERVATION_CANCELED',
+        entityType: 'Reservation',
+        entityId: reservation.id,
+        memberId: input.memberId,
+        classSessionId: reservation.classSession.id,
+        reason: staffReason,
+      })
+    }
 
     return buildMutationOutcome(
       buildMutationResult(
@@ -426,6 +469,18 @@ export async function joinSessionWaitlist(
       },
     })
 
+    if (input.staffOperation) {
+      await createStaffReservationAudit(tx, {
+        actorUserId: input.userId,
+        actorDisplayName: input.staffOperation.actorDisplayName,
+        actionType: 'STAFF_WAITLIST_JOINED',
+        entityType: 'WaitlistEntry',
+        entityId: entry.id,
+        memberId: input.memberId,
+        classSessionId: session.id,
+      })
+    }
+
     return buildMutationResult(
       'WAITLIST_JOINED',
       `Te has unido a la waitlist de ${session.classType.name}.`,
@@ -480,6 +535,18 @@ export async function leaveSessionWaitlist(
     })
 
     await resequenceWaitlistPositions(tx, entry.classSession.id)
+
+    if (input.staffOperation) {
+      await createStaffReservationAudit(tx, {
+        actorUserId: input.userId,
+        actorDisplayName: input.staffOperation.actorDisplayName,
+        actionType: 'STAFF_WAITLIST_LEFT',
+        entityType: 'WaitlistEntry',
+        entityId: entry.id,
+        memberId: input.memberId,
+        classSessionId: entry.classSession.id,
+      })
+    }
 
     return buildMutationResult(
       'WAITLIST_LEFT',
@@ -799,7 +866,7 @@ export async function createBookedReservation(
     memberId: string
     classSessionId: string
     usage: ReservationEligibilityUsage
-    source: 'MEMBER_APP' | 'SYSTEM'
+    source: 'MEMBER_APP' | 'STAFF' | 'SYSTEM'
     now: Date
   },
 ) {
@@ -904,6 +971,35 @@ export async function createBookedReservation(
   })
 
   return reservation
+}
+
+async function createStaffReservationAudit(
+  tx: ReservationMutationTx,
+  input: {
+    actorUserId: string
+    actorDisplayName: string
+    actionType: string
+    entityType: 'Reservation' | 'WaitlistEntry'
+    entityId: string
+    memberId: string
+    classSessionId: string
+    reason?: string
+  },
+) {
+  await tx.auditLog.create({
+    data: {
+      actorUserId: input.actorUserId,
+      actionType: input.actionType,
+      entityType: input.entityType,
+      entityId: input.entityId,
+      contextJson: {
+        memberId: input.memberId,
+        classSessionId: input.classSessionId,
+        actorDisplayName: input.actorDisplayName,
+        ...(input.reason ? { reason: input.reason } : {}),
+      },
+    },
+  })
 }
 
 export async function refundCreditUsage(

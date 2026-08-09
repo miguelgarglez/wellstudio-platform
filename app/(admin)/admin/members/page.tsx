@@ -70,8 +70,12 @@ function parseUpdatedState(value?: string) {
     value === 'membership-assigned' ||
     value === 'membership-ended' ||
     value === 'credits-adjusted' ||
-    value === 'credit-account-opened'
-    || value === 'member-note-added'
+    value === 'credit-account-opened' ||
+    value === 'member-note-added' ||
+    value === 'staff-reservation-booked' ||
+    value === 'staff-reservation-canceled' ||
+    value === 'staff-waitlist-joined' ||
+    value === 'staff-waitlist-left'
     ? value
     : null
 }
@@ -85,4 +89,8 @@ type AdminMembersUpdatedState =
   | 'credits-adjusted'
   | 'credit-account-opened'
   | 'member-note-added'
+  | 'staff-reservation-booked'
+  | 'staff-reservation-canceled'
+  | 'staff-waitlist-joined'
+  | 'staff-waitlist-left'
   | null

@@ -2,6 +2,7 @@
 
 import { revalidatePath } from 'next/cache'
 import { redirect } from 'next/navigation'
+import { after } from 'next/server'
 
 import { requireAdminOrStaffContext } from '@/modules/auth/server/identity'
 import {
@@ -20,6 +21,15 @@ import {
   type AdminMemberStatusActor,
 } from '@/modules/members/server/admin-member-status'
 import { addAdminMemberNote } from '@/modules/members/server/admin-member-notes'
+import { dispatchNotificationJobSafely } from '@/modules/notifications/server/notification-outbox'
+import {
+  cancelMemberReservation,
+  joinSessionWaitlist,
+  leaveSessionWaitlist,
+  reservePublishedSession,
+  type ReservationMutationExecutionResult,
+  type ReservationMutationResult,
+} from '@/modules/reservations/server/member-reservation-mutations'
 
 export type AdminMemberStatusActionState = {
   message: string
@@ -39,6 +49,11 @@ export type AdminCreditActionState = {
 export type AdminMemberNoteActionState = {
   message: string
   field?: 'body'
+} | null
+
+export type AdminMemberBookingActionState = {
+  message: string
+  field?: 'reason'
 } | null
 
 export async function addAdminMemberNoteAction(
@@ -203,6 +218,80 @@ export async function manageMemberCreditsAction(
   ))
 }
 
+export async function manageAdminMemberBookingAction(
+  _previousState: AdminMemberBookingActionState,
+  formData: FormData,
+): Promise<AdminMemberBookingActionState> {
+  const context = await requireAdminOrStaffContext()
+  if (!context) return { message: 'Necesitamos una sesión admin o staff válida.' }
+
+  const memberId = read(formData, 'memberId') ?? ''
+  const operation = read(formData, 'operation')
+  const actor = actorFrom(context)
+  const baseInput = {
+    memberId,
+    userId: actor.userId,
+    staffOperation: { actorDisplayName: actor.displayName },
+  }
+
+  let result: ReservationMutationResult | ReservationMutationExecutionResult
+
+  try {
+    if (operation === 'reserve') {
+      result = await reservePublishedSession({
+        ...baseInput,
+        classSessionId: read(formData, 'classSessionId') ?? '',
+      })
+    } else if (operation === 'join-waitlist') {
+      result = await joinSessionWaitlist({
+        ...baseInput,
+        classSessionId: read(formData, 'classSessionId') ?? '',
+      })
+    } else if (operation === 'leave-waitlist') {
+      result = await leaveSessionWaitlist({
+        ...baseInput,
+        waitlistEntryId: read(formData, 'waitlistEntryId') ?? '',
+      })
+    } else if (operation === 'cancel') {
+      result = await cancelMemberReservation({
+        ...baseInput,
+        reservationId: read(formData, 'reservationId') ?? '',
+        staffOperation: {
+          actorDisplayName: actor.displayName,
+          reason: read(formData, 'reason') ?? '',
+        },
+      })
+    } else {
+      return { message: 'Selecciona una operación de agenda válida.' }
+    }
+  } catch {
+    return { message: 'No hemos podido completar la operación. Recarga la ficha y vuelve a intentarlo.' }
+  }
+
+  if (!result.success) {
+    return {
+      message: result.message,
+      field: result.code === 'INVALID_REASON' ? 'reason' : undefined,
+    }
+  }
+
+  for (const notificationJobId of 'notificationJobIds' in result ? result.notificationJobIds ?? [] : []) {
+    after(() => dispatchNotificationJobSafely(notificationJobId))
+  }
+
+  revalidateMemberBookingPaths()
+  redirect(appendFeedback(
+    normalizeReturnTo(read(formData, 'returnTo')),
+    operation === 'reserve'
+      ? 'staff-reservation-booked'
+      : operation === 'join-waitlist'
+        ? 'staff-waitlist-joined'
+        : operation === 'leave-waitlist'
+          ? 'staff-waitlist-left'
+          : 'staff-reservation-canceled',
+  ))
+}
+
 function read(formData: FormData, key: string) {
   const value = formData.get(key)
   return typeof value === 'string' && value.trim() ? value.trim() : null
@@ -240,6 +329,14 @@ function revalidateMemberCommercialPaths() {
   revalidatePath('/admin/overrides')
   revalidatePath('/app')
   revalidatePath('/app/account')
+  revalidatePath('/app/reservations')
+}
+
+function revalidateMemberBookingPaths() {
+  revalidatePath('/admin')
+  revalidatePath('/admin/members')
+  revalidatePath('/admin/sessions')
+  revalidatePath('/app')
   revalidatePath('/app/reservations')
 }
 

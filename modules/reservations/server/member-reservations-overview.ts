@@ -195,7 +195,6 @@ export const getMemberReservationsOverview = cache(
   async (): Promise<MemberReservationsOverview> => {
     const { requireAuthenticatedContext } = await import('@/modules/auth/server/identity')
     const authContext = await requireAuthenticatedContext()
-    const { prisma } = await import('@/lib/db/prisma')
     const member = authContext.member
     const memberId = member?.id
 
@@ -203,7 +202,21 @@ export const getMemberReservationsOverview = cache(
       throw new Error('Authenticated member required for reservations overview')
     }
 
-    const now = new Date()
+    return getMemberReservationsOverviewForMember({
+      memberId,
+      memberStatus: member.status,
+    })
+  },
+)
+
+export async function getMemberReservationsOverviewForMember(input: {
+  memberId: string
+  memberStatus: MemberStatus
+  now?: Date
+}): Promise<MemberReservationsOverview> {
+    const { prisma } = await import('@/lib/db/prisma')
+    const memberId = input.memberId
+    const now = input.now ?? new Date()
 
     const [upcomingReservations, activeWaitlists, recentHistory, publishedSessions, creditAccounts] =
       await prisma.$transaction([
@@ -490,7 +503,7 @@ export const getMemberReservationsOverview = cache(
     })
 
     return buildMemberReservationsOverview({
-      memberStatus: member.status,
+      memberStatus: input.memberStatus,
       upcomingReservations,
       activeWaitlists,
       recentHistory,
@@ -499,8 +512,7 @@ export const getMemberReservationsOverview = cache(
       creditAccounts,
       now,
     })
-  },
-)
+}
 
 type BuildMemberReservationsOverviewInput = {
   memberStatus?: MemberStatus
