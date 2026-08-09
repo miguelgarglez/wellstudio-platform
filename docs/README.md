@@ -39,3 +39,4 @@ Cuando un documento deje de ser vigente:
 - `runbooks/codex-cloud-agent-setup.md`
 - `runbooks/agentation-local-isolation.md`
 - `runbooks/reservation-notification-delivery.md`
+- `runbooks/credit-pack-checkout.md`

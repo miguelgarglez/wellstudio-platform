@@ -12,6 +12,8 @@ import {
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Skeleton } from '@/components/ui/skeleton'
 import { LogoutButton } from '@/modules/auth/ui/logout-button'
+import { MemberCheckoutFeedback } from '@/modules/members/ui/member-checkout-feedback'
+import { MemberCreditPackPurchase } from '@/modules/members/ui/member-credit-pack-purchase'
 import type {
   MemberAccountAlert,
   MemberAccountOverview,
@@ -25,78 +27,87 @@ type MemberAccountDashboardProps = {
 
 export function MemberAccountDashboard({ overview }: MemberAccountDashboardProps) {
   return (
-    <MemberAccountDashboardLayout
-      summaryTiles={
-        <>
-          <SummaryTile
-            icon={ShieldCheck}
-            eyebrow={overview.highlights.plan.eyebrow}
-            title={overview.highlights.plan.title}
-            description={overview.highlights.plan.description}
+    <>
+      <MemberCheckoutFeedback notice={overview.checkoutNotice} />
+      <MemberAccountDashboardLayout
+        summaryTiles={
+          <>
+            <SummaryTile
+              icon={ShieldCheck}
+              eyebrow={overview.highlights.plan.eyebrow}
+              title={overview.highlights.plan.title}
+              description={overview.highlights.plan.description}
+            />
+            <SummaryTile
+              icon={Ticket}
+              eyebrow={overview.highlights.credits.eyebrow}
+              title={overview.highlights.credits.title}
+              description={overview.highlights.credits.description}
+            />
+            <SummaryTile
+              icon={CreditCard}
+              eyebrow={overview.highlights.card.eyebrow}
+              title={overview.highlights.card.title}
+              description={overview.highlights.card.description}
+            />
+          </>
+        }
+        purchaseContent={
+          <MemberCreditPackPurchase
+            packs={overview.purchasableCreditPacks}
+            initiallySelectedId={overview.selectedCreditPackId}
           />
-          <SummaryTile
-            icon={Ticket}
-            eyebrow={overview.highlights.credits.eyebrow}
-            title={overview.highlights.credits.title}
-            description={overview.highlights.credits.description}
-          />
-          <SummaryTile
-            icon={CreditCard}
-            eyebrow={overview.highlights.card.eyebrow}
-            title={overview.highlights.card.title}
-            description={overview.highlights.card.description}
-          />
-        </>
-      }
-      paymentsContent={
-        overview.payments.length > 0 ? (
-          <div className="space-y-3">
-            {overview.payments.map((payment) => (
-              <PaymentRow key={payment.id} payment={payment} />
-            ))}
-          </div>
-        ) : (
-          <EmptyInsetCard
-            title="Aún no hay pagos registrados"
-            description="Cuando esta cuenta empiece a recibir cargos reales, aquí tendrás un histórico corto para recuperar contexto comercial sin salir del portal."
-          />
-        )
-      }
-      alertsContent={
-        overview.alerts.length > 0 ? (
-          <div className="space-y-3">
-            {overview.alerts.map((alert) => (
-              <AlertTile key={alert.kind} alert={alert} />
-            ))}
-          </div>
-        ) : (
-          <EmptyInsetCard
-            title="Todo en orden por ahora"
-            description="No detectamos señales comerciales que requieran atención inmediata dentro de tu cuenta."
-          />
-        )
-      }
-      securityContent={
-        <>
-          <SecurityTile
-            icon={Mail}
-            eyebrow="Email de acceso"
-            title={overview.summary.email}
-            detail={overview.summary.displayName}
-            titleProps={{ translate: 'no' }}
-          />
-          <SecurityTile
-            icon={Wallet}
-            eyebrow="Estado actual"
-            title={overview.summary.memberStatusLabel}
-            detail={`Roles activos: ${overview.summary.rolesLabel}`}
-          />
-          <div className="pt-2">
-            <LogoutButton />
-          </div>
-        </>
-      }
-    />
+        }
+        paymentsContent={
+          overview.payments.length > 0 ? (
+            <div className="space-y-3">
+              {overview.payments.map((payment) => (
+                <PaymentRow key={payment.id} payment={payment} />
+              ))}
+            </div>
+          ) : (
+            <EmptyInsetCard
+              title="Aún no hay pagos registrados"
+              description="Cuando completes una compra, aquí tendrás un histórico corto para recuperar el contexto comercial sin salir del portal."
+            />
+          )
+        }
+        alertsContent={
+          overview.alerts.length > 0 ? (
+            <div className="space-y-3">
+              {overview.alerts.map((alert) => (
+                <AlertTile key={alert.kind} alert={alert} />
+              ))}
+            </div>
+          ) : (
+            <EmptyInsetCard
+              title="Todo en orden por ahora"
+              description="No detectamos señales comerciales que requieran atención inmediata dentro de tu cuenta."
+            />
+          )
+        }
+        securityContent={
+          <>
+            <SecurityTile
+              icon={Mail}
+              eyebrow="Email de acceso"
+              title={overview.summary.email}
+              detail={overview.summary.displayName}
+              titleProps={{ translate: 'no' }}
+            />
+            <SecurityTile
+              icon={Wallet}
+              eyebrow="Estado actual"
+              title={overview.summary.memberStatusLabel}
+              detail={`Roles activos: ${overview.summary.rolesLabel}`}
+            />
+            <div className="pt-2">
+              <LogoutButton />
+            </div>
+          </>
+        }
+      />
+    </>
   )
 }
 
@@ -109,6 +120,12 @@ export function MemberAccountDashboardSkeletonBody() {
             <SummaryTileSkeleton key={index} />
           ))}
         </>
+      }
+      purchaseContent={
+        <div className="grid gap-3 md:grid-cols-2">
+          <PaymentRowSkeleton />
+          <PaymentRowSkeleton />
+        </div>
       }
       paymentsContent={
         <div className="space-y-3">
@@ -139,11 +156,13 @@ export function MemberAccountDashboardSkeletonBody() {
 
 function MemberAccountDashboardLayout({
   summaryTiles,
+  purchaseContent,
   paymentsContent,
   alertsContent,
   securityContent,
 }: {
   summaryTiles: ReactNode
+  purchaseContent: ReactNode
   paymentsContent: ReactNode
   alertsContent: ReactNode
   securityContent: ReactNode
@@ -151,6 +170,8 @@ function MemberAccountDashboardLayout({
   return (
     <div className="space-y-4">
       <div className="grid gap-4 xl:grid-cols-3">{summaryTiles}</div>
+
+      <SectionCard title="Comprar bonos">{purchaseContent}</SectionCard>
 
       <div className="grid gap-4 xl:grid-cols-[minmax(0,1.16fr)_minmax(300px,0.84fr)]">
         <SectionCard title="Pagos recientes">{paymentsContent}</SectionCard>

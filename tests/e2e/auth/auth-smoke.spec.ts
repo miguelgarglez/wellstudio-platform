@@ -95,4 +95,14 @@ test.describe('Auth smoke @smoke @auth', () => {
     await expect(page).toHaveURL(/\/login\?redirectTo=%2Fadmin$/)
     await expect(page.locator('button[type="submit"]')).toBeVisible()
   })
+
+  test('checkout keeps its query when redirecting an unauthenticated visitor', async ({ page }) => {
+    const path = '/checkout/sandbox?payment=payment-1'
+    await page.goto(path)
+
+    await expect(page).toHaveURL(
+      new RegExp(`/login[?]redirectTo=${encodeURIComponent(path).replace(/\//g, '%2F')}$`),
+    )
+    await expect(page.locator('button[type="submit"]')).toBeVisible()
+  })
 })

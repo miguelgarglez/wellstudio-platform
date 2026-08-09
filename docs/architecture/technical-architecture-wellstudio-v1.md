@@ -585,7 +585,7 @@ APIs clave:
 - `GET /app/payments/cards`
 - `DELETE /app/payments/cards/:id`
 - `GET /app/payments/history`
-- `POST /webhooks/stripe`
+- `POST /api/payments/stripe/webhook`
 
 ## Leads
 

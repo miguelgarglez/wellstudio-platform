@@ -606,7 +606,7 @@ model MemberCreditAccount {
   status       MemberCreditAccountStatus
   openedAt     DateTime                  @default(now())
   expiresAt    DateTime?
-  paymentId    String?
+  paymentId    String?                   @unique
   createdAt    DateTime                  @default(now())
   updatedAt    DateTime                  @updatedAt
 
@@ -659,21 +659,23 @@ model Card {
 }
 
 model Payment {
-  id                      String        @id @default(cuid())
-  memberId                String
-  cardId                  String?
-  provider                String
-  providerPaymentIntentId String?
-  providerInvoiceId       String?
-  status                  PaymentStatus
-  paymentType             PaymentType
-  amount                  Int
-  currency                String
-  capturedAt              DateTime?
-  failedAt                DateTime?
-  failureReason           String?
-  createdAt               DateTime      @default(now())
-  updatedAt               DateTime      @updatedAt
+  id                        String        @id @default(cuid())
+  memberId                  String
+  cardId                    String?
+  provider                  String
+  providerPaymentIntentId   String?
+  providerInvoiceId         String?
+  providerCheckoutSessionId String?
+  checkoutExpiresAt         DateTime?
+  status                    PaymentStatus
+  paymentType               PaymentType
+  amount                    Int
+  currency                  String
+  capturedAt                DateTime?
+  failedAt                  DateTime?
+  failureReason             String?
+  createdAt                 DateTime      @default(now())
+  updatedAt                 DateTime      @updatedAt
 
   member         Member                @relation(fields: [memberId], references: [id], onDelete: Cascade)
   card           Card?                 @relation(fields: [cardId], references: [id])
@@ -682,19 +684,22 @@ model Payment {
   memberships    MemberMembership[]
   creditAccounts MemberCreditAccount[]
 
+  @@unique([provider, providerCheckoutSessionId])
   @@index([memberId, createdAt])
   @@index([providerPaymentIntentId])
 }
 
 model PaymentItem {
-  id          String          @id @default(cuid())
-  paymentId   String
-  itemType    PaymentItemType
-  referenceId String
-  quantity    Int             @default(1)
-  unitAmount  Int
-  totalAmount Int
-  createdAt   DateTime        @default(now())
+  id                          String          @id @default(cuid())
+  paymentId                   String
+  itemType                    PaymentItemType
+  referenceId                 String
+  quantity                    Int             @default(1)
+  unitAmount                  Int
+  totalAmount                 Int
+  entitlementUnits            Int?
+  entitlementExpiresAfterDays Int?
+  createdAt                   DateTime        @default(now())
 
   payment Payment @relation(fields: [paymentId], references: [id], onDelete: Cascade)
 

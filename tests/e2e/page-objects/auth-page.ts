@@ -135,7 +135,7 @@ export class AuthPage {
       this.page.getByText('WellStudio es responsable del tratamiento de los datos personales'),
     ).toBeVisible()
     await expect(
-      this.page.getByLabel('Legal navigation').getByRole('link', { name: 'Condiciones' }),
+      this.page.getByLabel('Navegación legal').getByRole('link', { name: 'Condiciones' }),
     ).toBeVisible()
     await expect(
       this.page.getByRole('link', { name: 'wellstudiofit@gmail.com' }).first(),
@@ -150,7 +150,7 @@ export class AuthPage {
       this.page.getByText('Estas condiciones regulan el acceso y el uso básico del área privada de WellStudio'),
     ).toBeVisible()
     await expect(
-      this.page.getByLabel('Legal navigation').getByRole('link', { name: 'Privacidad' }),
+      this.page.getByLabel('Navegación legal').getByRole('link', { name: 'Privacidad' }),
     ).toBeVisible()
     await expect(
       this.page.getByRole('link', { name: 'wellstudiofit@gmail.com' }).first(),

@@ -2,7 +2,7 @@ import { NextResponse, type NextRequest } from 'next/server'
 
 import { createSupabaseMiddlewareClient } from '@/modules/auth/lib/supabase-middleware-client'
 
-const PROTECTED_PREFIXES = ['/app', '/admin']
+const PROTECTED_PREFIXES = ['/app', '/admin', '/checkout']
 
 export async function proxy(request: NextRequest) {
   const { supabase, getResponse } = createSupabaseMiddlewareClient(request)
@@ -14,7 +14,7 @@ export async function proxy(request: NextRequest) {
 
   if (isProtectedPath && !user) {
     const loginUrl = new URL('/login', request.url)
-    loginUrl.searchParams.set('redirectTo', request.nextUrl.pathname)
+    loginUrl.searchParams.set('redirectTo', `${request.nextUrl.pathname}${request.nextUrl.search}`)
     return NextResponse.redirect(loginUrl)
   }
 
@@ -22,5 +22,5 @@ export async function proxy(request: NextRequest) {
 }
 
 export const config = {
-  matcher: ['/app/:path*', '/admin/:path*'],
+  matcher: ['/app/:path*', '/admin/:path*', '/checkout/:path*'],
 }

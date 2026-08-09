@@ -66,6 +66,22 @@ export type MemberPaymentItem = {
   detailLabel: string
 }
 
+export type MemberPurchasableCreditPack = {
+  id: string
+  slug: string
+  name: string
+  description: string | null
+  creditsLabel: string
+  validityLabel: string
+  priceLabel: string
+}
+
+export type MemberCheckoutNotice = {
+  kind: 'success' | 'processing' | 'canceled' | 'failed'
+  title: string
+  description: string
+} | null
+
 export type MemberAccountOverview = {
   summary: MemberShellSummary
   highlights: {
@@ -75,9 +91,16 @@ export type MemberAccountOverview = {
   }
   alerts: MemberAccountAlert[]
   payments: MemberPaymentItem[]
+  purchasableCreditPacks: MemberPurchasableCreditPack[]
+  selectedCreditPackId: string | null
+  checkoutNotice: MemberCheckoutNotice
 }
 
-export const getMemberAccountOverview = cache(async (): Promise<MemberAccountOverview> => {
+export const getMemberAccountOverview = cache(async (options: {
+  selectedPackSlug?: string
+  checkout?: string
+  paymentId?: string
+} = {}): Promise<MemberAccountOverview> => {
   const { requireAuthenticatedContext } = await import('@/modules/auth/server/identity')
   const { prisma } = await import('@/lib/db/prisma')
 
@@ -90,7 +113,7 @@ export const getMemberAccountOverview = cache(async (): Promise<MemberAccountOve
 
   const now = new Date()
 
-  const [memberships, creditAccounts, cards, payments] = await prisma.$transaction([
+  const [memberships, creditAccounts, cards, payments, creditPacks, checkoutPayment] = await prisma.$transaction([
     prisma.memberMembership.findMany({
       where: {
         memberId,
@@ -175,6 +198,28 @@ export const getMemberAccountOverview = cache(async (): Promise<MemberAccountOve
       },
       take: 5,
     }),
+    prisma.creditPack.findMany({
+      where: { status: 'ACTIVE', isPublic: true },
+      select: {
+        id: true,
+        slug: true,
+        name: true,
+        description: true,
+        creditsTotal: true,
+        expiresAfterDays: true,
+        priceAmount: true,
+        currency: true,
+      },
+      orderBy: [{ priceAmount: 'asc' }, { name: 'asc' }],
+    }),
+    prisma.payment.findFirst({
+      where: {
+        id: options.paymentId || '__no_payment__',
+        memberId,
+        paymentType: 'CREDIT_PACK_PURCHASE',
+      },
+      select: { status: true },
+    }),
   ])
 
   return buildMemberAccountOverview({
@@ -183,6 +228,10 @@ export const getMemberAccountOverview = cache(async (): Promise<MemberAccountOve
     creditAccounts,
     cards,
     payments,
+    creditPacks,
+    selectedPackSlug: options.selectedPackSlug,
+    checkout: options.checkout,
+    checkoutPayment,
     now,
   })
 })
@@ -193,6 +242,10 @@ export function buildMemberAccountOverview({
   creditAccounts,
   cards,
   payments,
+  creditPacks = [],
+  selectedPackSlug,
+  checkout,
+  checkoutPayment,
   now,
 }: {
   authContext: Extract<AuthContext, { isAuthenticated: true }>
@@ -200,6 +253,19 @@ export function buildMemberAccountOverview({
   creditAccounts: CreditAccountWithSnapshot[]
   cards: CardSnapshot[]
   payments: RecentPayment[]
+  creditPacks?: Array<{
+    id: string
+    slug: string
+    name: string
+    description: string | null
+    creditsTotal: number
+    expiresAfterDays: number | null
+    priceAmount: number
+    currency: string
+  }>
+  selectedPackSlug?: string
+  checkout?: string
+  checkoutPayment?: { status: PaymentStatus } | null
   now: Date
 }): MemberAccountOverview {
   const summary = buildMemberShellSummary(authContext)
@@ -233,7 +299,7 @@ export function buildMemberAccountOverview({
         title: primaryCard ? formatCardLabel(primaryCard) : 'Sin tarjeta vinculada',
         description: primaryCard
           ? buildCardMetaLabel(primaryCard)
-          : 'Añadiremos el método de pago principal en cuanto exista la capa comercial completa.',
+          : 'Las compras puntuales se completan en un checkout seguro sin guardar la tarjeta en WellStudio.',
       },
     },
     alerts: buildMemberAccountAlerts({
@@ -243,6 +309,65 @@ export function buildMemberAccountOverview({
       hasLinkedCard: Boolean(primaryCard),
     }),
     payments: payments.map((payment) => mapPaymentItem(payment)),
+    purchasableCreditPacks: creditPacks.map(mapPurchasableCreditPack),
+    selectedCreditPackId: creditPacks.find((pack) => pack.slug === selectedPackSlug)?.id ?? null,
+    checkoutNotice: buildCheckoutNotice(checkout, checkoutPayment?.status ?? null),
+  }
+}
+
+function mapPurchasableCreditPack(pack: {
+  id: string
+  slug: string
+  name: string
+  description: string | null
+  creditsTotal: number
+  expiresAfterDays: number | null
+  priceAmount: number
+  currency: string
+}): MemberPurchasableCreditPack {
+  return {
+    id: pack.id,
+    slug: pack.slug,
+    name: pack.name,
+    description: pack.description,
+    creditsLabel: pack.creditsTotal === 1 ? '1 reserva' : `${pack.creditsTotal} reservas`,
+    validityLabel: pack.expiresAfterDays ? `${pack.expiresAfterDays} días de vigencia` : 'Sin caducidad',
+    priceLabel: new Intl.NumberFormat('es-ES', {
+      style: 'currency',
+      currency: pack.currency,
+    }).format(pack.priceAmount / 100),
+  }
+}
+
+function buildCheckoutNotice(checkout: string | undefined, paymentStatus: PaymentStatus | null): MemberCheckoutNotice {
+  if (checkout === 'canceled') {
+    return {
+      kind: 'canceled',
+      title: 'Compra cancelada',
+      description: 'No se ha realizado ningún cobro ni se han activado créditos.',
+    }
+  }
+  if (checkout === 'failed') {
+    return {
+      kind: 'failed',
+      title: 'No pudimos confirmar la compra',
+      description: 'No se han activado créditos. Puedes volver a intentarlo desde esta página.',
+    }
+  }
+  if (checkout !== 'success') return null
+
+  if (paymentStatus === 'SUCCEEDED') {
+    return {
+      kind: 'success',
+      title: 'Bono activado',
+      description: 'El pago está confirmado y tus nuevas reservas ya aparecen en el saldo.',
+    }
+  }
+
+  return {
+    kind: 'processing',
+    title: 'Estamos confirmando el pago',
+    description: 'El proveedor todavía está procesando la confirmación. Tus créditos aparecerán automáticamente.',
   }
 }
 
@@ -281,7 +406,7 @@ export function buildMemberAccountAlerts({
       kind: 'no-card',
       title: 'Aún no hay tarjeta principal',
       description:
-        'Cuando la capa comercial esté conectada de extremo a extremo, aquí verás y validarás tu método de pago principal.',
+        'Los bonos se compran mediante checkout alojado. No necesitas vincular una tarjeta para completar un pago puntual.',
     })
   }
 

@@ -106,6 +106,21 @@ describe('buildMemberAccountOverview', () => {
           },
         },
       ],
+      creditPacks: [
+        {
+          id: 'pack-public-1',
+          slug: 'pack-flexible',
+          name: 'Pack Flexible',
+          description: 'Seis reservas',
+          creditsTotal: 6,
+          expiresAfterDays: 45,
+          priceAmount: 5400,
+          currency: 'EUR',
+        },
+      ],
+      selectedPackSlug: 'pack-flexible',
+      checkout: 'success',
+      checkoutPayment: { status: 'SUCCEEDED' },
       now: new Date('2026-03-20T09:00:00.000Z'),
     })
 
@@ -118,5 +133,12 @@ describe('buildMemberAccountOverview', () => {
       amountLabel: '89,00 €',
       statusLabel: 'Pagado',
     })
+    expect(overview.purchasableCreditPacks[0]).toMatchObject({
+      name: 'Pack Flexible',
+      creditsLabel: '6 reservas',
+      priceLabel: '54,00 €',
+    })
+    expect(overview.selectedCreditPackId).toBe('pack-public-1')
+    expect(overview.checkoutNotice).toMatchObject({ kind: 'success', title: 'Bono activado' })
   })
 })

@@ -17,7 +17,7 @@ test.describe('Public product catalog @public @sandbox', () => {
     await preparePublicProductCatalogFixture()
   })
 
-  test('visitor compares public plans and packs without a fake purchase flow', async ({ page }, testInfo) => {
+  test('visitor compares products and can start a credit pack purchase', async ({ page }, testInfo) => {
     await page.goto('/plans')
 
     await expect(page.getByRole('heading', { name: 'Entrena con el ritmo que necesitas' })).toBeVisible()
@@ -30,7 +30,10 @@ test.describe('Public product catalog @public @sandbox', () => {
     await expect(pack).toContainText('90 días')
     await expect(page.getByText(PRIVATE_PLAN_E2E_NAME)).toHaveCount(0)
     await expect(page.getByText(PRIVATE_PACK_E2E_NAME)).toHaveCount(0)
-    await expect(page.getByRole('button', { name: /comprar|pagar/i })).toHaveCount(0)
+    await expect(pack.getByRole('link', { name: `Comprar ${PUBLIC_PACK_E2E_NAME}` })).toHaveAttribute(
+      'href',
+      '/app/account?pack=e2e-public-pack',
+    )
 
     await testInfo.attach('public-product-catalog-desktop', {
       body: await page.screenshot({ fullPage: true }),

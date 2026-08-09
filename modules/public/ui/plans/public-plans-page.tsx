@@ -71,16 +71,16 @@ export function PublicPlansPage({ catalog }: { catalog: PublicProductCatalog }) 
 
         <section className="mt-12 grid gap-6 border-t border-[color:color-mix(in_srgb,var(--wellstudio-blue)_14%,var(--border))] pt-10 lg:grid-cols-[minmax(0,1fr)_auto] lg:items-end">
           <div className="max-w-2xl">
-            <p className="text-xs uppercase tracking-[0.24em] text-[var(--wellstudio-blue-deep)]">Sin compra automática</p>
-            <h2 className="mt-3 font-display text-4xl uppercase leading-none sm:text-5xl">Primero, la opción correcta</h2>
-            <p className="mt-4 text-sm leading-7 text-muted-foreground">El equipo confirma contigo disponibilidad, fecha de inicio y condiciones. Esta página informa; no genera cobros ni activa productos por sí sola.</p>
+            <p className="text-xs uppercase tracking-[0.24em] text-[var(--wellstudio-blue-deep)]">Dos formas de empezar</p>
+            <h2 className="mt-3 font-display text-4xl uppercase leading-none sm:text-5xl">Flexibilidad o continuidad</h2>
+            <p className="mt-4 text-sm leading-7 text-muted-foreground">Compra un bono puntual desde tu cuenta o habla con el equipo para elegir y activar un plan recurrente.</p>
           </div>
           <div className="flex flex-col gap-3 sm:flex-row">
-            <Link href="/#contacto" className="inline-flex h-12 items-center justify-center gap-2 rounded-full bg-[var(--wellstudio-blue)] px-6 text-sm font-medium text-white transition-[background-color,transform] hover:-translate-y-0.5 hover:bg-[var(--wellstudio-blue-deep)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--wellstudio-blue)] focus-visible:ring-offset-2">
-              Quiero que me orientéis <ArrowRight className="size-4" aria-hidden="true" />
+            <Link href="/app/account" className="inline-flex h-12 items-center justify-center gap-2 rounded-full bg-[var(--wellstudio-blue)] px-6 text-sm font-medium text-white transition-[background-color,transform] hover:-translate-y-0.5 hover:bg-[var(--wellstudio-blue-deep)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--wellstudio-blue)] focus-visible:ring-offset-2">
+              Comprar un bono <ArrowRight className="size-4" aria-hidden="true" />
             </Link>
-            <Link href="/classes" className="inline-flex h-12 items-center justify-center rounded-full border border-border bg-white/55 px-6 text-sm font-medium transition hover:bg-white focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--wellstudio-blue)]">
-              Ver agenda
+            <Link href="/#contacto" className="inline-flex h-12 items-center justify-center rounded-full border border-border bg-white/55 px-6 text-sm font-medium transition hover:bg-white focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--wellstudio-blue)]">
+              Consultar un plan
             </Link>
           </div>
         </section>
@@ -150,7 +150,7 @@ function CreditPackRow({ pack }: { pack: PublicCreditPack }) {
       </div>
       <div className="flex items-center justify-between gap-5 sm:justify-end">
         <p className="font-display text-4xl uppercase leading-none">{pack.priceLabel}</p>
-        <Link href="/#contacto" aria-label={`Consultar ${pack.name}`} className="inline-flex size-11 items-center justify-center rounded-full border border-white/16 bg-white/6 transition-[background-color,transform] hover:-translate-y-0.5 hover:bg-white/12 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white/60">
+        <Link href={`/app/account?pack=${encodeURIComponent(pack.slug)}`} aria-label={`Comprar ${pack.name}`} className="inline-flex size-11 items-center justify-center rounded-full border border-white/16 bg-white/6 transition-[background-color,transform] hover:-translate-y-0.5 hover:bg-white/12 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white/60">
           <ArrowRight className="size-4 transition-transform group-hover:translate-x-0.5" aria-hidden="true" />
         </Link>
       </div>

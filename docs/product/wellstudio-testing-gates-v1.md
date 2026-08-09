@@ -77,10 +77,17 @@ Minimo esperado cuando el modulo exista:
 
 ### Payments gate
 
-Minimo esperado cuando el modulo exista:
+Comando:
+
+```bash
+pnpm check:payments
+```
+
+Cobertura minima:
 
 - unit/integration de activacion e idempotencia
-- webhook tests
+- firma, cuerpo raw y semantica HTTP del webhook
+- checkout sandbox E2E mediante `pnpm test:e2e:payments:sandbox`
 - build verde
 
 ### Admin gate
