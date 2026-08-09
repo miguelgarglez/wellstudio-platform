@@ -14,7 +14,35 @@ Remitentes:
 - production: `WellStudio <no-reply@auth.miguelgarglez.com>`
 - sandbox: `[DEV] WellStudio <no-reply@auth.miguelgarglez.com>`
 
-## Aplicación
+## Aplicación hosted reproducible
+
+La CLI de Supabase queda fijada como dependencia de desarrollo. La operación usa la Management API para leer el estado actual y enviar un `PATCH` que contiene **solo** los cuatro campos de asunto y contenido de confirmación/recovery. No hace un `config push` amplio ni imprime el access token.
+
+1. Autenticar la CLI una vez con `pnpm exec supabase login`, o exportar `SUPABASE_ACCESS_TOKEN` solo en la shell actual.
+2. Ejecutar primero un dry run:
+
+```bash
+pnpm auth:templates:hosted -- \
+  --project-ref=<project-ref> \
+  --environment=sandbox
+```
+
+3. Revisar target, campos modificados y hashes. Para persistir:
+
+```bash
+pnpm auth:templates:hosted -- \
+  --project-ref=<project-ref> \
+  --environment=sandbox \
+  --apply \
+  --confirm-project-ref=<project-ref>
+```
+
+4. Enviar un correo real de signup y recovery antes de dar el entorno por desplegado.
+5. Repetir el mismo orden en production usando `--environment=production` y su project ref propio.
+
+El comando falla si se intenta aplicar sin repetir el project ref, si faltan tokens Go Template o si aparece JavaScript o un asset remoto.
+
+## Checklist de aplicación manual
 
 1. Copiar el HTML completo en la plantilla correspondiente de cada proyecto hosted.
 2. Configurar el asunto de la tabla según el entorno.
