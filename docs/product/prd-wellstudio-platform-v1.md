@@ -379,7 +379,9 @@ La operativa manual de creditos nunca edita un contador aislado: añade una entr
 
 El sistema debe mostrar metricas basicas de ocupacion, leads y actividad.
 
-La entrada admin V1 ofrece un resumen operativo server-side con sesiones y ocupacion del dia, solicitudes nuevas, socios activos sin cobertura vigente, reglas en fallback y excepciones activas. Cada señal enlaza a su workspace propietaria. Este resumen no calcula todavía conversion, tendencia ni reporting historico; esas metricas requieren ventanas y denominadores definidos antes de presentarse como fiables.
+La entrada admin V1 ofrece un resumen operativo server-side con sesiones y ocupacion del dia, solicitudes nuevas, socios activos sin cobertura vigente, reglas en fallback y excepciones activas. Cada señal enlaza a su workspace propietaria.
+
+La superficie `/admin/reports` añade reporting historico descriptivo con ventanas de 7, 28 y 90 dias: actividad, ocupacion registrada, cancelaciones, asistencia finalizada, conversion de la cohorte de leads, rendimiento por clase, origen de captacion y señales de calidad de datos. Las formulas y limites se mantienen en `docs/product/wellstudio-admin-reporting-v1.md`. No presenta tendencias ni reporting financiero hasta disponer de fuentes y snapshots validados.
 
 ## 13. Requisitos No Funcionales
 

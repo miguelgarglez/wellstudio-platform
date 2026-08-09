@@ -171,6 +171,7 @@ No cerrar pagos sin probar al menos un flujo sandbox end-to-end.
 - admin ajusta el ledger de una cuenta vigente y ve el saldo actualizado con feedback
 - admin abre una cuenta de creditos interna desde mobile, confirma que no aparece un pago y el fixture se restaura al terminar
 - un recurso con sesiones futuras no puede archivarse hasta resolver sus dependencias
+- admin consulta informes de 7 y 28 dias con clases, captacion y calidad de datos deterministas; la vista mobile no desborda y el fixture se limpia al terminar
 
 ## Matriz minima por modulo
 

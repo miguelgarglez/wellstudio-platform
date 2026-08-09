@@ -169,6 +169,8 @@ Gate dirigido de catalogo publico:
 - permisos
 - creacion y edicion de clases
 - cambios auditados
+- reporting operativo con ventanas de calendario Madrid, denominadores vacios y cambios DST
+- E2E reversible de informes en 7/28 dias, desktop y mobile
 
 ## 5. Entornos de prueba
 
