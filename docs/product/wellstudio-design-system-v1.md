@@ -272,6 +272,7 @@ Regla de producto:
 - las listas admin pueden tener defaults seguros cuando evitan pantallas vacias; deben estar acotadas, explicar su criterio y no presentarse como exhaustivas
 - la busqueda admin puede seguir siendo submit-based cuando el estado server-side y la URL aportan mas robustez que una busqueda incremental
 - en una bandeja operativa, mostrar como maximo las acciones primarias necesarias en el detalle; formularios de notas o cambios de estado deben abrirse en `Dialog` enfocados para reducir carga visual
+- las superficies financieras admin son observabilidad antes que contabilidad: priorizan cobros fallidos o en curso, muestran importes y conceptos como snapshots y traducen eventos tecnicos a salud operativa; nunca renderizan payloads del proveedor, datos de tarjeta ni identificadores completos
 - las operaciones comerciales de socio se abren en `Dialog` enfocados con objeto, consecuencia y motivo visibles; en mobile ocupan el viewport completo para no superponer controles de una `Sheet` padre
 - si un dialogo operativo supera la altura disponible, solo su cuerpo hace scroll y el footer con cancelar/confirmar permanece visible
 - los historiales auditables se presentan como timeline escaneable, ordenado de mas reciente a mas antiguo, con actor, fecha y contexto; la paginacion por cursor se revela bajo demanda

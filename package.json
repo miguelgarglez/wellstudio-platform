@@ -32,6 +32,7 @@
     "test:e2e:reservations:sandbox": "playwright test tests/e2e/reservations/reservations-sandbox.spec.ts",
     "test:e2e:admin:leads": "playwright test tests/e2e/admin/admin-leads.spec.ts",
     "test:e2e:admin:notifications": "playwright test tests/e2e/admin/admin-notifications.spec.ts",
+    "test:e2e:admin:payments": "playwright test tests/e2e/admin/admin-payments.spec.ts",
     "test:e2e:session-notifications": "playwright test tests/e2e/admin/admin-session-notifications.spec.ts tests/e2e/notifications/session-change-email.spec.ts",
     "test:e2e:payments:sandbox": "playwright test tests/e2e/payments/credit-pack-checkout.spec.ts",
     "test:e2e:admin:sessions": "playwright test tests/e2e/admin/admin-sessions.spec.ts",

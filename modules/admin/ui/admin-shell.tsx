@@ -2,7 +2,7 @@
 
 import type { ReactNode } from 'react'
 import Link from 'next/link'
-import { CalendarDays, ClipboardList, House, Inbox, MailCheck, ShieldPlus, UsersRound } from 'lucide-react'
+import { CalendarDays, ClipboardList, CreditCard, House, Inbox, MailCheck, ShieldPlus, UsersRound } from 'lucide-react'
 import { usePathname } from 'next/navigation'
 import { useEffect, useRef, useState } from 'react'
 
@@ -45,6 +45,11 @@ const adminNavItems = [
     href: '/admin/members',
     label: 'Socios',
     icon: UsersRound,
+  },
+  {
+    href: '/admin/payments',
+    label: 'Cobros',
+    icon: CreditCard,
   },
   {
     href: '/admin/sessions',

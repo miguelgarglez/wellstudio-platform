@@ -873,6 +873,7 @@ Superficies admin ya implementadas:
 - `/admin/rules`: reglas de reserva por membership plan; el termino visible es "Reglas" para evitar sobreprometer una gestion completa de planes
 - `/admin/overrides`: excepciones de reserva auditables por socio sobre memberships activas; internamente siguen siendo booking overrides de dominio
 - `/admin/members`: directorio y dossier operativo; agrega datos de varios modulos mediante un read model server-side, permite cambios auditables del estado basico y delega el resto de acciones en superficies de dominio existentes
+- `/admin/payments`: monitor read-only de cobros recientes; agrega `Payment`, snapshots de `PaymentItem` y salud de `PaymentEvent`, expone solo referencias truncadas y nunca serializa `payloadJson` hacia React
 
 Decision de entrada admin:
 
@@ -895,6 +896,7 @@ Patron de interfaz:
 - las listas admin por defecto deben ser read models server-side acotados y honestos: pueden priorizar actividad reciente u operabilidad, pero deben distinguirse de resultados de busqueda exhaustivos
 - las acciones admin siguen siendo server actions finas que delegan en servicios de dominio; el layout no debe introducir reglas de negocio
 - en seguimiento comercial, el detalle debe priorizar identidad, estado actual y timeline; las operaciones de nota/cambio de estado se abren en dialogos enfocados y no como formularios permanentes
+- en observabilidad de pagos, el read model limita la bandeja, traduce estados del proveedor a copy operativa y mantiene fuera del view model payloads, secretos, tarjeta e identificadores externos completos; reembolso y reprocesado son workflows separados
 - en gestion de socios, la vista agregada es read-only salvo operaciones explicitas con caso de uso propio; estado, memberships internas y creditos se operan mediante servicios auditables. Los creditos solo cambian añadiendo ledger entries dentro de una transaccion serializable, nunca reescribiendo un saldo suelto ni creando pagos sinteticos
 - las notas de socio son contexto interno append-only: exigen autor autenticado, tienen un máximo de 1000 caracteres, generan `AuditLog` y no admiten edición, borrado, rich text ni datos sensibles en V1
 - la asignacion manual de membership consulta solo planes `ACTIVE`, crea cobertura `ACTIVE` sin `Payment`, proveedor ni autorrenovacion, exige vigencia y motivo, y rechaza una segunda cobertura activa; no admite fecha futura porque V1 aun no tiene un activador programado de `PENDING_ACTIVATION`
