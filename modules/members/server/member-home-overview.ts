@@ -16,6 +16,7 @@ import {
   buildPlanWindowLabel,
   calculateCreditsRemaining,
   formatCardLabel,
+  selectEffectiveCreditAccounts,
   selectCurrentMembership,
   selectPendingMembership,
   selectPrimaryCard,
@@ -289,9 +290,10 @@ export function buildMemberHomeOverview({
   now,
 }: BuildMemberHomeOverviewInput): MemberHomeOverview {
   const summary = buildMemberShellSummary(authContext)
-  const currentPlan = selectCurrentMembership(memberships)
+  const currentPlan = selectCurrentMembership(memberships, now)
   const pendingPlan = selectPendingMembership(memberships)
-  const creditsRemaining = calculateCreditsRemaining(creditAccounts)
+  const effectiveCreditAccounts = selectEffectiveCreditAccounts(creditAccounts, now)
+  const creditsRemaining = calculateCreditsRemaining(creditAccounts, now)
   const primaryCard = selectPrimaryCard(cards)
   const alerts = buildMemberHomeAlerts({
     hasActiveEntitlement: Boolean(currentPlan) || creditsRemaining > 0,
@@ -325,7 +327,9 @@ export function buildMemberHomeOverview({
       pendingPlanName: pendingPlan?.membershipPlan.name ?? null,
       creditsRemaining,
       creditsLabel: creditsRemaining > 0 ? `${creditsRemaining} créditos disponibles` : 'Sin créditos disponibles',
-      creditsPackNames: [...new Set(creditAccounts.map((account) => account.creditPack.name))],
+      creditsPackNames: [
+        ...new Set(effectiveCreditAccounts.map((account) => account.creditPack.name)),
+      ],
       hasLinkedCard: Boolean(primaryCard),
       linkedCardLabel: primaryCard ? formatCardLabel(primaryCard) : 'Sin tarjeta vinculada',
     },

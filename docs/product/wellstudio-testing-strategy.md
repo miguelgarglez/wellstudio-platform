@@ -152,6 +152,8 @@ Gate dirigido de catalogo publico:
 
 - activacion
 - expiracion
+- vigencia efectiva independiente del cron cuando un registro sigue fisicamente `ACTIVE`
+- limite exacto de `endsAt` y `expiresAt`, reconciliacion idempotente y ruta programada protegida
 - consumo
 - devolucion parcial o completa
 

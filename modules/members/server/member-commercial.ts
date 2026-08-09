@@ -21,16 +21,47 @@ export type CreditAccountBalanceSnapshot = Pick<
 
 export type CardSnapshot = Pick<Card, 'brand' | 'last4' | 'isDefault' | 'updatedAt'>
 
-export function selectCurrentMembership(memberships: MembershipWithPlanName[]) {
-  return memberships.find((membership) => membership.status === 'ACTIVE') ?? null
+export function isMembershipEffective(
+  membership: Pick<MemberMembership, 'status' | 'startsAt' | 'endsAt'>,
+  now: Date,
+) {
+  return membership.status === 'ACTIVE'
+    && membership.startsAt.getTime() <= now.getTime()
+    && (!membership.endsAt || membership.endsAt.getTime() > now.getTime())
+}
+
+export function selectCurrentMembership(
+  memberships: MembershipWithPlanName[],
+  now: Date,
+) {
+  return memberships.find((membership) => isMembershipEffective(membership, now)) ?? null
 }
 
 export function selectPendingMembership(memberships: MembershipWithPlanName[]) {
   return memberships.find((membership) => membership.status === 'PENDING_ACTIVATION') ?? null
 }
 
-export function calculateCreditsRemaining(creditAccounts: CreditAccountBalanceSnapshot[]) {
-  return creditAccounts.reduce((total, account) => {
+export function isCreditAccountEffective(
+  account: Pick<MemberCreditAccount, 'status' | 'openedAt' | 'expiresAt'>,
+  now: Date,
+) {
+  return account.status === 'ACTIVE'
+    && account.openedAt.getTime() <= now.getTime()
+    && (!account.expiresAt || account.expiresAt.getTime() > now.getTime())
+}
+
+export function selectEffectiveCreditAccounts<T extends CreditAccountBalanceSnapshot>(
+  creditAccounts: T[],
+  now: Date,
+) {
+  return creditAccounts.filter((account) => isCreditAccountEffective(account, now))
+}
+
+export function calculateCreditsRemaining(
+  creditAccounts: CreditAccountBalanceSnapshot[],
+  now: Date,
+) {
+  return selectEffectiveCreditAccounts(creditAccounts, now).reduce((total, account) => {
     const latestBalance = account.ledgerEntries[0]?.balanceAfter
     return total + (latestBalance ?? account.creditPack.creditsTotal)
   }, 0)

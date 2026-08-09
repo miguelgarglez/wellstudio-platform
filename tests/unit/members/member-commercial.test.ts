@@ -26,7 +26,10 @@ describe('member commercial helpers', () => {
       },
     ] as Parameters<typeof selectCurrentMembership>[0]
 
-    expect(selectCurrentMembership(memberships)?.membershipPlan.name).toBe('Fuerza Base')
+    expect(
+      selectCurrentMembership(memberships, new Date('2026-03-20T09:00:00.000Z'))
+        ?.membershipPlan.name,
+    ).toBe('Fuerza Base')
     expect(selectPendingMembership(memberships)?.membershipPlan.name).toBe('Premium')
   })
 
@@ -47,8 +50,44 @@ describe('member commercial helpers', () => {
           creditPack: { name: 'Pack 6', creditsTotal: 6 },
           ledgerEntries: [],
         },
-      ]),
+      ], new Date('2026-03-20T09:00:00.000Z')),
     ).toBe(10)
+  })
+
+  it('excludes future or expired commercial state at the exact boundary', () => {
+    const now = new Date('2026-03-20T09:00:00.000Z')
+    const memberships = [
+      {
+        status: 'ACTIVE',
+        startsAt: new Date('2026-03-21T09:00:00.000Z'),
+        endsAt: null,
+        membershipPlan: { name: 'Future' },
+      },
+      {
+        status: 'ACTIVE',
+        startsAt: new Date('2026-02-20T09:00:00.000Z'),
+        endsAt: now,
+        membershipPlan: { name: 'Expired now' },
+      },
+    ] as Parameters<typeof selectCurrentMembership>[0]
+
+    expect(selectCurrentMembership(memberships, now)).toBeNull()
+    expect(calculateCreditsRemaining([
+      {
+        status: 'ACTIVE',
+        openedAt: new Date('2026-02-20T09:00:00.000Z'),
+        expiresAt: now,
+        creditPack: { name: 'Expired pack', creditsTotal: 10 },
+        ledgerEntries: [{ balanceAfter: 7 }],
+      },
+      {
+        status: 'ACTIVE',
+        openedAt: new Date('2026-03-21T09:00:00.000Z'),
+        expiresAt: null,
+        creditPack: { name: 'Future pack', creditsTotal: 5 },
+        ledgerEntries: [],
+      },
+    ], now)).toBe(0)
   })
 
   it('selects the default card before newer non-default cards', () => {

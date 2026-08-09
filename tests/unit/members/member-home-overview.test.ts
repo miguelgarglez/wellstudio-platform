@@ -197,4 +197,49 @@ describe('buildMemberHomeOverview', () => {
     expect(overview.commercial.currentPlanName).toBeNull()
     expect(overview.commercial.pendingPlanName).toBe('Plan Boutique')
   })
+
+  it('does not present physically active but expired entitlements as current', () => {
+    const now = new Date('2026-03-24T09:00:00.000Z')
+    const overview = buildMemberHomeOverview({
+      authContext: buildAuthenticatedContext(),
+      upcomingReservations: [],
+      waitlists: [],
+      memberships: [{
+        id: 'membership-expired',
+        memberId: 'member-1',
+        membershipPlanId: 'plan-1',
+        status: 'ACTIVE',
+        startsAt: new Date('2026-02-24T09:00:00.000Z'),
+        endsAt: now,
+        autoRenews: false,
+        providerSubscriptionId: null,
+        paymentId: null,
+        createdAt: new Date('2026-02-24T09:00:00.000Z'),
+        updatedAt: new Date('2026-02-24T09:00:00.000Z'),
+        membershipPlan: { name: 'Plan vencido' },
+      }],
+      creditAccounts: [{
+        id: 'credit-expired',
+        memberId: 'member-1',
+        creditPackId: 'pack-1',
+        status: 'ACTIVE',
+        openedAt: new Date('2026-02-24T09:00:00.000Z'),
+        expiresAt: now,
+        paymentId: null,
+        createdAt: new Date('2026-02-24T09:00:00.000Z'),
+        updatedAt: new Date('2026-02-24T09:00:00.000Z'),
+        creditPack: { name: 'Bono vencido', creditsTotal: 8 },
+        ledgerEntries: [{ balanceAfter: 5 }],
+      }],
+      cards: [],
+      now,
+    })
+
+    expect(overview.commercial).toMatchObject({
+      currentPlanName: null,
+      creditsRemaining: 0,
+      creditsPackNames: [],
+    })
+    expect(overview.alerts.map((alert) => alert.kind)).toContain('no-entitlement')
+  })
 })

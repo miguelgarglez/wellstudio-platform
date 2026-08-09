@@ -173,4 +173,48 @@ describe('buildMemberAccountOverview', () => {
     expect(overview.selectedCreditPackId).toBe('pack-public-1')
     expect(overview.checkoutNotice).toMatchObject({ kind: 'success', title: 'Bono activado' })
   })
+
+  it('shows honest empty commercial state for expired active records', () => {
+    const now = new Date('2026-03-20T09:00:00.000Z')
+    const overview = buildMemberAccountOverview({
+      authContext: buildAuthenticatedContext(),
+      memberships: [{
+        id: 'membership-expired',
+        memberId: 'member-1',
+        membershipPlanId: 'plan-1',
+        status: 'ACTIVE',
+        startsAt: new Date('2026-02-20T09:00:00.000Z'),
+        endsAt: now,
+        autoRenews: false,
+        providerSubscriptionId: null,
+        paymentId: null,
+        createdAt: new Date('2026-02-20T09:00:00.000Z'),
+        updatedAt: new Date('2026-02-20T09:00:00.000Z'),
+        membershipPlan: { name: 'Plan vencido' },
+      }],
+      creditAccounts: [{
+        id: 'credit-expired',
+        memberId: 'member-1',
+        creditPackId: 'pack-1',
+        status: 'ACTIVE',
+        openedAt: new Date('2026-02-20T09:00:00.000Z'),
+        expiresAt: now,
+        paymentId: null,
+        createdAt: new Date('2026-02-20T09:00:00.000Z'),
+        updatedAt: new Date('2026-02-20T09:00:00.000Z'),
+        creditPack: { name: 'Bono vencido', creditsTotal: 8 },
+        ledgerEntries: [{ balanceAfter: 5 }],
+      }],
+      cards: [],
+      payments: [],
+      now,
+    })
+
+    expect(overview.highlights.plan.title).toBe('Sin plan activo')
+    expect(overview.highlights.credits).toMatchObject({
+      title: 'Sin créditos activos',
+      description: 'Cuando actives un bono o pack, su saldo aparecerá aquí.',
+    })
+    expect(overview.alerts.map((alert) => alert.kind)).toContain('no-entitlement')
+  })
 })

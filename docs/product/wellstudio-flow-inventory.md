@@ -271,6 +271,12 @@ Si la cancelacion libera una plaza con waitlist activa, la misma transaccion pro
 
 Cada ejecucion diaria calcula la agenda del dia siguiente en `Europe/Madrid` y crea un unico job `RESERVATION_REMINDER` por reserva `BOOKED` sobre sesiones `PUBLISHED` o `CLOSED`. Antes del envio, el dispatcher revalida la reserva y suprime con estado `CANCELED` cualquier recordatorio obsoleto, sin registrar un intento de proveedor. El comportamiento esta cubierto frente a cambios DST, reejecuciones y cancelaciones posteriores a la programacion.
 
+### Vigencia efectiva de entitlements
+
+Antes de presentar cobertura comercial o calcular elegibilidad, el sistema combina estado y ventana temporal. Una membership `ACTIVE` solo es efectiva entre `startsAt` incluido y `endsAt` excluido; una cuenta de creditos sigue la misma regla entre `openedAt` incluido y `expiresAt` excluido. Por tanto, un registro que llegue a su limite exacto deja de mostrarse como activo aunque el mantenimiento persistente aun no haya actualizado su enum.
+
+Un cron diario protegido reconcilia memberships y cuentas de creditos vencidas a `EXPIRED`. Es idempotente y complementario: si no se ejecuta, los read models y el motor de reservas conservan la decision correcta.
+
 ## 7. Bloqueo por elegibilidad
 
 Actor:

@@ -523,9 +523,9 @@ export function buildMemberReservationsOverview({
   creditAccounts,
   now,
 }: BuildMemberReservationsOverviewInput): MemberReservationsOverview {
-  const currentMembership = selectCurrentMembership(memberships)
+  const currentMembership = selectCurrentMembership(memberships, now)
   const pendingMembership = selectPendingMembership(memberships)
-  const creditsRemaining = calculateCreditsRemaining(creditAccounts)
+  const creditsRemaining = calculateCreditsRemaining(creditAccounts, now)
   const bookingState = buildMemberBookingState({
     memberStatus,
     currentMembershipName: currentMembership?.membershipPlan.name ?? null,

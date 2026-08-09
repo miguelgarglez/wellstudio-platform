@@ -13,6 +13,7 @@ import {
   buildPlanWindowLabel,
   calculateCreditsRemaining,
   formatCardLabel,
+  selectEffectiveCreditAccounts,
   selectCurrentMembership,
   selectPendingMembership,
   selectPrimaryCard,
@@ -270,9 +271,10 @@ export function buildMemberAccountOverview({
   now: Date
 }): MemberAccountOverview {
   const summary = buildMemberShellSummary(authContext)
-  const currentPlan = selectCurrentMembership(memberships)
+  const currentPlan = selectCurrentMembership(memberships, now)
   const pendingPlan = selectPendingMembership(memberships)
-  const creditsRemaining = calculateCreditsRemaining(creditAccounts)
+  const effectiveCreditAccounts = selectEffectiveCreditAccounts(creditAccounts, now)
+  const creditsRemaining = calculateCreditsRemaining(creditAccounts, now)
   const primaryCard = selectPrimaryCard(cards)
 
   return {
@@ -291,8 +293,8 @@ export function buildMemberAccountOverview({
         eyebrow: 'Créditos',
         title: creditsRemaining > 0 ? `${creditsRemaining} disponibles` : 'Sin créditos activos',
         description:
-          creditAccounts.length > 0
-            ? creditAccounts.map((account) => account.creditPack.name).join(' · ')
+          effectiveCreditAccounts.length > 0
+            ? effectiveCreditAccounts.map((account) => account.creditPack.name).join(' · ')
             : 'Cuando actives un bono o pack, su saldo aparecerá aquí.',
       },
       card: {

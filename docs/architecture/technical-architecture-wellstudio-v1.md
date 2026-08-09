@@ -659,6 +659,7 @@ Reglas operativas:
 - la clave estable por evento y entidad afectada se propaga a Resend para evitar duplicados
 - los intentos fallidos usan backoff y los locks abandonados se pueden reclamar
 - el cron diario calcula la agenda de manana en `Europe/Madrid`; la unicidad por reserva hace segura su reejecucion y el dispatcher suprime recordatorios que ya no son relevantes
+- los read models de socio calculan la vigencia efectiva de memberships y creditos con fechas, sin confiar solo en el enum persistido; un cron diario idempotente reconcilia el drift `ACTIVE -> EXPIRED` sin ser requisito para la correccion de la UI o del motor de reservas
 - el reintento admin usa estado y version esperados, conserva la numeracion de intentos y crea `AuditLog`
 - el read model admin transforma el payload a contexto seguro; no entrega JSON arbitrario a React
 

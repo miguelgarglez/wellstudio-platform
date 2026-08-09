@@ -1,17 +1,16 @@
 import { NextResponse } from 'next/server'
 
+import { authorizeCronRequest } from '@/lib/server/cron-request'
 import { dispatchDueNotificationJobs } from '@/modules/notifications/server/notification-outbox'
 import { scheduleNextDayReservationReminders } from '@/modules/notifications/server/reservation-reminders'
 
 export async function GET(request: Request) {
-  const cronSecret = process.env.CRON_SECRET
-
-  if (!cronSecret) {
-    return NextResponse.json({ error: 'Notification recovery is not configured.' }, { status: 503 })
-  }
-
-  if (request.headers.get('authorization') !== `Bearer ${cronSecret}`) {
-    return NextResponse.json({ error: 'Unauthorized.' }, { status: 401 })
+  const authorization = authorizeCronRequest(request)
+  if (!authorization.authorized) {
+    return NextResponse.json(
+      { error: authorization.message },
+      { status: authorization.status },
+    )
   }
 
   const reminders = await scheduleNextDayReservationReminders()
