@@ -86,6 +86,12 @@ test.describe('Credit pack checkout @sandbox @payments', () => {
     expect(state.accounts[0]?.ledgerEntries).toEqual([
       expect.objectContaining({ entryType: 'PURCHASE', creditsDelta: 6, balanceAfter: 6 }),
     ])
+    expect(state.notificationJobs).toEqual([
+      expect.objectContaining({
+        eventType: 'CREDIT_PACK_PURCHASED',
+        idempotencyKey: `credit_pack_purchased/${state.payments.find((payment) => payment.status === 'SUCCEEDED')?.id}`,
+      }),
+    ])
   })
 
   test('late provider confirmation updates feedback and balance without a reload', async ({ page }, testInfo) => {

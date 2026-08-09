@@ -180,6 +180,7 @@ enum NotificationEventType {
   WAITLIST_PROMOTED
   SESSION_RESCHEDULED
   SESSION_CANCELED
+  CREDIT_PACK_PURCHASED
 }
 
 enum NotificationJobStatus {
@@ -694,6 +695,7 @@ model PaymentItem {
   paymentId                   String
   itemType                    PaymentItemType
   referenceId                 String
+  productNameSnapshot         String?
   quantity                    Int             @default(1)
   unitAmount                  Int
   totalAmount                 Int

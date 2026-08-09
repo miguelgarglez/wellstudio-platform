@@ -1,6 +1,7 @@
 import { Prisma } from '@prisma/client'
 
 import { prisma } from '@/lib/db/prisma'
+import { enqueueCreditPackPurchaseNotification } from '@/modules/notifications/server/notification-outbox'
 import type {
   PaymentCheckoutProvider,
   VerifiedCheckoutEvent,
@@ -17,7 +18,12 @@ export type StartCreditPackCheckoutResult =
     }
 
 export type ProcessCheckoutEventResult =
-  | { success: true; outcome: 'FULFILLED' | 'CANCELED' | 'IGNORED' | 'ALREADY_PROCESSED'; paymentId: string | null }
+  | {
+      success: true
+      outcome: 'FULFILLED' | 'CANCELED' | 'IGNORED' | 'ALREADY_PROCESSED'
+      paymentId: string | null
+      notificationJobIds?: string[]
+    }
   | { success: false; code: 'INVALID_EVENT' | 'PAYMENT_NOT_FOUND' | 'PAYMENT_MISMATCH'; message: string }
 
 export async function startCreditPackCheckout(input: {
@@ -77,6 +83,7 @@ export async function startCreditPackCheckout(input: {
         create: {
           itemType: 'CREDIT_PACK',
           referenceId: creditPack.id,
+          productNameSnapshot: creditPack.name,
           quantity: 1,
           unitAmount: creditPack.priceAmount,
           totalAmount: creditPack.priceAmount,
@@ -256,7 +263,17 @@ export async function processCheckoutEvent(input: {
       },
     })
 
-    return { success: true, outcome: 'FULFILLED', paymentId: payment.id }
+    const notificationJob = await enqueueCreditPackPurchaseNotification(tx, {
+      paymentId: payment.id,
+      occurredAt: input.event.occurredAt,
+    })
+
+    return {
+      success: true,
+      outcome: 'FULFILLED',
+      paymentId: payment.id,
+      notificationJobIds: [notificationJob.id],
+    }
   }, { isolationLevel: Prisma.TransactionIsolationLevel.Serializable })
 }
 

@@ -7,6 +7,9 @@ loadE2EEnvFiles()
 export const ADMIN_NOTIFICATIONS_FAILED_JOB_ID = 'e2e-admin-notification-failed'
 export const ADMIN_NOTIFICATIONS_FAILED_RECIPIENT =
   'e2e.notifications.sandbox@wellstudio.test'
+export const ADMIN_NOTIFICATIONS_PURCHASE_JOB_ID = 'e2e-admin-notification-purchase'
+export const ADMIN_NOTIFICATIONS_PURCHASE_RECIPIENT =
+  'e2e.purchase.sandbox@wellstudio.test'
 const FIXTURE_REFERENCE_TYPE = 'e2e_admin_notifications'
 
 const payload = {
@@ -17,6 +20,17 @@ const payload = {
   locationLabel: 'E2E Sandbox · Sala principal',
   startsAt: '2026-08-10T16:00:00.000Z',
   endsAt: '2026-08-10T16:50:00.000Z',
+}
+
+const purchasePayload = {
+  paymentId: 'e2e-payment-purchase',
+  memberName: 'E2E Purchase Member',
+  productName: 'E2E Bono Flexible',
+  credits: 6,
+  amount: 5400,
+  currency: 'EUR',
+  purchasedAt: '2026-08-09T10:00:00.000Z',
+  expiresAt: '2026-09-23T10:00:00.000Z',
 }
 
 export async function prepareSandboxAdminNotificationsFixture() {
@@ -57,6 +71,12 @@ export async function prepareSandboxAdminNotificationsFixture() {
           'e2e.pending.sandbox@wellstudio.test', $3::jsonb,
           'e2e_admin_notifications/pending', $4, 'e2e-reservation-pending', 0,
           now() + interval '1 hour', null, null, null, now() - interval '30 minutes', now() - interval '30 minutes'
+        ),
+        (
+          $5, 'CREDIT_PACK_PURCHASED', 'SENT', $6, $7::jsonb,
+          'e2e_admin_notifications/purchase', $4, 'e2e-payment-purchase', 1,
+          now() - interval '20 minutes', now() - interval '20 minutes',
+          'e2e-provider-purchase', null, now() - interval '20 minutes', now() - interval '20 minutes'
         )
       `,
       [
@@ -64,6 +84,9 @@ export async function prepareSandboxAdminNotificationsFixture() {
         ADMIN_NOTIFICATIONS_FAILED_RECIPIENT,
         JSON.stringify(payload),
         FIXTURE_REFERENCE_TYPE,
+        ADMIN_NOTIFICATIONS_PURCHASE_JOB_ID,
+        ADMIN_NOTIFICATIONS_PURCHASE_RECIPIENT,
+        JSON.stringify(purchasePayload),
       ],
     )
 
@@ -97,6 +120,18 @@ export async function prepareSandboxAdminNotificationsFixture() {
           1, 'SENT', 'resend', 'e2e-provider-sent', now() - interval '90 minutes'
         )
       `,
+    )
+    await client.query(
+      `
+        insert into "NotificationDeliveryAttempt" (
+          id, "notificationJobId", "attemptNumber", status, provider,
+          "providerMessageId", "attemptedAt"
+        ) values (
+          'e2e-admin-notification-purchase-attempt', $1,
+          1, 'SENT', 'resend', 'e2e-provider-purchase', now() - interval '20 minutes'
+        )
+      `,
+      [ADMIN_NOTIFICATIONS_PURCHASE_JOB_ID],
     )
   } finally {
     await client.end()

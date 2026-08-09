@@ -14,6 +14,8 @@ import {
 import {
   ADMIN_NOTIFICATIONS_FAILED_JOB_ID,
   ADMIN_NOTIFICATIONS_FAILED_RECIPIENT,
+  ADMIN_NOTIFICATIONS_PURCHASE_JOB_ID,
+  ADMIN_NOTIFICATIONS_PURCHASE_RECIPIENT,
   prepareSandboxAdminNotificationsFixture,
   readSandboxAdminNotificationRetryState,
 } from '../support/admin-notifications'
@@ -101,5 +103,28 @@ test.describe('Admin notification deliveries @admin @sandbox', () => {
 
     await detail.getByRole('button', { name: 'Cerrar' }).click()
     await expect(page).toHaveURL('/admin/notifications?status=failed')
+  })
+
+  test('admin filters purchase confirmations and reads their safe context', async ({ page }, testInfo) => {
+    await prepareSandboxAdminNotificationsFixture()
+    await loginAsSandboxAdmin(page)
+    await page.goto('/admin/notifications')
+
+    await page.getByRole('link', { name: 'Compras', exact: true }).click()
+    await expect(page).toHaveURL(/event=purchase/)
+    await page.getByRole('link', { name: new RegExp(ADMIN_NOTIFICATIONS_PURCHASE_RECIPIENT) }).click()
+    await expect(page).toHaveURL(new RegExp(`delivery=${ADMIN_NOTIFICATIONS_PURCHASE_JOB_ID}`))
+
+    const detail = page.getByRole('region', { name: 'Compra de bono' })
+    await expect(detail.getByRole('heading', { name: 'Compra comunicada' })).toBeVisible()
+    await expect(detail.getByText('E2E Bono Flexible')).toBeVisible()
+    await expect(detail.getByText('54,00\u00a0€')).toBeVisible()
+
+    const screenshot = testInfo.outputPath('admin-notifications-purchase-desktop.png')
+    await page.screenshot({ path: screenshot, fullPage: true })
+    await testInfo.attach('admin-notifications-purchase-desktop', {
+      path: screenshot,
+      contentType: 'image/png',
+    })
   })
 })

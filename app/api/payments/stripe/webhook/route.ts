@@ -1,5 +1,6 @@
-import { NextResponse } from 'next/server'
+import { after, NextResponse } from 'next/server'
 
+import { dispatchNotificationJobSafely } from '@/modules/notifications/server/notification-outbox'
 import { getStripeCheckoutProvider } from '@/modules/payments/server/payment-checkout-provider'
 import { processPaymentWebhook } from '@/modules/payments/server/payment-webhook'
 
@@ -22,6 +23,10 @@ export async function POST(request: Request) {
       { error: result.code === 'INVALID_SIGNATURE' ? 'Invalid webhook signature.' : 'Webhook processing failed.' },
       { status: result.retryable ? 500 : 400 },
     )
+  }
+
+  for (const jobId of result.notificationJobIds) {
+    after(() => dispatchNotificationJobSafely(jobId))
   }
 
   return NextResponse.json({ received: true })

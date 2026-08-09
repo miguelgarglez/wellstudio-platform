@@ -73,7 +73,25 @@ export async function readPaymentsFixtureState(memberId: string, creditPackId: s
         },
       }),
     ])
-    return { payments, accounts }
+    const paymentIds = payments.map((payment) => payment.id)
+    const notificationJobs = paymentIds.length > 0
+      ? await prisma.notificationJob.findMany({
+          where: {
+            eventType: 'CREDIT_PACK_PURCHASED',
+            referenceType: 'payment',
+            referenceId: { in: paymentIds },
+          },
+          select: {
+            id: true,
+            eventType: true,
+            referenceId: true,
+            idempotencyKey: true,
+            status: true,
+          },
+          orderBy: { createdAt: 'asc' },
+        })
+      : []
+    return { payments, accounts, notificationJobs }
   } finally {
     await prisma.$disconnect()
   }
@@ -101,8 +119,20 @@ async function cleanupPayments(prisma: PrismaClient, memberId: string, creditPac
     select: { id: true },
   })
   const accountIds = accounts.map((account) => account.id)
+  const notificationJobs = await prisma.notificationJob.findMany({
+    where: {
+      referenceType: 'payment',
+      referenceId: { in: paymentIds },
+    },
+    select: { id: true },
+  })
+  const notificationJobIds = notificationJobs.map((job) => job.id)
 
   await prisma.$transaction([
+    prisma.notificationDeliveryAttempt.deleteMany({
+      where: { notificationJobId: { in: notificationJobIds } },
+    }),
+    prisma.notificationJob.deleteMany({ where: { id: { in: notificationJobIds } } }),
     prisma.creditLedgerEntry.deleteMany({ where: { memberCreditAccountId: { in: accountIds } } }),
     prisma.memberCreditAccount.deleteMany({ where: { id: { in: accountIds } } }),
     prisma.paymentEvent.deleteMany({ where: { paymentId: { in: paymentIds } } }),

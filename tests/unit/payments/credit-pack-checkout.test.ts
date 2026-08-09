@@ -8,9 +8,16 @@ const { prismaMock, tx } = vi.hoisted(() => {
     },
     payment: {
       findFirst: vi.fn(),
+      findUnique: vi.fn(),
       update: vi.fn(),
     },
+    creditPack: {
+      findUnique: vi.fn(),
+    },
     memberCreditAccount: {
+      upsert: vi.fn(),
+    },
+    notificationJob: {
       upsert: vi.fn(),
     },
   }
@@ -55,6 +62,8 @@ describe('credit pack checkout', () => {
     })
     prismaMock.payment.create.mockResolvedValue({ id: 'payment-1' })
     prismaMock.payment.update.mockResolvedValue({ id: 'payment-1' })
+    tx.payment.findUnique.mockResolvedValue(buildNotificationPayment())
+    tx.notificationJob.upsert.mockResolvedValue({ id: 'job-payment-1' })
   })
 
   it('creates a pending local snapshot before requesting checkout', async () => {
@@ -82,6 +91,7 @@ describe('credit pack checkout', () => {
         items: {
           create: expect.objectContaining({
             referenceId: 'pack-1',
+            productNameSnapshot: 'Bono 8',
             entitlementUnits: 8,
             entitlementExpiresAfterDays: 60,
           }),
@@ -148,7 +158,12 @@ describe('credit pack checkout', () => {
 
     const result = await processCheckoutEvent({ provider: 'sandbox', event })
 
-    expect(result).toEqual({ success: true, outcome: 'FULFILLED', paymentId: 'payment-1' })
+    expect(result).toEqual({
+      success: true,
+      outcome: 'FULFILLED',
+      paymentId: 'payment-1',
+      notificationJobIds: ['job-payment-1'],
+    })
     expect(tx.memberCreditAccount.upsert).toHaveBeenCalledWith({
       where: { paymentId: 'payment-1' },
       update: {},
@@ -169,6 +184,23 @@ describe('credit pack checkout', () => {
     expect(tx.payment.update).toHaveBeenCalledWith({
       where: { id: 'payment-1' },
       data: expect.objectContaining({ status: 'SUCCEEDED' }),
+    })
+    expect(tx.notificationJob.upsert).toHaveBeenCalledWith({
+      where: { idempotencyKey: 'credit_pack_purchased/payment-1' },
+      create: expect.objectContaining({
+        eventType: 'CREDIT_PACK_PURCHASED',
+        recipient: 'member@example.com',
+        referenceType: 'payment',
+        referenceId: 'payment-1',
+        payload: expect.objectContaining({
+          paymentId: 'payment-1',
+          productName: 'Bono 8',
+          credits: 8,
+          amount: 7200,
+        }),
+      }),
+      update: {},
+      select: { id: true },
     })
   })
 
@@ -221,7 +253,12 @@ describe('credit pack checkout', () => {
 
     const result = await processCheckoutEvent({ provider: 'sandbox', event: buildEvent() })
 
-    expect(result).toEqual({ success: true, outcome: 'FULFILLED', paymentId: 'payment-1' })
+    expect(result).toEqual({
+      success: true,
+      outcome: 'FULFILLED',
+      paymentId: 'payment-1',
+      notificationJobIds: ['job-payment-1'],
+    })
     expect(tx.memberCreditAccount.upsert).toHaveBeenCalledWith(expect.objectContaining({
       where: { paymentId: 'payment-1' },
       update: {},
@@ -296,12 +333,35 @@ function buildPayment() {
       paymentId: 'payment-1',
       itemType: 'CREDIT_PACK',
       referenceId: 'pack-1',
+      productNameSnapshot: 'Bono 8',
       quantity: 1,
       unitAmount: 7200,
       totalAmount: 7200,
       entitlementUnits: 8,
       entitlementExpiresAfterDays: 60,
       createdAt: now,
+    }],
+  }
+}
+
+function buildNotificationPayment() {
+  return {
+    id: 'payment-1',
+    memberId: 'member-1',
+    paymentType: 'CREDIT_PACK_PURCHASE',
+    amount: 7200,
+    currency: 'EUR',
+    member: {
+      firstName: 'Ana',
+      lastName: 'Socio',
+      user: { email: 'member@example.com' },
+    },
+    items: [{
+      itemType: 'CREDIT_PACK',
+      referenceId: 'pack-1',
+      productNameSnapshot: 'Bono 8',
+      entitlementUnits: 8,
+      entitlementExpiresAfterDays: 60,
     }],
   }
 }

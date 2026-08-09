@@ -5,6 +5,7 @@ import type {
 } from '@prisma/client'
 
 import { prisma } from '@/lib/db/prisma'
+import { parseCreditPackPurchaseNotificationPayload } from '@/modules/notifications/server/credit-pack-purchase-email'
 import { parseReservationNotificationPayload } from '@/modules/notifications/server/reservation-email'
 import { parseSessionChangeNotificationPayload } from '@/modules/notifications/server/session-change-email'
 
@@ -19,6 +20,7 @@ export type AdminNotificationEventFilter =
   | 'cancellation'
   | 'promotion'
   | 'session'
+  | 'purchase'
 
 type NotificationJobRecord = {
   id: string
@@ -171,7 +173,7 @@ export function parseAdminNotificationStatusFilter(
 export function parseAdminNotificationEventFilter(
   value?: string | null,
 ): AdminNotificationEventFilter {
-  return value === 'booking' || value === 'cancellation' || value === 'promotion' || value === 'session'
+  return value === 'booking' || value === 'cancellation' || value === 'promotion' || value === 'session' || value === 'purchase'
     ? value
     : 'all'
 }
@@ -196,7 +198,9 @@ function buildNotificationListWhere(input: {
         : input.event === 'promotion'
           ? 'WAITLIST_PROMOTED'
           : input.event === 'session'
-            ? { in: ['SESSION_RESCHEDULED', 'SESSION_CANCELED'] }
+          ? { in: ['SESSION_RESCHEDULED', 'SESSION_CANCELED'] }
+          : input.event === 'purchase'
+            ? 'CREDIT_PACK_PURCHASED'
           : undefined
 
   return {
@@ -206,7 +210,7 @@ function buildNotificationListWhere(input: {
 }
 
 function mapNotificationJob(job: NotificationJobRecord, now: Date) {
-  const payload = readNotificationPayload(job.payload)
+  const payload = readNotificationPayload(job.eventType, job.payload)
   const status = formatNotificationStatus(job.status)
 
   return {
@@ -228,18 +232,50 @@ function mapNotificationJob(job: NotificationJobRecord, now: Date) {
     locationLabel: payload?.locationLabel ?? 'Sin espacio indicado',
     contextTitle: payload?.contextTitle ?? 'Contexto no disponible',
     audienceLabel: payload?.audienceLabel ?? 'Destinatario no disponible',
+    contextFields: payload?.contextFields ?? [
+      { label: 'Contexto', value: 'Datos no disponibles' },
+    ],
     createdAtLabel: formatDateTime(job.createdAt),
     ageLabel: formatRelativeAge(job.createdAt, now),
   }
 }
 
-function readNotificationPayload(value: Prisma.JsonValue) {
+function readNotificationPayload(eventType: NotificationEventType, value: Prisma.JsonValue) {
+  if (eventType === 'CREDIT_PACK_PURCHASED') {
+    try {
+      const payload = parseCreditPackPurchaseNotificationPayload(value)
+      return {
+        memberName: payload.memberName,
+        className: payload.productName,
+        startsAt: payload.purchasedAt,
+        coachName: null,
+        locationLabel: null,
+        contextTitle: 'Compra comunicada',
+        audienceLabel: 'Bono activado',
+        contextFields: [
+          { label: 'Socio', value: payload.memberName },
+          { label: 'Bono', value: payload.productName },
+          { label: 'Reservas', value: payload.credits.toString() },
+          { label: 'Importe', value: formatMoney(payload.amount, payload.currency) },
+          { label: 'Compra', value: formatDateTime(new Date(payload.purchasedAt)) },
+          {
+            label: 'Vigencia',
+            value: payload.expiresAt ? formatDateTime(new Date(payload.expiresAt)) : 'Sin caducidad',
+          },
+        ],
+      }
+    } catch {
+      return null
+    }
+  }
+
   try {
     const payload = parseReservationNotificationPayload(value)
     return {
       ...payload,
       contextTitle: 'Reserva comunicada',
       audienceLabel: 'Reserva confirmada',
+      contextFields: buildSessionContextFields(payload, 'Reserva confirmada'),
     }
   } catch {
     try {
@@ -249,6 +285,10 @@ function readNotificationPayload(value: Prisma.JsonValue) {
         contextTitle: 'Sesión comunicada',
         audienceLabel:
           payload.audience === 'WAITLIST' ? 'Lista de espera' : 'Reserva confirmada',
+        contextFields: buildSessionContextFields(
+          payload,
+          payload.audience === 'WAITLIST' ? 'Lista de espera' : 'Reserva confirmada',
+        ),
       }
     } catch {
       return null
@@ -268,9 +308,41 @@ function formatNotificationEvent(eventType: NotificationEventType) {
       return 'Sesión actualizada'
     case 'SESSION_CANCELED':
       return 'Sesión cancelada por el centro'
+    case 'CREDIT_PACK_PURCHASED':
+      return 'Compra de bono'
     default:
       return assertNever(eventType)
   }
+}
+
+function buildSessionContextFields(
+  payload: {
+    memberName: string
+    className: string
+    startsAt: string
+    coachName: string | null
+    locationLabel: string | null
+  },
+  audienceLabel: string,
+) {
+  return [
+    { label: 'Socio', value: payload.memberName },
+    { label: 'Clase', value: payload.className },
+    {
+      label: 'Sesión',
+      value: `${formatSessionDate(payload.startsAt)} · ${formatSessionTime(payload.startsAt)}`,
+    },
+    { label: 'Coach', value: payload.coachName ?? 'Sin coach' },
+    { label: 'Situación', value: audienceLabel },
+    { label: 'Espacio', value: payload.locationLabel ?? 'Sin espacio indicado' },
+  ]
+}
+
+function formatMoney(amount: number, currency: string) {
+  return new Intl.NumberFormat('es-ES', {
+    style: 'currency',
+    currency: currency.toUpperCase(),
+  }).format(amount / 100)
 }
 
 function assertNever(value: never): never {

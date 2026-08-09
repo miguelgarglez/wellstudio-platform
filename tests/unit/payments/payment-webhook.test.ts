@@ -55,6 +55,28 @@ describe('payment webhook', () => {
       accepted: true,
       outcome: 'ALREADY_PROCESSED',
       paymentId: 'payment-1',
+      notificationJobIds: [],
+    })
+  })
+
+  it('returns notification jobs created by a fulfilled payment', async () => {
+    const provider = buildProvider()
+    processCheckoutEventMock.mockResolvedValue({
+      success: true,
+      outcome: 'FULFILLED',
+      paymentId: 'payment-1',
+      notificationJobIds: ['job-payment-1'],
+    })
+
+    await expect(processPaymentWebhook({
+      provider,
+      rawBody: '{"id":"event-1"}',
+      signature: 'valid',
+    })).resolves.toEqual({
+      accepted: true,
+      outcome: 'FULFILLED',
+      paymentId: 'payment-1',
+      notificationJobIds: ['job-payment-1'],
     })
   })
 

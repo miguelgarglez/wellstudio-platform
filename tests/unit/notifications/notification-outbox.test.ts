@@ -21,8 +21,10 @@ import {
   dispatchDueNotificationJobs,
   dispatchNotificationJob,
   enqueueAdminSessionNotifications,
+  enqueueCreditPackPurchaseNotification,
   enqueueReservationNotification,
 } from '@/modules/notifications/server/notification-outbox'
+import { buildCreditPackPurchaseEmail } from '@/modules/notifications/server/credit-pack-purchase-email'
 import { buildReservationEmail } from '@/modules/notifications/server/reservation-email'
 import { createResendTransactionalEmailSender } from '@/modules/notifications/server/resend-email-provider'
 import { buildSessionChangeEmail } from '@/modules/notifications/server/session-change-email'
@@ -89,6 +91,60 @@ describe('notification outbox', () => {
         }),
         referenceType: 'reservation',
         referenceId: 'reservation-1',
+      }),
+      update: {},
+      select: { id: true },
+    })
+  })
+
+  it('enqueues an immutable credit-pack purchase with a stable payment key', async () => {
+    const tx = {
+      payment: {
+        findUnique: vi.fn().mockResolvedValue({
+          id: 'payment-1',
+          memberId: 'member-1',
+          paymentType: 'CREDIT_PACK_PURCHASE',
+          amount: 7200,
+          currency: 'EUR',
+          member: {
+            firstName: 'Ana',
+            lastName: 'Socio',
+            user: { email: 'ana@example.com' },
+          },
+          items: [{
+            itemType: 'CREDIT_PACK',
+            referenceId: 'pack-1',
+            productNameSnapshot: 'Bono 8',
+            entitlementUnits: 8,
+            entitlementExpiresAfterDays: 60,
+          }],
+        }),
+      },
+      creditPack: { findUnique: vi.fn() },
+      notificationJob: {
+        upsert: vi.fn().mockResolvedValue({ id: 'job-payment-1' }),
+      },
+    }
+
+    await expect(enqueueCreditPackPurchaseNotification(tx as never, {
+      paymentId: 'payment-1',
+      occurredAt: now,
+    })).resolves.toEqual({ id: 'job-payment-1' })
+
+    expect(tx.creditPack.findUnique).not.toHaveBeenCalled()
+    expect(tx.notificationJob.upsert).toHaveBeenCalledWith({
+      where: { idempotencyKey: 'credit_pack_purchased/payment-1' },
+      create: expect.objectContaining({
+        eventType: 'CREDIT_PACK_PURCHASED',
+        recipient: 'ana@example.com',
+        referenceType: 'payment',
+        referenceId: 'payment-1',
+        payload: expect.objectContaining({
+          memberName: 'Ana Socio',
+          productName: 'Bono 8',
+          credits: 8,
+          expiresAt: '2026-10-07T10:00:00.000Z',
+        }),
       }),
       update: {},
       select: { id: true },
@@ -279,6 +335,42 @@ describe('notification outbox', () => {
     )
   })
 
+  it('dispatches a credit-pack purchase with account context', async () => {
+    prismaMock.notificationJob.updateMany.mockResolvedValue({ count: 1 })
+    prismaMock.notificationJob.findUniqueOrThrow.mockResolvedValue({
+      id: 'job-payment-1',
+      eventType: 'CREDIT_PACK_PURCHASED',
+      recipient: 'ana@example.com',
+      payload: {
+        paymentId: 'payment-1',
+        memberName: 'Ana Socio',
+        productName: 'Bono 8',
+        credits: 8,
+        amount: 7200,
+        currency: 'EUR',
+        purchasedAt: now.toISOString(),
+        expiresAt: '2026-10-07T10:00:00.000Z',
+      },
+      idempotencyKey: 'credit_pack_purchased/payment-1',
+      attemptCount: 1,
+    })
+    const sender = {
+      send: vi.fn().mockResolvedValue({ providerMessageId: 'resend-payment-1' }),
+    }
+
+    await dispatchNotificationJob('job-payment-1', {
+      sender,
+      now,
+      portalUrl: 'https://wellstudio.example',
+    })
+
+    expect(sender.send).toHaveBeenCalledWith(expect.objectContaining({
+      subject: 'Bono activado · Bono 8',
+      text: expect.stringContaining('Ver mi saldo: https://wellstudio.example/app/account'),
+      idempotencyKey: 'credit_pack_purchased/payment-1',
+    }))
+  })
+
   it('skips a job already claimed or delivered by another worker', async () => {
     prismaMock.notificationJob.updateMany.mockResolvedValue({ count: 0 })
 
@@ -342,6 +434,30 @@ describe('notification outbox', () => {
     expect(prismaMock.notificationJob.findMany).toHaveBeenCalledWith(
       expect.objectContaining({ take: 100 }),
     )
+  })
+})
+
+describe('credit pack purchase email', () => {
+  it('renders an escaped operational receipt with a text fallback', () => {
+    const email = buildCreditPackPurchaseEmail({
+      payload: {
+        paymentId: 'payment-1',
+        memberName: 'Ana & Socio',
+        productName: 'Bono <8>',
+        credits: 8,
+        amount: 7200,
+        currency: 'EUR',
+        purchasedAt: now.toISOString(),
+        expiresAt: '2026-10-07T10:00:00.000Z',
+      },
+      accountUrl: 'https://wellstudio.example/app/account',
+    })
+
+    expect(email.subject).toBe('Bono activado · Bono <8>')
+    expect(email.html).toContain('Ana &amp; Socio')
+    expect(email.html).toContain('Bono &lt;8&gt;')
+    expect(email.text).toContain('8 reservas')
+    expect(email.text).toContain('no sustituye una factura fiscal')
   })
 })
 

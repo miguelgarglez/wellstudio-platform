@@ -122,6 +122,7 @@ describe('admin notification delivery overview', () => {
     expect(parseAdminNotificationEventFilter('unknown')).toBe('all')
     expect(parseAdminNotificationEventFilter('cancellation')).toBe('cancellation')
     expect(parseAdminNotificationEventFilter('session')).toBe('session')
+    expect(parseAdminNotificationEventFilter('purchase')).toBe('purchase')
   })
 
   it('maps session-change payloads without exposing raw operational data', () => {
@@ -170,6 +171,56 @@ describe('admin notification delivery overview', () => {
       contextTitle: 'Sesión comunicada',
       audienceLabel: 'Lista de espera',
       memberName: 'Ana Socio',
+    })
+  })
+
+  it('maps a purchase without exposing provider payloads', () => {
+    const overview = buildAdminNotificationDeliveryOverview({
+      status: 'sent',
+      event: 'purchase',
+      jobs: [
+        {
+          id: 'job-payment',
+          eventType: 'CREDIT_PACK_PURCHASED',
+          status: 'SENT',
+          recipient: 'ana@example.com',
+          payload: {
+            paymentId: 'payment-1',
+            memberName: 'Ana Socio',
+            productName: 'Bono 8',
+            credits: 8,
+            amount: 7200,
+            currency: 'EUR',
+            purchasedAt: '2026-08-08T10:00:00.000Z',
+            expiresAt: '2026-10-07T10:00:00.000Z',
+          },
+          referenceId: 'payment-1',
+          attemptCount: 1,
+          availableAt: now,
+          lockedAt: null,
+          sentAt: now,
+          providerMessageId: 'resend-payment',
+          lastError: null,
+          createdAt: now,
+          updatedAt: now,
+        },
+      ],
+      failedCount: 0,
+      activeCount: 0,
+      sentRecentCount: 1,
+      selectedJob: null,
+      now,
+    })
+
+    expect(overview.jobs[0]).toMatchObject({
+      eventLabel: 'Compra de bono',
+      className: 'Bono 8',
+      contextTitle: 'Compra comunicada',
+      audienceLabel: 'Bono activado',
+      contextFields: expect.arrayContaining([
+        { label: 'Reservas', value: '8' },
+        { label: 'Importe', value: '72,00\u00a0€' },
+      ]),
     })
   })
 })

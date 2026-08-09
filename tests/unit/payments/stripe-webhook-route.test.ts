@@ -12,6 +12,9 @@ vi.mock('@/modules/payments/server/payment-checkout-provider', () => ({
 vi.mock('@/modules/payments/server/payment-webhook', () => ({
   processPaymentWebhook: processPaymentWebhookMock,
 }))
+vi.mock('@/modules/notifications/server/notification-outbox', () => ({
+  dispatchNotificationJobSafely: vi.fn(),
+}))
 
 import { POST } from '@/app/api/payments/stripe/webhook/route'
 
@@ -36,6 +39,7 @@ describe('Stripe webhook route', () => {
       accepted: true,
       outcome: 'FULFILLED',
       paymentId: 'payment-1',
+      notificationJobIds: [],
     })
     const rawBody = '{ "id": "evt_1", "spacing": true }'
 

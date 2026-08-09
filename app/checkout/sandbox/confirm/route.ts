@@ -1,6 +1,7 @@
-import { NextResponse } from 'next/server'
+import { after, NextResponse } from 'next/server'
 
 import { requireAuthenticatedContext } from '@/modules/auth/server/identity'
+import { dispatchNotificationJobSafely } from '@/modules/notifications/server/notification-outbox'
 import { completeSandboxCheckout } from '@/modules/payments/server/sandbox-checkout'
 
 export async function POST(request: Request) {
@@ -13,6 +14,11 @@ export async function POST(request: Request) {
   }
 
   const result = await completeSandboxCheckout({ paymentId, memberId: context.member.id })
+  if (result.success) {
+    for (const jobId of result.notificationJobIds ?? []) {
+      after(() => dispatchNotificationJobSafely(jobId))
+    }
+  }
   const checkout = result.success ? 'success' : 'failed'
   return NextResponse.redirect(
     new URL(`/app/account?checkout=${checkout}&payment=${encodeURIComponent(paymentId)}`, request.url),

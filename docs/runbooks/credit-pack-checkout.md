@@ -14,12 +14,15 @@ The checkout is hosted by the payment provider. WellStudio never receives PAN, C
 4. The checkout provider creates a hosted session using the local payment ID as idempotency context.
 5. The browser leaves WellStudio for checkout.
 6. A signed provider event returns independently of the browser.
-7. One serializable transaction marks the payment `SUCCEEDED`, creates one `MemberCreditAccount` and appends one `PURCHASE` ledger entry.
-8. If the browser reaches the success URL before the signed event, the account view observes the local payment with bounded server refreshes and moves from processing to the terminal state without requiring a manual reload.
+7. One serializable transaction marks the payment `SUCCEEDED`, creates one `MemberCreditAccount`, appends one `PURCHASE` ledger entry and enqueues one `CREDIT_PACK_PURCHASED` notification job.
+8. After commit, WellStudio attempts the confirmation email. Delivery failure never rolls back the activated credits; the durable outbox and `/admin/notifications` retain retryable evidence.
+9. If the browser reaches the success URL before the signed event, the account view observes the local payment with bounded server refreshes and moves from processing to the terminal state without requiring a manual reload.
 
 The success URL only renders status. It never fulfills the purchase.
 
 The webhook remains the sole source of truth. Browser observation is read-only, is limited to the authenticated member's payment and stops on a terminal state. After the bounded observation window, the UI keeps an honest pending state and offers `Comprobar ahora`; it never assumes success from the redirect alone.
+
+The purchase email is idempotent by local payment (`credit_pack_purchased/<paymentId>`) and uses the immutable `PaymentItem.productNameSnapshot`. It confirms credit activation and links to `Cuenta`; it is not a fiscal invoice. Legacy pending payments without the product-name snapshot may resolve the pack name only while the notification job is being created.
 
 ## Modes
 
@@ -100,8 +103,9 @@ The migration adds checkout session identity, entitlement snapshots and unique f
 ```bash
 pnpm check:payments
 pnpm test:e2e:payments:sandbox
+pnpm test:e2e:notifications
 ```
 
 Before production enablement, verify a Stripe test payment, webhook delivery, duplicate event replay, cancellation and account balance. Production migration and live-mode smoke remain explicit operations.
 
-The sandbox E2E also delays provider confirmation deliberately. It verifies that the processing feedback is visible, the webhook-equivalent confirmation updates the balance automatically and a slow confirmation degrades to a manual status check without granting credits early.
+The sandbox E2E also delays provider confirmation deliberately. It verifies that the processing feedback is visible, the webhook-equivalent confirmation updates the balance automatically, exactly one durable purchase notification is enqueued and a slow confirmation degrades to a manual status check without granting credits early. The notification E2E renders the purchase email at mobile and desktop widths and checks that its account CTA and fiscal disclaimer remain readable.

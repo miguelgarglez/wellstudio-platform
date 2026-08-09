@@ -181,7 +181,7 @@ Debe explicar:
 - reglas de elegibilidad
 - condiciones de cancelacion basicas
 
-Estado V1 implementado: `/plans` lee planes y bonos activos/publicos, muestra precio y reglas efectivas y deriva a contacto o agenda. El socio autenticado puede comprar bonos de creditos publicos desde `Cuenta` mediante checkout alojado; la confirmacion firmada crea la cuenta de creditos de forma idempotente y la interfaz observa el resultado sin depender del redirect. La compra online de memberships recurrentes permanece diferida.
+Estado V1 implementado: `/plans` lee planes y bonos activos/publicos, muestra precio y reglas efectivas y deriva a contacto o agenda. El socio autenticado puede comprar bonos de creditos publicos desde `Cuenta` mediante checkout alojado; la confirmacion firmada crea la cuenta de creditos y una notificacion transaccional de compra de forma idempotente, mientras la interfaz observa el resultado sin depender del redirect. La compra online de memberships recurrentes permanece diferida.
 
 ### 4. Captacion
 

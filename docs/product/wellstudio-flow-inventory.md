@@ -453,20 +453,23 @@ Happy path:
 3. el usuario selecciona producto
 4. el sistema inicia pago
 5. el proveedor confirma el pago mediante webhook firmado
-6. el sistema asigna creditos en una transaccion idempotente
-7. si el redirect llega antes que el webhook, la cuenta muestra procesamiento y observa el estado hasta reflejar el saldo confirmado
+6. el sistema asigna creditos y encola una confirmacion de compra en una transaccion idempotente
+7. tras el commit intenta enviar un email que confirma bono, reservas, importe y vigencia, enlaza a `Cuenta` y aclara que no sustituye una factura fiscal
+8. si el redirect llega antes que el webhook, la cuenta muestra procesamiento y observa el estado hasta reflejar el saldo confirmado
 
 Errores y bloqueos:
 
 - catalogo no publicado
 - pago fallido
 - webhook no procesado
+- email fallido: no revierte los creditos y queda recuperable en el monitor de entregas
 - confirmacion lenta: el estado sigue pendiente y permite comprobar de nuevo sin asumir exito
 
 Postcondiciones:
 
 - creditos activos para el flujo implementado
 - elegibilidad actualizada
+- una entrega `CREDIT_PACK_PURCHASED` trazable por pago
 
 Nivel de certeza:
 

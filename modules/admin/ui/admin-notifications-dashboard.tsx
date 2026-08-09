@@ -7,7 +7,6 @@ import {
   History,
   MailCheck,
   MailWarning,
-  MapPin,
   RotateCw,
   UserRound,
 } from 'lucide-react'
@@ -47,6 +46,7 @@ const EVENT_FILTERS: Array<{
   { value: 'cancellation', label: 'Cancelaciones' },
   { value: 'promotion', label: 'Waitlist' },
   { value: 'session', label: 'Agenda' },
+  { value: 'purchase', label: 'Compras' },
 ]
 
 export function AdminNotificationsDashboard({
@@ -306,15 +306,9 @@ function NotificationDetail({
           </div>
         </div>
         <div className="mt-4 grid gap-3 sm:grid-cols-2">
-          <ContextCard label="Socio" value={job.memberName} />
-          <ContextCard label="Clase" value={job.className} />
-          <ContextCard label="Sesión" value={job.sessionLabel} />
-          <ContextCard label="Coach" value={job.coachName} />
-          <ContextCard label="Situación" value={job.audienceLabel} />
-        </div>
-        <div className="mt-3 flex items-center gap-2 rounded-xl border border-[color:color-mix(in_srgb,var(--border)_72%,white)] px-3 py-2.5 text-sm text-[color:color-mix(in_srgb,var(--foreground)_68%,white)]">
-          <MapPin className="size-4 shrink-0 text-[var(--wellstudio-blue-deep)]" aria-hidden="true" />
-          {job.locationLabel}
+          {job.contextFields.map((field) => (
+            <ContextCard key={field.label} label={field.label} value={field.value} />
+          ))}
         </div>
       </section>
 

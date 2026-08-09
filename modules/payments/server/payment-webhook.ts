@@ -6,6 +6,7 @@ export type ProcessPaymentWebhookResult =
       accepted: true
       outcome: 'FULFILLED' | 'CANCELED' | 'IGNORED' | 'ALREADY_PROCESSED'
       paymentId: string | null
+      notificationJobIds: string[]
     }
   | {
       accepted: false
@@ -39,5 +40,6 @@ export async function processPaymentWebhook(input: {
     accepted: true,
     outcome: result.outcome,
     paymentId: result.paymentId,
+    notificationJobIds: result.notificationJobIds ?? [],
   }
 }

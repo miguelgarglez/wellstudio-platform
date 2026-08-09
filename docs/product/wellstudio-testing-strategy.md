@@ -102,7 +102,8 @@ Gate dirigido de catalogo publico:
 
 - solo aparecen planes y bonos `ACTIVE` con `isPublic = true`
 - precios, periodicidad, allowance, creditos y vigencia se derivan del modelo real
-- no existe accion de compra o activacion mientras commerce siga diferido
+- un socio autenticado puede iniciar la compra de un bono publico; memberships recurrentes siguen diferidas
+- la confirmacion firmada concede el saldo y encola una sola notificacion transaccional por pago
 - el CTA de producto alcanza el formulario de contacto y conserva una salida hacia agenda
 - en mobile no hay overflow ni colision entre nombre, precio y condiciones
 

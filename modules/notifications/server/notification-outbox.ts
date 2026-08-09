@@ -2,6 +2,11 @@ import { Prisma, type NotificationEventType } from '@prisma/client'
 
 import { prisma } from '@/lib/db/prisma'
 import {
+  buildCreditPackPurchaseEmail,
+  parseCreditPackPurchaseNotificationPayload,
+  type CreditPackPurchaseNotificationPayload,
+} from '@/modules/notifications/server/credit-pack-purchase-email'
+import {
   buildReservationEmail,
   parseReservationNotificationPayload,
   type ReservationEmailEvent,
@@ -90,6 +95,93 @@ export async function enqueueReservationNotification(
       idempotencyKey,
       referenceType: 'reservation',
       referenceId: input.reservationId,
+      availableAt: input.occurredAt,
+    },
+    update: {},
+    select: { id: true },
+  })
+}
+
+export async function enqueueCreditPackPurchaseNotification(
+  tx: NotificationTx,
+  input: {
+    paymentId: string
+    occurredAt: Date
+  },
+) {
+  const payment = await tx.payment.findUnique({
+    where: { id: input.paymentId },
+    select: {
+      id: true,
+      memberId: true,
+      paymentType: true,
+      amount: true,
+      currency: true,
+      member: {
+        select: {
+          firstName: true,
+          lastName: true,
+          user: { select: { email: true } },
+        },
+      },
+      items: {
+        select: {
+          itemType: true,
+          referenceId: true,
+          productNameSnapshot: true,
+          entitlementUnits: true,
+          entitlementExpiresAfterDays: true,
+        },
+      },
+    },
+  })
+  const item = payment?.items.length === 1 ? payment.items[0] : null
+
+  if (
+    !payment
+    || payment.paymentType !== 'CREDIT_PACK_PURCHASE'
+    || item?.itemType !== 'CREDIT_PACK'
+    || !item.entitlementUnits
+  ) {
+    throw new Error('Cannot enqueue credit pack purchase notification without payment snapshot')
+  }
+
+  const legacyPack = item.productNameSnapshot
+    ? null
+    : await tx.creditPack.findUnique({
+        where: { id: item.referenceId },
+        select: { name: true },
+      })
+  const productName = item.productNameSnapshot ?? legacyPack?.name
+  if (!productName) {
+    throw new Error('Cannot enqueue credit pack purchase notification without product name')
+  }
+
+  const expiresAt = item.entitlementExpiresAfterDays
+    ? new Date(input.occurredAt.getTime() + item.entitlementExpiresAfterDays * 24 * 60 * 60 * 1_000)
+    : null
+  const payload: CreditPackPurchaseNotificationPayload = {
+    paymentId: payment.id,
+    memberName:
+      [payment.member.firstName, payment.member.lastName].filter(Boolean).join(' ') || 'socio',
+    productName,
+    credits: item.entitlementUnits,
+    amount: payment.amount,
+    currency: payment.currency.toUpperCase(),
+    purchasedAt: input.occurredAt.toISOString(),
+    expiresAt: expiresAt?.toISOString() ?? null,
+  }
+  const idempotencyKey = `credit_pack_purchased/${payment.id}`
+
+  return tx.notificationJob.upsert({
+    where: { idempotencyKey },
+    create: {
+      eventType: 'CREDIT_PACK_PURCHASED',
+      recipient: payment.member.user.email,
+      payload: payload as Prisma.InputJsonValue,
+      idempotencyKey,
+      referenceType: 'payment',
+      referenceId: payment.id,
       availableAt: input.occurredAt,
     },
     update: {},
@@ -231,17 +323,7 @@ export async function dispatchNotificationJob(
   const sender = dependencies.sender ?? resendTransactionalEmailSender
 
   try {
-    const email = isSessionChangeEvent(job.eventType)
-      ? buildSessionChangeEmail({
-          eventType: job.eventType,
-          payload: parseSessionChangeNotificationPayload(job.payload),
-          portalUrl: resolveReservationsUrl(dependencies.portalUrl),
-        })
-      : buildReservationEmail({
-          eventType: job.eventType,
-          payload: parseReservationNotificationPayload(job.payload),
-          portalUrl: resolveReservationsUrl(dependencies.portalUrl),
-        })
+    const email = buildNotificationEmail(job, dependencies.portalUrl)
     const delivery = await sender.send({
       recipient: job.recipient,
       ...email,
@@ -404,6 +486,32 @@ async function markNotificationFailed(
 function resolveReservationsUrl(override?: string) {
   const appUrl = override ?? process.env.NEXT_PUBLIC_APP_URL ?? 'http://localhost:3000'
   return new URL('/app/reservations', appUrl).toString()
+}
+
+function resolveAccountUrl(override?: string) {
+  const appUrl = override ?? process.env.NEXT_PUBLIC_APP_URL ?? 'http://localhost:3000'
+  return new URL('/app/account', appUrl).toString()
+}
+
+function buildNotificationEmail(job: ClaimedNotificationJob, portalUrl?: string) {
+  if (job.eventType === 'CREDIT_PACK_PURCHASED') {
+    return buildCreditPackPurchaseEmail({
+      payload: parseCreditPackPurchaseNotificationPayload(job.payload),
+      accountUrl: resolveAccountUrl(portalUrl),
+    })
+  }
+  if (isSessionChangeEvent(job.eventType)) {
+    return buildSessionChangeEmail({
+      eventType: job.eventType,
+      payload: parseSessionChangeNotificationPayload(job.payload),
+      portalUrl: resolveReservationsUrl(portalUrl),
+    })
+  }
+  return buildReservationEmail({
+    eventType: job.eventType,
+    payload: parseReservationNotificationPayload(job.payload),
+    portalUrl: resolveReservationsUrl(portalUrl),
+  })
 }
 
 function isSessionChangeEvent(
