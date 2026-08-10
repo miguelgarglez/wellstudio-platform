@@ -90,13 +90,18 @@ Uso:
 - `sandbox` desplegado automaticamente
 - validacion de login, registro y recovery
 - smoke remoto de cambios integrados
+- checkout Stripe en test mode solo durante smokes provider controlados
 
 Variables minimas:
 
 - `DATABASE_URL` -> `Supabase sandbox`
 - `NEXT_PUBLIC_SUPABASE_URL` -> `Supabase sandbox`
 - `NEXT_PUBLIC_SUPABASE_ANON_KEY` -> `Supabase sandbox`
-- `NEXT_PUBLIC_APP_URL` -> opcional al inicio; si no existe, la app cae a `window.location.origin`
+- `NEXT_PUBLIC_APP_URL` -> `https://preview-wellstudio.miguelgarglez.com`
+- `PAYMENTS_CHECKOUT_MODE` -> `sandbox` por defecto
+- `STRIPE_SECRET_KEY` / `STRIPE_WEBHOOK_SECRET` -> solo test keys de Preview
+
+Detalle operativo de pagos: [stripe-preview-rollout.md](./stripe-preview-rollout.md)
 
 Recomendacion:
 
