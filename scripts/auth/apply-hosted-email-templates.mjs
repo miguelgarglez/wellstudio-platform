@@ -7,12 +7,12 @@ const PROJECT_REF_PATTERN = /^[a-z0-9]{20}$/
 
 const ENVIRONMENTS = {
   sandbox: {
-    confirmationSubject: '[DEV] WellStudio: confirma tu acceso',
-    recoverySubject: '[DEV] WellStudio: restablece tu contraseña',
+    confirmationSubject: '[DEV] WellStudio: confirma tu correo',
+    recoverySubject: '[DEV] WellStudio: crea una nueva contraseña',
   },
   production: {
-    confirmationSubject: 'WellStudio: confirma tu acceso',
-    recoverySubject: 'WellStudio: restablece tu contraseña',
+    confirmationSubject: 'WellStudio: confirma tu correo',
+    recoverySubject: 'WellStudio: crea una nueva contraseña',
   },
 }
 

@@ -6,8 +6,8 @@ Fuente versionada para las plantillas hosted de `Supabase Auth`. Los HTML son au
 
 | Supabase | Asunto production | Asunto sandbox | Archivo |
 | --- | --- | --- | --- |
-| Confirm signup | `WellStudio: confirma tu acceso` | `[DEV] WellStudio: confirma tu acceso` | `confirmation.html` |
-| Reset password | `WellStudio: restablece tu contraseña` | `[DEV] WellStudio: restablece tu contraseña` | `recovery.html` |
+| Confirm signup | `WellStudio: confirma tu correo` | `[DEV] WellStudio: confirma tu correo` | `confirmation.html` |
+| Reset password | `WellStudio: crea una nueva contraseña` | `[DEV] WellStudio: crea una nueva contraseña` | `recovery.html` |
 
 Remitentes:
 
@@ -63,10 +63,14 @@ El comando falla si se intenta aplicar sin repetir el project ref, si faltan tok
 5. En recovery, preservar `{{ .ConfirmationURL }}` porque forma parte del flujo ya validado.
 6. Enviar un correo real de signup y recovery antes de dar el cambio por desplegado.
 
-## Restricciones
+## Restricciones (deliverability + brand)
 
 - una sola CTA y ningún contenido promocional
-- sin imágenes, fuentes, JavaScript ni CSS remoto
-- layout de tablas y estilos inline para compatibilidad
+- sin imágenes, fuentes web, JavaScript ni CSS remoto
+- layout de tablas y estilos **inline** (el bloque `@media` del `<head>` es el único CSS no inline, para mobile)
+- tipografía safe: `Arial, Helvetica, sans-serif`
+- colores alineados al design system (`brand-950`, `brand-500`, `brand-300`, `sand-100`, `stone-*`, `ink-900`) sin assets externos
+- cabecera oscura de marca + cuerpo claro; CTA azul con radio estable (`16px`), no pill hiper-redondeado
 - tracking de enlaces desactivado en el proveedor para no reescribir URLs de auth
 - cambios infrecuentes y desplegados primero en sandbox
+- no añadir firmas HTML, redes sociales ni segundo enlace “por si el botón falla” (rompe la regla de una sola CTA y añade superficie de phishing)

@@ -18,14 +18,14 @@ describe('Supabase auth email templates', () => {
     expect(html).toContain('type=email')
     expect(html).toContain('next=/app')
     expect(html).toContain('email={{ .Email }}')
-    expect(html).toContain('Confirmar mi acceso')
+    expect(html).toContain('Confirmar y entrar')
   })
 
   it('preserves the validated recovery link', () => {
     const html = readTemplate('recovery.html')
 
     expect(html).toContain('href="{{ .ConfirmationURL }}"')
-    expect(html).toContain('Restablecer contraseña')
+    expect(html).toContain('Crear nueva contraseña')
   })
 
   it.each(['confirmation.html', 'recovery.html'])('%s stays deliverability-focused', (name) => {

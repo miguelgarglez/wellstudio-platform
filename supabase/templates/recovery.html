@@ -3,42 +3,44 @@
   <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
-    <title>Restablece tu contraseña de WellStudio</title>
+    <title>Crea una nueva contraseña · WellStudio</title>
     <style>
       @media only screen and (max-width: 620px) {
         .email-shell { padding: 16px !important; }
-        .email-card { border-radius: 24px !important; }
-        .email-content { padding: 32px 24px !important; }
-        .email-title { font-size: 34px !important; }
+        .email-card { border-radius: 20px !important; }
+        .email-brand { padding: 22px 24px !important; }
+        .email-content { padding: 28px 24px 32px !important; }
+        .email-title { font-size: 30px !important; letter-spacing: -0.8px !important; }
         .email-button { display: block !important; text-align: center !important; }
       }
     </style>
   </head>
-  <body style="margin: 0; background: #f2eee7; color: #111316; font-family: Arial, Helvetica, sans-serif;">
+  <body style="margin: 0; background: #f1ede7; color: #181716; font-family: Arial, Helvetica, sans-serif;">
     <div style="display: none; max-height: 0; overflow: hidden; opacity: 0;">
-      Usa este enlace para crear una nueva contraseña de WellStudio.
+      Enlace para crear una nueva contraseña de WellStudio.
     </div>
-    <table role="presentation" width="100%" cellspacing="0" cellpadding="0" border="0" style="background: #f2eee7;">
+    <table role="presentation" width="100%" cellspacing="0" cellpadding="0" border="0" style="background: #f1ede7;">
       <tr>
         <td class="email-shell" align="center" style="padding: 40px 20px;">
-          <table class="email-card" role="presentation" width="100%" cellspacing="0" cellpadding="0" border="0" style="max-width: 600px; overflow: hidden; border: 1px solid #ded6ca; border-radius: 32px; background: #fffaf4;">
+          <table class="email-card" role="presentation" width="100%" cellspacing="0" cellpadding="0" border="0" style="max-width: 560px; overflow: hidden; border: 1px solid #ddd7cf; border-radius: 24px; background: #ffffff;">
             <tr>
-              <td style="height: 8px; background: #4f89c5;"></td>
+              <td class="email-brand" style="padding: 26px 40px; background: #0f1012;">
+                <p style="margin: 0; color: #b7cee7; font-size: 12px; font-weight: 700; letter-spacing: 3px; text-transform: uppercase;">WellStudio</p>
+              </td>
             </tr>
             <tr>
-              <td class="email-content" style="padding: 44px 48px;">
-                <p style="margin: 0 0 28px; color: #315272; font-size: 13px; font-weight: 700; letter-spacing: 3px; text-transform: uppercase;">WellStudio</p>
-                <h1 class="email-title" style="margin: 0; color: #111316; font-size: 42px; line-height: 1.05; letter-spacing: -1.5px;">Crea una nueva contraseña</h1>
-                <p style="margin: 22px 0 0; color: #5f5d59; font-size: 17px; line-height: 1.7;">Hemos recibido una solicitud para cambiar la contraseña de tu cuenta.</p>
-                <table role="presentation" width="100%" cellspacing="0" cellpadding="0" border="0" style="margin: 32px 0;">
+              <td class="email-content" style="padding: 36px 40px 40px;">
+                <h1 class="email-title" style="margin: 0; color: #181716; font-size: 34px; line-height: 1.15; letter-spacing: -1px; font-weight: 700;">Nueva contraseña</h1>
+                <p style="margin: 18px 0 0; color: #7b766e; font-size: 16px; line-height: 1.65;">Recibimos una solicitud para cambiar la contraseña de tu cuenta. Continúa solo si fuiste tú.</p>
+                <table role="presentation" width="100%" cellspacing="0" cellpadding="0" border="0" style="margin: 28px 0;">
                   <tr>
                     <td>
-                      <a class="email-button" href="{{ .ConfirmationURL }}" style="display: inline-block; border-radius: 999px; background: #4f89c5; color: #ffffff; font-size: 16px; font-weight: 700; line-height: 1; padding: 17px 26px; text-decoration: none;">Restablecer contraseña</a>
+                      <a class="email-button" href="{{ .ConfirmationURL }}" style="display: inline-block; border-radius: 16px; background: #4f89c5; color: #ffffff; font-size: 16px; font-weight: 700; line-height: 1; padding: 16px 24px; text-decoration: none;">Crear nueva contraseña</a>
                     </td>
                   </tr>
                 </table>
-                <div style="border-top: 1px solid #e7dfd4; padding-top: 24px;">
-                  <p style="margin: 0; color: #77736d; font-size: 14px; line-height: 1.65;">Este enlace es personal y temporal. Si no has solicitado el cambio, ignora este correo: tu contraseña seguirá siendo la misma.</p>
+                <div style="border-top: 1px solid #ddd7cf; padding-top: 20px;">
+                  <p style="margin: 0; color: #7b766e; font-size: 13px; line-height: 1.6;">Este enlace es personal y temporal. Si no pediste el cambio, ignora este correo: tu contraseña no se modifica.</p>
                 </div>
               </td>
             </tr>

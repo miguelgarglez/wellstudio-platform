@@ -216,15 +216,17 @@ Los asuntos, remitentes por entorno, restricciones y pasos de aplicación están
 el punto de despliegue; el repositorio conserva la fuente revisable y testeable.
 
 Las plantillas deliberadamente usan tablas, estilos inline y una sola CTA. No incluyen
-imágenes, fuentes remotas, firmas ni copy promocional. Mantener desactivado el tracking
-de enlaces en el proveedor para evitar que se reescriban las URLs de autenticación.
+imágenes, fuentes remotas, firmas ni copy promocional. La cabecera oscura de marca y el
+CTA azul usan tokens del design system embebidos como hex; no hay CSS ni assets remotos.
+Mantener desactivado el tracking de enlaces en el proveedor para evitar que se reescriban
+las URLs de autenticación.
 
 ### Confirm signup
 
 Subject recomendado:
 
 ```text
-WellStudio: confirma tu acceso
+WellStudio: confirma tu correo
 ```
 
 Body: `supabase/templates/confirmation.html`.
@@ -234,7 +236,7 @@ Body: `supabase/templates/confirmation.html`.
 Subject recomendado:
 
 ```text
-WellStudio: restablece tu contraseña
+WellStudio: crea una nueva contraseña
 ```
 
 Body: `supabase/templates/recovery.html`.

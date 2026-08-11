@@ -8,13 +8,13 @@ const templateDirectory = resolve(process.cwd(), 'supabase/templates')
 const templates = [
   {
     file: 'confirmation.html',
-    heading: 'Confirma tu acceso',
-    action: 'Confirmar mi acceso',
+    heading: 'Confirma tu correo',
+    action: 'Confirmar y entrar',
   },
   {
     file: 'recovery.html',
-    heading: 'Crea una nueva contraseña',
-    action: 'Restablecer contraseña',
+    heading: 'Nueva contraseña',
+    action: 'Crear nueva contraseña',
   },
 ] as const
 

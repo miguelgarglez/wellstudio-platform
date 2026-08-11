@@ -36,8 +36,10 @@ describe('hosted auth email template deployment', () => {
     const sandbox = await buildDesiredConfig('sandbox')
     const production = await buildDesiredConfig('production')
 
-    expect(sandbox.mailer_subjects_confirmation).toBe('[DEV] WellStudio: confirma tu acceso')
-    expect(production.mailer_subjects_confirmation).toBe('WellStudio: confirma tu acceso')
+    expect(sandbox.mailer_subjects_confirmation).toBe('[DEV] WellStudio: confirma tu correo')
+    expect(sandbox.mailer_subjects_recovery).toBe('[DEV] WellStudio: crea una nueva contraseña')
+    expect(production.mailer_subjects_confirmation).toBe('WellStudio: confirma tu correo')
+    expect(production.mailer_subjects_recovery).toBe('WellStudio: crea una nueva contraseña')
     expect(sandbox.mailer_templates_confirmation_content).toContain('{{ .TokenHash }}')
     expect(sandbox.mailer_templates_recovery_content).toContain('{{ .ConfirmationURL }}')
   })
