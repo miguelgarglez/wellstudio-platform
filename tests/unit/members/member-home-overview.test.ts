@@ -31,13 +31,21 @@ function buildAuthenticatedContext(): Extract<AuthContext, { isAuthenticated: tr
 
 describe('member home overview helpers', () => {
   it('builds alerts for no entitlement, waitlist activity and missing card', () => {
-    expect(
-      buildMemberHomeAlerts({
-        hasActiveEntitlement: false,
-        hasActiveWaitlist: true,
-        hasLinkedCard: false,
-      }).map((alert) => alert.kind),
-    ).toEqual(['no-entitlement', 'active-waitlist', 'no-card'])
+    const alerts = buildMemberHomeAlerts({
+      hasActiveEntitlement: false,
+      hasActiveWaitlist: true,
+      hasLinkedCard: false,
+    })
+
+    expect(alerts.map((alert) => alert.kind)).toEqual([
+      'no-entitlement',
+      'active-waitlist',
+      'no-card',
+    ])
+    expect(alerts.find((alert) => alert.kind === 'no-card')?.description).toContain('Cuenta')
+    expect(alerts.find((alert) => alert.kind === 'no-card')?.description).not.toContain(
+      'capa comercial',
+    )
   })
 })
 
@@ -157,6 +165,8 @@ describe('buildMemberHomeOverview', () => {
     })
 
     expect(overview.summary.displayName).toBe('María WellStudio')
+    expect(overview.introDescription).toContain('próximo')
+    expect(overview.primaryActionLabel).toBe('Ver mis reservas')
     expect(overview.upcomingReservations).toHaveLength(1)
     expect(overview.waitlists).toHaveLength(1)
     expect(overview.commercial.currentPlanName).toBe('Fuerza Base')

@@ -567,9 +567,9 @@ export function buildMemberReservationsOverview({
   )
 
   return {
-    introTitle: 'Centro operativo',
+    introTitle: 'Tus reservas',
     introDescription:
-      'Aquí se concentra tu movimiento real dentro de la agenda: reservas confirmadas, waitlists activas, sesiones publicadas e historial reciente, todo ya preparado para actuar desde el portal.',
+      'Consulta lo que tienes confirmado, entra en waitlist si hace falta y reserva plazas en la agenda publicada.',
     summaryLabels: buildSummaryLabels({
       upcomingCount: upcomingRows.length,
       waitlistCount: waitlistRows.length,
@@ -608,13 +608,13 @@ export function buildMemberBookingState({
     return {
       canBook: true,
       reason: 'ready',
-      advisoryLabel: 'Con capacidad operativa para reservar',
+      advisoryLabel: 'Listo para reservar',
       description:
         currentMembershipName && creditsRemaining > 0
-          ? `Tienes ${currentMembershipName} activo y ${creditsRemaining} créditos disponibles como respaldo.`
+          ? `Tienes ${currentMembershipName} activo y ${creditsRemaining} créditos disponibles.`
           : currentMembershipName
-            ? `Tu plan ${currentMembershipName} ya está activo para moverte por la agenda.`
-            : `Tienes ${creditsRemaining} créditos disponibles para cuando entren las acciones reales de reserva.`,
+            ? `Tu plan ${currentMembershipName} está activo.`
+            : `Tienes ${creditsRemaining} créditos disponibles para reservar.`,
     }
   }
 
@@ -623,7 +623,7 @@ export function buildMemberBookingState({
       canBook: false,
       reason: 'pending-plan',
       advisoryLabel: 'Plan pendiente de activación',
-      description: `${pendingMembershipName} todavía no está activo. En cuanto se active, esta agenda pasará de seguimiento a operativa.`,
+      description: `${pendingMembershipName} todavía no está activo. Cuando se active, podrás reservar desde aquí.`,
     }
   }
 

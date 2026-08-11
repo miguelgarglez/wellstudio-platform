@@ -14,6 +14,7 @@ import {
   AlertDialogTitle,
 } from '@/components/ui/alert-dialog'
 import { Button } from '@/components/ui/button'
+import { OperationToast } from '@/components/ui/operation-toast'
 import { Spinner } from '@/components/ui/spinner'
 import { cn } from '@/lib/utils'
 import type { ReservationMutationResult } from '@/modules/reservations/server/member-reservation-mutations'
@@ -31,6 +32,7 @@ type ReservationConfirmationActionProps = {
   dialogDescription: string
   confirmLabel: string
   pendingLabel: string
+  successTitle?: string
   triggerVariant?: React.ComponentProps<typeof Button>['variant']
   confirmVariant?: React.ComponentProps<typeof Button>['variant']
   size?: React.ComponentProps<typeof Button>['size']
@@ -45,6 +47,7 @@ export function ReservationConfirmationAction({
   dialogDescription,
   confirmLabel,
   pendingLabel,
+  successTitle = 'Listo',
   triggerVariant = 'outline',
   confirmVariant = 'default',
   size = 'sm',
@@ -54,6 +57,10 @@ export function ReservationConfirmationAction({
   const [isOpen, setIsOpen] = useState(false)
   const formRef = useRef<HTMLFormElement>(null)
   const [state, setState] = useState<ReservationMutationResult | null>(null)
+  const [toast, setToast] = useState<{
+    title: string
+    description: string
+  } | null>(null)
   const [isPending, startTransition] = useTransition()
 
   function handleSubmit(event: React.FormEvent<HTMLFormElement>) {
@@ -74,63 +81,79 @@ export function ReservationConfirmationAction({
 
       if (nextState.success) {
         setIsOpen(false)
+        setToast({
+          title: successTitle,
+          description: nextState.message,
+        })
         router.refresh()
       }
     })
   }
 
   return (
-    <AlertDialog open={isOpen} onOpenChange={setIsOpen}>
-      <Button
-        type="button"
-        variant={triggerVariant}
-        size={size}
-        className={cn(triggerClassName)}
-        onClick={() => setIsOpen(true)}
-      >
-        {triggerLabel}
-      </Button>
+    <>
+      <AlertDialog open={isOpen} onOpenChange={setIsOpen}>
+        <Button
+          type="button"
+          variant={triggerVariant}
+          size={size}
+          className={cn(triggerClassName)}
+          onClick={() => setIsOpen(true)}
+        >
+          {triggerLabel}
+        </Button>
 
-      <AlertDialogContent size="sm" className="rounded-[1.3rem]">
-        <form ref={formRef} onSubmit={handleSubmit} className="flex flex-col gap-4">
-          {Object.entries(fields).map(([key, value]) => (
-            <input key={key} type="hidden" name={key} value={value} />
-          ))}
+        <AlertDialogContent size="sm" className="rounded-[1.3rem]">
+          <form ref={formRef} onSubmit={handleSubmit} className="flex flex-col gap-4">
+            {Object.entries(fields).map(([key, value]) => (
+              <input key={key} type="hidden" name={key} value={value} />
+            ))}
 
-          <AlertDialogHeader className="items-start text-left">
-            <AlertDialogTitle className="text-[1.1rem] text-[var(--wellstudio-ink)]">
-              {dialogTitle}
-            </AlertDialogTitle>
-            <AlertDialogDescription className="text-left leading-7">
-              {dialogDescription}
-            </AlertDialogDescription>
-          </AlertDialogHeader>
+            <AlertDialogHeader className="items-start text-left">
+              <AlertDialogTitle className="text-[1.1rem] text-[var(--wellstudio-ink)]">
+                {dialogTitle}
+              </AlertDialogTitle>
+              <AlertDialogDescription className="text-left leading-7">
+                {dialogDescription}
+              </AlertDialogDescription>
+            </AlertDialogHeader>
 
-          {state && !state.success ? (
-            <p className="text-sm text-destructive" role="alert">
-              {state.message}
-            </p>
-          ) : null}
+            {state && !state.success ? (
+              <p className="text-sm text-destructive" role="alert">
+                {state.message}
+              </p>
+            ) : null}
 
-          <AlertDialogFooter className="gap-2 bg-transparent">
-            <AlertDialogCancel disabled={isPending}>Volver</AlertDialogCancel>
-            <AlertDialogAction
-              type="submit"
-              variant={confirmVariant}
-              disabled={isPending}
-            >
-              {isPending ? (
-                <>
-                  <Spinner data-icon="inline-start" />
-                  {pendingLabel}
-                </>
-              ) : (
-                confirmLabel
-              )}
-            </AlertDialogAction>
-          </AlertDialogFooter>
-        </form>
-      </AlertDialogContent>
-    </AlertDialog>
+            <AlertDialogFooter className="gap-2 bg-transparent">
+              <AlertDialogCancel disabled={isPending}>Volver</AlertDialogCancel>
+              <AlertDialogAction
+                type="submit"
+                variant={confirmVariant}
+                disabled={isPending}
+              >
+                {isPending ? (
+                  <>
+                    <Spinner data-icon="inline-start" />
+                    {pendingLabel}
+                  </>
+                ) : (
+                  confirmLabel
+                )}
+              </AlertDialogAction>
+            </AlertDialogFooter>
+          </form>
+        </AlertDialogContent>
+      </AlertDialog>
+
+      {toast ? (
+        <OperationToast
+          key={`${toast.title}-${toast.description}`}
+          title={toast.title}
+          description={toast.description}
+          variant="success"
+          onDismiss={() => setToast(null)}
+        />
+      ) : null}
+    </>
   )
 }

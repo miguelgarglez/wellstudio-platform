@@ -17,7 +17,7 @@ export function MemberHomeDashboardSkeleton() {
                   Bienvenido de nuevo
                 </h1>
                 <p className="max-w-3xl text-base leading-8 text-[color:color-mix(in_srgb,var(--foreground)_72%,white)] sm:text-lg">
-                  Tu home privada ya prioriza lo importante: próximas sesiones, waitlists activas y el estado comercial básico para que recuperes contexto rápido.
+                  Cuando reserves, aquí verás tu próxima clase. Mientras tanto, revisa tu plan o entra en la agenda para elegir sesión.
                 </p>
               </div>
             </div>

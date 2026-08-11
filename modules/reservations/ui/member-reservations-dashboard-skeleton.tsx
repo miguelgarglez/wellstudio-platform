@@ -14,10 +14,10 @@ export function MemberReservationsDashboardSkeleton() {
               </p>
               <div className="flex flex-col gap-2.5 sm:gap-3 xl:max-w-4xl">
                 <h1 className="font-display text-[2.15rem] uppercase leading-[0.92] tracking-[0.03em] text-[var(--wellstudio-ink)] sm:text-5xl sm:leading-none lg:text-[3.4rem]">
-                  Centro operativo
+                  Tus reservas
                 </h1>
                 <p className="max-w-3xl text-[0.98rem] leading-7 text-[color:color-mix(in_srgb,var(--foreground)_72%,white)] sm:text-lg sm:leading-8">
-                  Aquí se concentra tu movimiento real dentro de la agenda: reservas confirmadas, waitlists activas, sesiones publicadas e historial reciente, todo ya preparado para actuar desde el portal.
+                  Consulta lo que tienes confirmado, entra en waitlist si hace falta y reserva plazas en la agenda publicada.
                 </p>
               </div>
             </div>

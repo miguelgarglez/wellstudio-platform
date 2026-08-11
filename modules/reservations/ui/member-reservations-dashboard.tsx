@@ -91,9 +91,9 @@ export function MemberReservationsDashboard({
   )
 }
 
-export const MEMBER_RESERVATIONS_INTRO_TITLE = 'Centro operativo'
+export const MEMBER_RESERVATIONS_INTRO_TITLE = 'Tus reservas'
 export const MEMBER_RESERVATIONS_INTRO_DESCRIPTION =
-  'Aquí se concentra tu movimiento real dentro de la agenda: reservas confirmadas, waitlists activas, sesiones publicadas e historial reciente, todo ya preparado para actuar desde el portal.'
+  'Consulta lo que tienes confirmado, entra en waitlist si hace falta y reserva plazas en la agenda publicada.'
 
 export function MemberReservationsHeroCard({
   introTitle = MEMBER_RESERVATIONS_INTRO_TITLE,
@@ -138,8 +138,7 @@ export function MemberReservationsHeroCard({
 
           <div className="hidden sm:flex sm:flex-row sm:items-center sm:justify-between sm:gap-3">
             <p className="text-sm text-[color:color-mix(in_srgb,var(--foreground)_74%,white)]">
-              Desde esta pantalla ya puedes reservar, cancelar dentro de ventana y
-              gestionar tu waitlist sin salir del portal privado.
+              Reserva, cancela dentro de ventana o gestiona tu waitlist desde aquí.
             </p>
             <Link
               href="#agenda-futura"
@@ -365,57 +364,54 @@ function UpcomingReservationCard({
       </div>
 
       <div className="mt-4 rounded-[1.25rem] border border-[color:color-mix(in_srgb,var(--border)_74%,white)] bg-[color:color-mix(in_srgb,var(--card)_68%,white)] px-4 py-3">
-        <div className="flex items-start gap-3">
-          <span
-            className={cn(
-              'mt-0.5 inline-flex size-8 shrink-0 items-center justify-center rounded-full',
-              reservation.cancellationTone === 'allowed'
-                ? 'bg-[color:color-mix(in_srgb,var(--wellstudio-blue)_12%,white)] text-[var(--wellstudio-blue-deep)]'
-                : 'bg-[color:color-mix(in_srgb,var(--wellstudio-ink)_10%,white)] text-[var(--wellstudio-ink)]',
-            )}
-          >
-            <Clock3 className="size-4" aria-hidden="true" />
-          </span>
-          <div className="space-y-1">
-            <p className="text-sm font-medium text-[var(--wellstudio-ink)]">
-              {reservation.cancellationLabel}
-            </p>
-            <p className="text-sm text-[color:color-mix(in_srgb,var(--foreground)_70%,white)]">
-              Ventana activa de cancelación para esta sesión.
-            </p>
+        <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+          <div className="flex items-start gap-3">
+            <span
+              className={cn(
+                'mt-0.5 inline-flex size-8 shrink-0 items-center justify-center rounded-full',
+                reservation.cancellationTone === 'allowed'
+                  ? 'bg-[color:color-mix(in_srgb,var(--wellstudio-blue)_12%,white)] text-[var(--wellstudio-blue-deep)]'
+                  : 'bg-[color:color-mix(in_srgb,var(--wellstudio-ink)_10%,white)] text-[var(--wellstudio-ink)]',
+              )}
+            >
+              <Clock3 className="size-4" aria-hidden="true" />
+            </span>
+            <div className="space-y-1">
+              <p className="text-sm font-medium text-[var(--wellstudio-ink)]">
+                {reservation.cancellationLabel}
+              </p>
+              <p className="text-sm text-[color:color-mix(in_srgb,var(--foreground)_70%,white)]">
+                {reservation.canCancel
+                  ? 'Si cancelas ahora, se libera la plaza.'
+                  : 'La cancelación ya está fuera de ventana.'}
+              </p>
+            </div>
           </div>
+          {reservation.canCancel ? (
+            <ReservationConfirmationAction
+              action={cancelAction}
+              fields={{ reservationId: reservation.id }}
+              triggerLabel="Cancelar reserva"
+              dialogTitle="Cancelar esta reserva"
+              dialogDescription={reservation.confirmCopy}
+              confirmLabel="Cancelar"
+              pendingLabel="Cancelando"
+              successTitle="Reserva cancelada"
+              confirmVariant="destructive"
+              triggerClassName="w-full sm:w-auto"
+            />
+          ) : (
+            <Button
+              type="button"
+              variant="outline"
+              size="sm"
+              disabled
+              className="w-full sm:w-auto"
+            >
+              Cancelación cerrada
+            </Button>
+          )}
         </div>
-      </div>
-
-      <div className="mt-4 flex flex-wrap items-center justify-between gap-3">
-        <p className="text-sm text-[color:color-mix(in_srgb,var(--foreground)_72%,white)]">
-          {reservation.canCancel
-            ? 'Si cancelas ahora, la plaza se liberará y la waitlist se reevaluará.'
-            : 'La cancelación ya está fuera de ventana.'}
-        </p>
-        {reservation.canCancel ? (
-          <ReservationConfirmationAction
-            action={cancelAction}
-            fields={{ reservationId: reservation.id }}
-            triggerLabel="Cancelar reserva"
-            dialogTitle="Cancelar esta reserva"
-            dialogDescription={reservation.confirmCopy}
-            confirmLabel="Cancelar"
-            pendingLabel="Cancelando"
-            confirmVariant="destructive"
-            triggerClassName="w-full sm:w-auto"
-          />
-        ) : (
-          <Button
-            type="button"
-            variant="outline"
-            size="sm"
-            disabled
-            className="w-full sm:w-auto"
-          >
-            Cancelación cerrada
-          </Button>
-        )}
       </div>
     </div>
   )
@@ -469,6 +465,7 @@ function WaitlistCard({
               dialogDescription={waitlist.confirmCopy}
               confirmLabel="Salir"
               pendingLabel="Saliendo"
+              successTitle="Has salido de la waitlist"
               triggerVariant="outline"
               confirmVariant="destructive"
               triggerClassName="w-full sm:w-auto"
@@ -515,7 +512,7 @@ function ScheduleSessionCard({
 
       <div className="mt-4 flex flex-wrap items-center justify-between gap-3">
         <p className="text-sm text-[color:color-mix(in_srgb,var(--foreground)_72%,white)]">
-          {session.primaryAction.description ?? 'La sesión refleja ya su estado operativo actual.'}
+          {session.primaryAction.description ?? 'Revisa la disponibilidad y elige qué hacer.'}
         </p>
         <ScheduleActionButton
           session={session}
@@ -544,9 +541,10 @@ function ScheduleActionButton({
           fields={{ classSessionId: session.id }}
           triggerLabel="Reservar"
           dialogTitle="Confirmar reserva"
-          dialogDescription={`Reservarás tu plaza para ${session.className} en el tramo ${session.timeLabel}.`}
+          dialogDescription={`Reservarás tu plaza para ${session.className} · ${session.timeLabel}.`}
           confirmLabel="Confirmar reserva"
           pendingLabel="Reservando"
+          successTitle="Reserva confirmada"
           triggerClassName="w-full sm:w-auto"
         />
       )
@@ -557,9 +555,10 @@ function ScheduleActionButton({
           fields={{ classSessionId: session.id }}
           triggerLabel="Entrar en waitlist"
           dialogTitle="Entrar en la waitlist"
-          dialogDescription={`Te unirás a la waitlist de ${session.className}. Si se libera una plaza y sigues siendo elegible, el sistema intentará promocionarte.`}
+          dialogDescription={`Te unirás a la lista de espera de ${session.className}. Si se libera una plaza y puedes reservar, te avisaremos.`}
           confirmLabel="Entrar en waitlist"
           pendingLabel="Entrando"
+          successTitle="Estás en la waitlist"
           triggerVariant="outline"
           triggerClassName="w-full sm:w-auto"
         />
@@ -612,9 +611,8 @@ function EmptyReservationState() {
             Aún no tienes reservas próximas
           </p>
           <p className="max-w-2xl text-sm leading-7 text-[color:color-mix(in_srgb,var(--foreground)_72%,white)]">
-            Cuando empieces a moverte por la agenda, aquí verás primero tus sesiones
-            confirmadas y su ventana de cancelación. Mientras tanto, puedes bajar a la
-            agenda publicada para orientarte.
+            Baja a la agenda publicada, elige una sesión y reserva tu plaza. Aquí verás
+            después lo confirmado y si aún puedes cancelar.
           </p>
         </div>
         <div>

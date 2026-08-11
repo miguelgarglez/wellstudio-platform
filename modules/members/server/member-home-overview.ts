@@ -306,13 +306,13 @@ export function buildMemberHomeOverview({
     introTitle: 'Bienvenido de nuevo',
     introDescription:
       upcomingReservations.length > 0
-        ? 'Tu home privada ya prioriza lo importante: próximas sesiones, waitlists activas y el estado comercial básico para que recuperes contexto rápido.'
-        : 'Tu home privada ya prioriza reservas y estado comercial básico. Cuando empieces a moverte por la agenda, aquí tendrás el resumen más útil para volver rápido a tu rutina.',
+        ? 'Aquí tienes lo próximo: tus sesiones, waitlists y el estado de tu plan para seguir entrenando sin perder el hilo.'
+        : 'Cuando reserves, aquí verás tu próxima clase. Mientras tanto, revisa tu plan o entra en la agenda para elegir sesión.',
     activitySummaryLabel: buildActivitySummaryLabel({
       reservationsCount: upcomingReservations.length,
       waitlistsCount: waitlists.length,
     }),
-    primaryActionLabel: upcomingReservations.length > 0 ? 'Ver agenda privada' : 'Explorar reservas',
+    primaryActionLabel: upcomingReservations.length > 0 ? 'Ver mis reservas' : 'Ver agenda',
     primaryActionHref: '/app/reservations',
     upcomingReservations: upcomingReservations.map((reservation) =>
       mapSessionSnapshot(reservation, now),
@@ -353,16 +353,16 @@ export function buildMemberHomeAlerts({
       kind: 'no-entitlement',
       title: 'Sin plan ni créditos activos',
       description:
-        'Tu cuenta ya está lista, pero ahora mismo no detectamos membresía activa ni créditos disponibles para reservar con normalidad.',
+        'Ahora mismo no puedes reservar con normalidad. Revisa tu plan o compra un bono desde Cuenta.',
     })
   }
 
   if (hasActiveWaitlist) {
     alerts.push({
       kind: 'active-waitlist',
-      title: 'Tienes una waitlist en seguimiento',
+      title: 'Tienes una waitlist activa',
       description:
-        'Mantén vigiladas tus próximas clases: si se libera una plaza, esta home te ayudará a recuperar contexto rápido.',
+        'Si se libera una plaza y sigues pudiendo reservar, te avisaremos. Mientras tanto, puedes seguir tu posición en Reservas.',
     })
   }
 
@@ -371,7 +371,7 @@ export function buildMemberHomeAlerts({
       kind: 'no-card',
       title: 'Aún no hay tarjeta vinculada',
       description:
-        'Cuando activemos la capa comercial completa, aquí podrás revisar el estado de tu método de pago sin salir del portal.',
+        'Puedes vincular una tarjeta desde Cuenta cuando quieras tener un método de pago listo.',
     })
   }
 

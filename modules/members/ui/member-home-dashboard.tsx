@@ -24,6 +24,8 @@ export function MemberHomeDashboard({ overview }: MemberHomeDashboardProps) {
       <MemberHomeHeroCard
         introTitle={overview.introTitle}
         introDescription={overview.introDescription}
+        primaryActionLabel={overview.primaryActionLabel}
+        primaryActionHref={overview.primaryActionHref}
         activitySummaryContent={
           <>
             <Pill>{overview.summary.memberStatusLabel}</Pill>
@@ -43,16 +45,20 @@ export function MemberHomeDashboard({ overview }: MemberHomeDashboardProps) {
 
 export const MEMBER_HOME_INTRO_TITLE = 'Bienvenido de nuevo'
 export const MEMBER_HOME_INTRO_DESCRIPTION =
-  'Tu home privada ya prioriza lo importante: próximas sesiones, waitlists activas y el estado comercial básico para que recuperes contexto rápido.'
+  'Cuando reserves, aquí verás tu próxima clase. Mientras tanto, revisa tu plan o entra en la agenda para elegir sesión.'
 
 export function MemberHomeHeroCard({
   introTitle = MEMBER_HOME_INTRO_TITLE,
   introDescription = MEMBER_HOME_INTRO_DESCRIPTION,
+  primaryActionLabel = 'Ver agenda',
+  primaryActionHref = '/app/reservations',
   activitySummaryContent,
   footerMetaContent,
 }: {
   introTitle?: string
   introDescription?: string
+  primaryActionLabel?: string
+  primaryActionHref?: string
   activitySummaryContent: ReactNode
   footerMetaContent: ReactNode
 }) {
@@ -78,11 +84,11 @@ export function MemberHomeHeroCard({
 
           <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
             <Link
-              href="/app/reservations"
+              href={primaryActionHref}
               prefetch={false}
               className={cn(buttonVariants({ variant: 'default' }), 'w-full sm:w-auto')}
             >
-              Ir a Reservas
+              {primaryActionLabel}
               <MoveUpRight data-icon="inline-end" />
             </Link>
             {footerMetaContent}
@@ -99,7 +105,7 @@ export function MemberHomeDashboardBody({ overview }: MemberHomeDashboardProps) 
       <Card className="order-3 overflow-visible rounded-[2rem] bg-white py-0 shadow-none lg:order-2">
         <CardHeader className="px-7 pb-3 pt-7 sm:px-8">
           <CardTitle className="text-lg text-[var(--wellstudio-ink)]">
-            Snapshot comercial
+            Tu plan y créditos
           </CardTitle>
         </CardHeader>
         <CardContent className="flex flex-col gap-2 px-7 pb-7 pt-3 sm:px-8">
@@ -110,8 +116,8 @@ export function MemberHomeDashboardBody({ overview }: MemberHomeDashboardProps) 
             description={
               overview.commercial.currentPlanWindowLabel ??
               (overview.commercial.pendingPlanName
-                ? `${overview.commercial.pendingPlanName} está pendiente de activación. En cuanto pase a activa, la verás aquí como plan principal.`
-                : 'Todavía no detectamos una membresía activa en tu cuenta.')
+                ? `${overview.commercial.pendingPlanName} está pendiente de activación.`
+                : 'Aún no tienes una membresía activa.')
             }
           />
           <Separator className="bg-[color:color-mix(in_srgb,var(--border)_78%,white)]" />
@@ -121,8 +127,8 @@ export function MemberHomeDashboardBody({ overview }: MemberHomeDashboardProps) 
             title={overview.commercial.creditsLabel}
             description={
               overview.commercial.creditsPackNames.length > 0
-                ? `Packs detectados: ${overview.commercial.creditsPackNames.join(', ')}`
-                : 'Cuando actives bonos o packs, aparecerán aquí con su saldo disponible.'
+                ? overview.commercial.creditsPackNames.join(' · ')
+                : 'Compra un bono desde Cuenta cuando quieras más reservas.'
             }
           />
           <Separator className="bg-[color:color-mix(in_srgb,var(--border)_78%,white)]" />
@@ -132,9 +138,11 @@ export function MemberHomeDashboardBody({ overview }: MemberHomeDashboardProps) 
             title={overview.commercial.linkedCardLabel}
             description={
               overview.commercial.hasLinkedCard
-                ? 'Tu método de pago ya está enlazado al área privada.'
-                : 'La vinculación de tarjeta se mostrará aquí cuando entre la capa comercial completa.'
+                ? 'Método de pago listo en tu cuenta.'
+                : 'Puedes vincular una tarjeta desde Cuenta.'
             }
+            href={overview.commercial.hasLinkedCard ? undefined : '/app/account'}
+            hrefLabel={overview.commercial.hasLinkedCard ? undefined : 'Ir a Cuenta'}
           />
         </CardContent>
       </Card>
@@ -146,7 +154,7 @@ export function MemberHomeDashboardBody({ overview }: MemberHomeDashboardProps) 
               Próximas reservas
             </p>
             <CardTitle className="text-2xl text-[var(--wellstudio-ink)]">
-              Tu actividad reservada
+              Próximas sesiones
             </CardTitle>
           </div>
           {overview.upcomingReservations.length > 0 ? (
@@ -175,7 +183,9 @@ export function MemberHomeDashboardBody({ overview }: MemberHomeDashboardProps) 
             <EmptyStateCard
               icon={CalendarDays}
               title="Aún no tienes reservas próximas"
-              description="Tu home ya está preparada para devolverte contexto rápido. En cuanto empieces a reservar, aquí verás tus siguientes sesiones sin tener que entrar en la agenda completa."
+              description="Cuando reserves una clase, aparecerá aquí. Mientras tanto, abre la agenda y elige sesión."
+              actionHref="/app/reservations"
+              actionLabel="Ver agenda"
             />
           )}
         </CardContent>
@@ -189,7 +199,7 @@ export function MemberHomeDashboardBody({ overview }: MemberHomeDashboardProps) 
                 Waitlist activa
               </p>
               <CardTitle className="text-xl text-[var(--wellstudio-ink)]">
-                Sigues dentro del movimiento de la agenda
+                En lista de espera
               </CardTitle>
             </div>
           </CardHeader>
@@ -234,7 +244,7 @@ export function MemberHomeDashboardBody({ overview }: MemberHomeDashboardProps) 
                   Todo en orden por ahora
                 </p>
                 <p className="text-sm text-[color:color-mix(in_srgb,var(--foreground)_72%,white)]">
-                  No detectamos señales críticas en tu cuenta.
+                  No hay avisos urgentes ahora mismo.
                 </p>
               </div>
             </div>
@@ -283,11 +293,15 @@ function SnapshotTile({
   eyebrow,
   title,
   description,
+  href,
+  hrefLabel,
 }: {
   icon: LucideIcon
   eyebrow: string
   title: string
   description: string
+  href?: string
+  hrefLabel?: string
 }) {
   return (
     <div className="flex items-start gap-4 py-4">
@@ -295,14 +309,24 @@ function SnapshotTile({
         <Icon className="size-4" aria-hidden="true" />
       </span>
       <div className="min-w-0 flex-1">
-        <div className="flex items-start justify-between gap-3">
-          <div className="flex min-w-0 flex-col gap-2">
-            <p className="text-xs uppercase tracking-[0.22em] text-[var(--wellstudio-blue-deep)]">
-              {eyebrow}
-            </p>
-            <p className="text-base font-medium text-[var(--wellstudio-ink)]">{title}</p>
-          </div>
-          <MemberInfoPopover label={eyebrow} description={description} />
+        <div className="flex min-w-0 flex-col gap-1.5">
+          <p className="text-xs uppercase tracking-[0.22em] text-[var(--wellstudio-blue-deep)]">
+            {eyebrow}
+          </p>
+          <p className="text-base font-medium text-[var(--wellstudio-ink)]">{title}</p>
+          <p className="text-sm leading-6 text-[color:color-mix(in_srgb,var(--foreground)_72%,white)]">
+            {description}
+          </p>
+          {href && hrefLabel ? (
+            <Link
+              href={href}
+              prefetch={false}
+              className="mt-1 inline-flex w-fit items-center gap-1 text-sm font-medium text-[var(--wellstudio-blue-deep)] underline-offset-4 hover:underline"
+            >
+              {hrefLabel}
+              <MoveUpRight className="size-3.5" aria-hidden="true" />
+            </Link>
+          ) : null}
         </div>
       </div>
     </div>
@@ -329,10 +353,14 @@ function EmptyStateCard({
   icon: Icon,
   title,
   description,
+  actionHref,
+  actionLabel,
 }: {
   icon: LucideIcon
   title: string
   description: string
+  actionHref?: string
+  actionLabel?: string
 }) {
   return (
     <div className="rounded-[1.55rem] border border-dashed border-[color:color-mix(in_srgb,var(--wellstudio-blue)_18%,white)] bg-[color:color-mix(in_srgb,var(--wellstudio-blue)_4%,white)] px-5 py-8">
@@ -346,6 +374,16 @@ function EmptyStateCard({
             {description}
           </p>
         </div>
+        {actionHref && actionLabel ? (
+          <Link
+            href={actionHref}
+            prefetch={false}
+            className={cn(buttonVariants({ variant: 'outline' }), 'w-full sm:w-auto')}
+          >
+            {actionLabel}
+            <MoveUpRight data-icon="inline-end" />
+          </Link>
+        ) : null}
       </div>
     </div>
   )
