@@ -158,14 +158,20 @@ Y en `Redirect URLs`, añadir explícitamente al menos:
 - `http://127.0.0.1:3000/auth/confirm`
 - `http://127.0.0.1:3000/reset-password`
 - `http://127.0.0.1:3000/auth/callback`
+- `https://preview-wellstudio.miguelgarglez.com/**`
+- `https://preview-wellstudio.miguelgarglez.com/auth/confirm`
+- `https://preview-wellstudio.miguelgarglez.com/reset-password`
+- `https://preview-wellstudio.miguelgarglez.com/auth/callback`
 - `https://*-miguel-garcias-projects-38f9bf81.vercel.app/**`
 
 Aprendizaje importante:
 
 - si `Redirect URLs` está vacío o no incluye la ruta usada por el email, Supabase cae al `Site URL`
 - en la práctica eso rompía el registro, porque el usuario terminaba en `/` en vez de cerrar la confirmación en `/auth/confirm`
-- en `Vercel Preview`, aunque la app construya bien el `redirectTo`, `Supabase` caerá igualmente a `Site URL` si la URL preview no está en allowlist
-- eso se manifestó en sandbox como enlaces de reset que volvían a `http://localhost:3000` hasta añadir el wildcard de Vercel
+- en `Vercel Preview`, aunque la app construya bien el `redirectTo` / `emailRedirectTo` con `NEXT_PUBLIC_APP_URL`, `Supabase` caerá igualmente a `Site URL` si la URL preview no está en allowlist
+- el host estable `https://preview-wellstudio.miguelgarglez.com` debe estar allowlisteado además del wildcard `*.vercel.app`; si solo existe el wildcard, los correos de signup/recovery generados desde el dominio custom vuelven a `http://localhost:3000`
+- eso se manifestó en sandbox como enlaces de reset/confirmación apuntando a `localhost` hasta cubrir Preview en allowlist
+- para aplicar o auditar el allowlist de sandbox de forma reproducible: `pnpm auth:urls:hosted -- --project-ref=<sandbox-ref> --environment=sandbox` (dry run) y el mismo comando con `--apply --confirm-project-ref=<sandbox-ref>`
 
 ## URL Configuration minima en production
 

@@ -110,11 +110,13 @@ Recomendacion:
 
 Nota operativa importante:
 
-- aunque `NEXT_PUBLIC_APP_URL` no exista en `Preview`, la app puede construir redirects validos usando `window.location.origin`
+- `Preview` debe tener `NEXT_PUBLIC_APP_URL=https://preview-wellstudio.miguelgarglez.com` para que signup/recovery envien `emailRedirectTo` / `redirectTo` al host estable
 - aun asi, `Supabase Auth` solo respetara esos redirects si la URL preview esta allowlisteada en `Authentication -> URL Configuration -> Redirect URLs`
-- para previews de Vercel conviene anadir un patron como:
+- allowlist minima de sandbox para Preview:
+  - `https://preview-wellstudio.miguelgarglez.com/**`
   - `https://*-miguel-garcias-projects-38f9bf81.vercel.app/**`
-- si esa allowlist no existe, `Supabase` cae al `Site URL`, que en sandbox puede seguir siendo `http://localhost:3000`
+- si esa allowlist no incluye el host estable, `Supabase` cae al `Site URL` (`http://localhost:3000` en sandbox) y los emails de Resend llevan enlaces rotos a localhost
+- comando reproducible: `pnpm auth:urls:hosted -- --project-ref=<sandbox-ref> --environment=sandbox`
 
 ## Production
 

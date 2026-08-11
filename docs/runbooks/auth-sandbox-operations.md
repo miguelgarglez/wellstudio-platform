@@ -181,7 +181,9 @@ Runbook operativo detallado:
 Nota importante de configuración:
 
 - para que el sandbox desplegado en `Vercel Preview` funcione con auth por email, `Supabase Auth` debe allowlistear tambien las URLs preview en `Redirect URLs`
+- incluir siempre el host estable `https://preview-wellstudio.miguelgarglez.com/**` (no solo el wildcard de `*.vercel.app`)
 - si no se hace, `Supabase` cae al `Site URL` y los enlaces de recovery/signup pueden volver a `localhost`
+- dry-run / apply: `pnpm auth:urls:hosted -- --project-ref=$SUPABASE_SANDBOX_PROJECT_REF --environment=sandbox`
 
 ## Incidencias típicas
 

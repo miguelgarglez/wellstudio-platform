@@ -14,6 +14,18 @@ Remitentes:
 - production: `WellStudio <no-reply@auth.miguelgarglez.com>`
 - sandbox: `[DEV] WellStudio <no-reply@auth.miguelgarglez.com>`
 
+## Dependencia de URL Configuration
+
+Las plantillas asumen que `emailRedirectTo` / recovery `redirectTo` están allowlisteados en el proyecto hosted. En sandbox, si falta el host de Preview (`https://preview-wellstudio.miguelgarglez.com/**`), GoTrue cae al `Site URL` (`http://localhost:3000`) y Resend entrega enlaces rotos.
+
+Auditar / aplicar allowlist de sandbox:
+
+```bash
+pnpm auth:urls:hosted -- \
+  --project-ref=<sandbox-project-ref> \
+  --environment=sandbox
+```
+
 ## Aplicación hosted reproducible
 
 La CLI de Supabase queda fijada como dependencia de desarrollo. La operación usa la Management API para leer el estado actual y enviar un `PATCH` que contiene **solo** los cuatro campos de asunto y contenido de confirmación/recovery. No hace un `config push` amplio ni imprime el access token.

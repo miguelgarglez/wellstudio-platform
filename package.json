@@ -43,6 +43,7 @@
     "sandbox:auth:member": "node scripts/auth/ensure-sandbox-user.mjs member --confirm-sandbox-reset",
     "sandbox:auth:admin": "node scripts/auth/ensure-sandbox-user.mjs admin --confirm-sandbox-reset",
     "auth:templates:hosted": "node scripts/auth/apply-hosted-email-templates.mjs",
+    "auth:urls:hosted": "node scripts/auth/ensure-hosted-auth-urls.mjs",
     "sandbox:scenario": "node scripts/sandbox/ensure-member-scenario.mjs --confirm-sandbox-scenario",
     "sandbox:admin-playground": "node scripts/sandbox/ensure-member-scenario.mjs admin-playground --confirm-sandbox-scenario",
     "codex:doctor": "node scripts/codex/check-cloud-env.mjs"
