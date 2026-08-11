@@ -87,20 +87,20 @@ export type LandingContent = {
 export const landingContent: LandingContent = {
   hero: {
     eyebrow: 'Entrenamiento de fuerza en Madrid',
-    title: 'Entrenamiento de fuerza con grupos reducidos y metodología propia',
+    title: 'Fuerza con grupos reducidos y método propio',
     description:
-      'WellStudio es un centro boutique de entrenamiento con grupos premium de hasta 4 personas y grupos dinámicos de hasta 10, en un entorno cuidado y con seguimiento profesional durante la clase.',
-    primaryCtaLabel: 'Quiero conocer el centro',
+      'Centro boutique en Madrid. Grupos premium de hasta 4 y dinámicos de hasta 10, con seguimiento profesional en cada sesión.',
+    primaryCtaLabel: 'Conocer el centro',
     primaryCtaHref: '#contacto',
     secondaryCtaLabel: 'Ver metodología',
     secondaryCtaHref: '#metodo',
     badge: 'Madrid · Grupos reducidos',
     panel: {
-      eyebrow: 'Qué ofrece WellStudio',
-      title: 'Entrenamiento guiado con grupos reducidos',
+      eyebrow: 'WellStudio',
+      title: 'Entrenamiento guiado, grupos pequeños',
       description:
-        'Entrenamiento de fuerza con metodología propia, estructura clara y seguimiento profesional durante la sesión.',
-      summary: 'Grupos premium 4 max. · Grupos dinámicos 10 max.',
+        'Método propio, estructura clara y atención real durante la sesión.',
+      summary: 'Premium 4 max. · Dinámicos 10 max.',
     },
   },
   intro: {

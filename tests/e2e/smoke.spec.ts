@@ -3,7 +3,7 @@ import { expect, test } from '@playwright/test'
 test('public shell routes are reachable @smoke', async ({ page }) => {
   await page.goto('/')
 
-  await expect(page.getByRole('link', { name: 'Quiero conocer el centro' })).toBeVisible()
+  await expect(page.getByRole('link', { name: 'Conocer el centro' })).toBeVisible()
   await expect(page.getByRole('link', { name: 'Ver metodología' })).toBeVisible()
   await expect(page.locator('a[href="/login"]').first()).toBeVisible()
 
