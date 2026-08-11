@@ -690,7 +690,7 @@ function ReasonField({
 }) {
   return (
     <div className="space-y-2">
-      <Label htmlFor={id}>Razón operativa</Label>
+      <Label htmlFor={id}>Motivo del cambio</Label>
       <textarea
         id={id}
         name="reason"

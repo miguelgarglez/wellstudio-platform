@@ -229,7 +229,7 @@ function SessionDetailSheet({ overview, session, onClose }: { overview: AdminSes
         className="w-full gap-0 overflow-hidden border-[color:color-mix(in_srgb,var(--border)_80%,white)] bg-[color:color-mix(in_srgb,var(--background)_94%,white)] data-[side=right]:w-full data-[side=right]:sm:max-w-none data-[side=right]:lg:w-[min(52rem,calc(100vw-2rem))] data-[side=right]:lg:rounded-l-[1.65rem]"
       >
         <SessionSheetHeader title={session.classTypeName} badge={<StatusBadge status={session.status} />}>
-          Revisa ocupación, asistencia y estado antes de ejecutar una acción operativa.
+          Revisa ocupación, asistencia y estado antes de actuar.
         </SessionSheetHeader>
         <div className="min-h-0 flex-1 overflow-y-auto px-5 py-5 sm:px-6 sm:py-6">
           <SessionSummary session={session} />
@@ -252,7 +252,7 @@ function SessionDetailSheet({ overview, session, onClose }: { overview: AdminSes
             </button>
           ) : (
             <div className="mt-5 rounded-[1.15rem] border border-border/70 bg-muted/35 p-4 text-sm leading-6 text-muted-foreground">
-              Esta sesión conserva su historial, pero ya no admite cambios operativos.
+              Esta sesión conserva su historial, pero ya no admite cambios.
             </div>
           )}
           <AttendanceRoster session={session} />
@@ -370,7 +370,7 @@ function SessionForm({ overview, session }: { overview: AdminSessionOverview; se
               <p className="mt-1 text-sm leading-6 text-amber-950/70">Cambiar clase, coach u horario afecta a {session!.reservedCount} reserva{session!.reservedCount === 1 ? '' : 's'} y {session!.waitlistCount} persona{session!.waitlistCount === 1 ? '' : 's'} en espera. Al guardar, WellStudio preparará {session!.reservedCount + session!.waitlistCount} aviso{session!.reservedCount + session!.waitlistCount === 1 ? '' : 's'} transaccional{session!.reservedCount + session!.waitlistCount === 1 ? '' : 'es'}.</p>
             </div>
           </div>
-          <Field label="Razón operativa" error={saveState?.field === 'impactReason' ? saveState.message : undefined}>
+          <Field label="Motivo del cambio" error={saveState?.field === 'impactReason' ? saveState.message : undefined}>
             <textarea name="impactReason" maxLength={500} rows={3} className="mt-3 w-full resize-y rounded-2xl border border-input bg-white px-4 py-3 text-sm outline-none focus-visible:border-ring focus-visible:ring-3 focus-visible:ring-ring/30" placeholder="Ej. Cambio de coach comunicado por teléfono" />
           </Field>
           <label className="mt-3 flex cursor-pointer items-start gap-3 text-sm leading-6 text-amber-950/80">
@@ -437,7 +437,7 @@ function AttendanceRoster({ session }: { session: SessionItem }) {
           <input type="hidden" name="sessionId" value={session.id} />
           <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
             <div>
-              <p className="font-medium">Finalizar operativa</p>
+              <p className="font-medium">Finalizar sesión</p>
               <p className="mt-1 text-sm leading-6 text-muted-foreground">
                 {session.attendance.pending
                   ? `Resuelve ${session.attendance.pending} asistencia${session.attendance.pending === 1 ? '' : 's'} pendiente${session.attendance.pending === 1 ? '' : 's'} antes de completar.`
@@ -546,7 +546,7 @@ function CancelSessionDialog({ session }: { session: SessionItem }) {
               minLength={5}
               maxLength={500}
               rows={4}
-              placeholder="Motivo operativo que quedará auditado…"
+              placeholder="Motivo que quedará en la auditoría…"
               className="w-full resize-none rounded-[1rem] border border-input bg-white px-4 py-3 text-sm outline-none focus-visible:border-ring focus-visible:ring-3 focus-visible:ring-ring/30"
             />
           </Field>

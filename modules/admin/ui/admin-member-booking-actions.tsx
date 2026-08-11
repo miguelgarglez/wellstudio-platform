@@ -196,7 +196,7 @@ export function AdminMemberBookingActions({
                     )
                   })}
                   {workspace.schedulePreview.length === 0 ? (
-                    <InlineEmpty text="No hay sesiones publicadas dentro de la ventana operativa." />
+                    <InlineEmpty text="No hay sesiones publicadas en los próximos días." />
                   ) : null}
                 </div>
               </section>
@@ -240,7 +240,7 @@ export function AdminMemberBookingActions({
 
               <div className="mt-4">
                 <label htmlFor="staff-cancellation-reason" className="text-sm font-medium text-[var(--wellstudio-ink)]">
-                  Motivo operativo
+                  Motivo
                 </label>
                 <textarea
                   id="staff-cancellation-reason"

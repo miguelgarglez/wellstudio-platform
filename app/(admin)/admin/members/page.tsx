@@ -24,7 +24,7 @@ export default async function AdminMembersPage({ searchParams }: AdminMembersPag
     <AdminSectionShell
       eyebrow="Admin · Socios"
       title="Gestión de socios"
-      description="Localiza un socio y reúne su cuenta, cobertura comercial y actividad reciente antes de operar en otros flujos."
+      description="Busca un socio y revisa su cuenta, plan, créditos y actividad reciente."
     >
       <Suspense fallback={<AdminMembersDashboardSkeleton />}>
         <AdminMembersSection

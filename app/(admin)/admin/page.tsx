@@ -23,7 +23,7 @@ export default async function AdminHomePage({ searchParams }: AdminHomePageProps
     <AdminSectionShell
       eyebrow="Admin · Resumen"
       title="Control de hoy"
-      description="Una lectura breve de la jornada y de las señales que requieren una decisión. Cada bloque abre la superficie donde se resuelve."
+      description="Resumen de la jornada y lo que necesita atención. Cada bloque abre la pantalla donde se resuelve."
     >
       <Suspense fallback={<AdminHomeDashboardSkeleton />}>
         <AdminHomeSection />

@@ -123,7 +123,7 @@ test.describe('Admin members @admin @sandbox', () => {
     await page.getByRole('button', { name: 'Cambiar estado' }).click()
     const statusDialog = page.getByRole('dialog', { name: new RegExp(`Cambiar estado de`, 'i') })
     await statusDialog.getByText('Inactivo', { exact: true }).click()
-    await statusDialog.getByLabel('Motivo operativo').fill('Baja temporal validada en E2E')
+    await statusDialog.getByLabel('Motivo').fill('Baja temporal validada en E2E')
 
     await testInfo.attach('admin-member-status-dialog', {
       body: await page.screenshot(),
@@ -152,7 +152,7 @@ test.describe('Admin members @admin @sandbox', () => {
     await page.getByRole('button', { name: 'Cambiar estado' }).click()
     const reactivateDialog = page.getByRole('dialog', { name: new RegExp(`Cambiar estado de`, 'i') })
     await reactivateDialog.getByText('Activo', { exact: true }).click()
-    await reactivateDialog.getByLabel('Motivo operativo').fill('Fin de la baja temporal E2E')
+    await reactivateDialog.getByLabel('Motivo').fill('Fin de la baja temporal E2E')
     await reactivateDialog.getByRole('button', { name: 'Activar socio' }).click()
     await expect(page).toHaveURL(/updated=member-active/)
     await expect(page.getByRole('status').getByText('Socio activado')).toBeVisible()
@@ -226,7 +226,7 @@ test.describe('Admin members @admin @sandbox', () => {
       const dialog = page.getByRole('dialog', { name: /Gestionar créditos de Marta Semanal/i })
       await expect(dialog).toBeVisible()
       await dialog.getByLabel('Cantidad').fill('2')
-      await dialog.getByLabel('Motivo operativo').fill('Cortesía autorizada durante E2E')
+      await dialog.getByLabel('Motivo').fill('Cortesía autorizada durante E2E')
       await waitForMotionToSettle(dialog)
 
       await testInfo.attach('admin-credit-adjustment-dialog', {
@@ -261,7 +261,7 @@ test.describe('Admin members @admin @sandbox', () => {
       const box = await dialog.boundingBox()
       expect(box?.width).toBeGreaterThanOrEqual(388)
       await dialog.getByLabel('Créditos iniciales').fill('4')
-      await dialog.getByLabel('Motivo operativo').fill('Bono de bienvenida autorizado en E2E')
+      await dialog.getByLabel('Motivo').fill('Bono de bienvenida autorizado en E2E')
 
       await testInfo.attach('admin-credit-account-opening-mobile', {
         body: await page.screenshot(),
@@ -320,7 +320,7 @@ test.describe('Admin members @admin @sandbox', () => {
       await cancelReservationButton.dispatchEvent('click')
       const cancelDialog = page.getByRole('alertdialog', { name: 'Cancelar una reserva asistida' })
       await expect(cancelDialog).toBeVisible()
-      await cancelDialog.getByLabel('Motivo operativo').fill('Cambio solicitado por teléfono durante E2E')
+      await cancelDialog.getByLabel('Motivo').fill('Cambio solicitado por teléfono durante E2E')
       await page.waitForTimeout(250)
       await testInfo.attach('admin-staff-cancellation-dialog', {
         body: await page.screenshot({ path: 'test-results/mig-132-staff-cancellation-dialog.png' }),

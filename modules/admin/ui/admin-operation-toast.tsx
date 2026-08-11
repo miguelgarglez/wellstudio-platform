@@ -210,7 +210,7 @@ const TOAST_COPY: Record<
   'member-active': {
     tone: 'success',
     title: 'Socio activado',
-    description: 'La cuenta vuelve a admitir nuevas reservas y el cambio queda auditado.',
+    description: 'La cuenta vuelve a admitir nuevas reservas y el cambio queda registrado.',
   },
   'member-inactive': {
     tone: 'success',
@@ -220,47 +220,47 @@ const TOAST_COPY: Record<
   'member-blocked': {
     tone: 'success',
     title: 'Socio bloqueado',
-    description: 'La restricción operativa ya está activa y conserva acceso de consulta y cancelación.',
+    description: 'No puede hacer nuevas reservas; sí puede consultar y cancelar lo existente.',
   },
   'membership-assigned': {
     tone: 'success',
     title: 'Membership asignada',
-    description: 'La cobertura ya está activa y la operación ha quedado auditada.',
+    description: 'El plan ya está activo y la operación queda registrada.',
   },
   'membership-ended': {
     tone: 'success',
     title: 'Membership finalizada',
-    description: 'La cobertura deja de admitir nuevas reservas sin cancelar actividad ya confirmada.',
+    description: 'El plan deja de admitir nuevas reservas sin cancelar actividad ya confirmada.',
   },
   'credits-adjusted': {
     tone: 'success',
     title: 'Saldo de créditos actualizado',
-    description: 'El movimiento y el saldo resultante ya constan en el ledger auditable del socio.',
+    description: 'El movimiento y el saldo resultante ya constan en el historial del socio.',
   },
   'credit-account-opened': {
     tone: 'success',
     title: 'Cuenta de créditos abierta',
-    description: 'Los créditos ya están disponibles sin crear un pago o una compra ficticia.',
+    description: 'Los créditos ya están disponibles sin crear un pago ficticio.',
   },
   'member-note-added': {
     tone: 'success',
     title: 'Nota interna añadida',
-    description: 'El contexto ya aparece en el dossier y queda asociado al operador.',
+    description: 'El contexto ya aparece en la ficha y queda asociado al operador.',
   },
   'staff-reservation-booked': {
     tone: 'success',
     title: 'Reserva asistida confirmada',
-    description: 'La plaza ya aparece en la agenda del socio con origen Staff y auditoría operativa.',
+    description: 'La plaza ya aparece en la agenda del socio (origen Staff).',
   },
   'staff-reservation-canceled': {
     tone: 'success',
     title: 'Reserva asistida cancelada',
-    description: 'La plaza se ha liberado, el motivo queda auditado y la waitlist se ha reevaluado.',
+    description: 'La plaza se ha liberado, el motivo queda registrado y la waitlist se ha reevaluado.',
   },
   'staff-waitlist-joined': {
     tone: 'success',
     title: 'Socio añadido a waitlist',
-    description: 'La posición ya está registrada y se respetará en una futura promoción automática.',
+    description: 'La posición ya está registrada para una futura promoción automática.',
   },
   'staff-waitlist-left': {
     tone: 'success',

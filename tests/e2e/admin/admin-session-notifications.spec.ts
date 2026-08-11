@@ -40,7 +40,7 @@ test.describe('Admin session notifications @admin @sandbox', () => {
     })
     await expect(editSheet.getByText('preparará 2 avisos transaccionales')).toBeVisible()
     await editSheet.getByRole('textbox', { name: 'Inicio' }).fill(fixture.rescheduledLocalInput)
-    await editSheet.getByLabel('Razón operativa').fill('Ajuste de horario comunicado por el estudio')
+    await editSheet.getByLabel('Motivo del cambio').fill('Ajuste de horario comunicado por el estudio')
     await editSheet
       .getByLabel('He revisado el impacto y confirmo el envío de los avisos')
       .check()

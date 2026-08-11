@@ -115,7 +115,7 @@ export function AdminMembersDashboard({
               <UsersRound className="size-5" aria-hidden="true" />
             </span>
             <div className="min-w-0">
-              <p className="text-xs uppercase tracking-[0.24em] text-[var(--wellstudio-blue-deep)]">Directorio operativo</p>
+              <p className="text-xs uppercase tracking-[0.24em] text-[var(--wellstudio-blue-deep)]">Socios</p>
               <h2 className="mt-1 text-2xl font-medium text-[var(--wellstudio-ink)]">Socios</h2>
               <p className="mt-1 text-sm leading-6 text-[color:color-mix(in_srgb,var(--foreground)_68%,white)]">
                 Busca por identidad o contacto. Abrir una ficha no modifica datos.
@@ -466,7 +466,7 @@ function MemberNoteDialog({ open, onOpenChange, member, returnTo }: { open: bool
         <DialogHeader>
           <p className="text-xs uppercase tracking-[0.22em] text-[var(--wellstudio-blue-deep)]">Contexto interno · {member.displayName}</p>
           <DialogTitle className="text-2xl">Añadir nota al dossier</DialogTitle>
-          <DialogDescription>Guarda solo contexto operativo útil. No incluyas información médica, datos sensibles ni detalles que el equipo no necesite.</DialogDescription>
+          <DialogDescription>Guarda solo contexto útil para el equipo. No incluyas información médica ni datos sensibles.</DialogDescription>
         </DialogHeader>
         <form action={formAction} className="space-y-4">
           <input type="hidden" name="memberId" value={member.id} />
@@ -503,7 +503,7 @@ const memberStatusOptions: Array<{
   {
     value: 'ACTIVE',
     label: 'Activo',
-    description: 'Puede realizar nuevas reservas si dispone de cobertura comercial válida.',
+    description: 'Puede reservar si tiene plan o créditos activos.',
   },
   {
     value: 'INACTIVE',
@@ -513,7 +513,7 @@ const memberStatusOptions: Array<{
   {
     value: 'BLOCKED',
     label: 'Bloqueado',
-    description: 'Restricción operativa explícita; mantiene consulta y cancelación de actividad existente.',
+    description: 'No puede hacer nuevas reservas; sí puede consultar y cancelar lo existente.',
   },
 ]
 
@@ -597,7 +597,7 @@ function MemberStatusDialog({
 
           <div>
             <label htmlFor="member-status-reason" className="text-sm font-medium text-[var(--wellstudio-ink)]">
-              Motivo operativo
+              Motivo
             </label>
             <textarea
               id="member-status-reason"
@@ -661,7 +661,7 @@ function MembersEmptyState({ query }: { query: string }) {
 }
 
 function MemberDetailEmptyState() {
-  return <div className="flex min-h-[42rem] items-center justify-center rounded-[1.2rem] border border-dashed border-[color:color-mix(in_srgb,var(--border)_76%,white)] px-6 text-center"><div className="max-w-md"><span className="mx-auto inline-flex size-12 items-center justify-center rounded-full bg-[color:color-mix(in_srgb,var(--wellstudio-blue)_9%,white)] text-[var(--wellstudio-blue-deep)]"><UserRoundCheck className="size-5" aria-hidden="true" /></span><h2 id="admin-member-detail-title" className="mt-4 text-2xl font-medium text-[var(--wellstudio-ink)]">Selecciona un socio</h2><p className="mt-2 text-sm leading-6 text-muted-foreground">Aquí aparecerán su cuenta, membresías, créditos y actividad reciente. La ficha es informativa y enlaza con los flujos operativos existentes.</p></div></div>
+  return <div className="flex min-h-[42rem] items-center justify-center rounded-[1.2rem] border border-dashed border-[color:color-mix(in_srgb,var(--border)_76%,white)] px-6 text-center"><div className="max-w-md"><span className="mx-auto inline-flex size-12 items-center justify-center rounded-full bg-[color:color-mix(in_srgb,var(--wellstudio-blue)_9%,white)] text-[var(--wellstudio-blue-deep)]"><UserRoundCheck className="size-5" aria-hidden="true" /></span><h2 id="admin-member-detail-title" className="mt-4 text-2xl font-medium text-[var(--wellstudio-ink)]">Selecciona un socio</h2><p className="mt-2 text-sm leading-6 text-muted-foreground">Aquí verás su cuenta, plan, créditos y actividad reciente. Desde la ficha puedes reservar o ajustar el estado.</p></div></div>
 }
 
 export function AdminMembersDashboardSkeleton() {

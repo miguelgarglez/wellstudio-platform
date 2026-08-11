@@ -164,7 +164,7 @@ function ManageCreditsDialog({
 
             <div>
               <label htmlFor="credit-operation-reason" className="text-sm font-medium text-[var(--wellstudio-ink)]">
-                Motivo operativo
+                Motivo
               </label>
               <textarea
                 id="credit-operation-reason"

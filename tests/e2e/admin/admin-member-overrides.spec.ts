@@ -113,7 +113,7 @@ test.describe('Admin member overrides @admin @sandbox', () => {
     await expect(page.getByRole('dialog', { name: 'Operar excepción' })).toBeVisible()
 
     await page.getByRole('dialog', { name: 'Operar excepción' }).getByLabel('Reservas extra').fill('2')
-    await page.getByLabel('Razón operativa').first().fill('Compensación puntual QA')
+    await page.getByLabel('Motivo del cambio').first().fill('Compensación puntual QA')
     await page
       .getByRole('dialog', { name: 'Operar excepción' })
       .getByRole('button', { name: 'Conceder reservas extra' })

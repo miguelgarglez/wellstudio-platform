@@ -157,10 +157,10 @@ export async function saveAdminClassSession(
       )
     }
     if (materialChange && hasDemand && impactReason.length < 5) {
-      return failure('Indica una razón operativa de al menos 5 caracteres.', 'impactReason')
+      return failure('Indica un motivo del cambio de al menos 5 caracteres.', 'impactReason')
     }
     if (impactReason.length > 500) {
-      return failure('La razón operativa no puede superar 500 caracteres.', 'impactReason')
+      return failure('El motivo del cambio no puede superar 500 caracteres.', 'impactReason')
     }
 
     if (input.coachId) {

@@ -21,7 +21,7 @@ export default async function AdminSessionsPage({ searchParams }: Props) {
     <AdminSectionShell
       eyebrow="Admin · Agenda"
       title="Agenda de sesiones"
-      description="Programa, publica y opera las sesiones del estudio con capacidad, coach y trazabilidad en un único espacio."
+      description="Programa y publica sesiones: capacidad, coach y estado en un solo sitio."
     >
       <Suspense fallback={<AdminSessionsDashboardSkeleton />}>
         <AdminSessionsSection sessionId={sessionId} updated={updated} notice={notice} />
