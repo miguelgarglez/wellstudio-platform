@@ -110,53 +110,57 @@ export function AuthCallbackCard({
 
   if (state === 'fallback') {
     return (
+      <div data-safe-next={safeNextPath}>
+        <Card
+          size="sm"
+          className="border-white/70 bg-white/82 py-5 shadow-[0_18px_60px_rgba(47,75,103,0.12)] ring-1 ring-[color:color-mix(in_srgb,var(--wellstudio-blue)_12%,transparent)] backdrop-blur"
+        >
+          <CardHeader className="gap-2 px-5 sm:px-6">
+            <p className="text-xs uppercase tracking-[0.18em] text-[var(--wellstudio-blue-deep)]">
+              Confirmación completada
+            </p>
+            <CardTitle className="font-display text-balance text-4xl uppercase tracking-[0.04em] text-[var(--wellstudio-ink)]">
+              Redirigiendo tu acceso
+            </CardTitle>
+            <CardDescription className="text-[0.95rem] leading-7 text-muted-foreground">
+              Tu correo ya está verificado. Si no podemos abrir tu sesión automáticamente, te llevaremos al login con todo preparado.
+            </CardDescription>
+          </CardHeader>
+          <CardContent className="px-5 sm:px-6">
+            <div className="flex items-center gap-3 rounded-2xl border border-[color:color-mix(in_srgb,var(--wellstudio-blue)_16%,var(--border))] bg-[color:color-mix(in_srgb,var(--wellstudio-blue)_4%,white)] px-4 py-4 text-sm text-muted-foreground">
+              <Spinner />
+              Preparando el acceso…
+            </div>
+          </CardContent>
+        </Card>
+      </div>
+    )
+  }
+
+  return (
+    <div data-safe-next={safeNextPath}>
       <Card
         size="sm"
         className="border-white/70 bg-white/82 py-5 shadow-[0_18px_60px_rgba(47,75,103,0.12)] ring-1 ring-[color:color-mix(in_srgb,var(--wellstudio-blue)_12%,transparent)] backdrop-blur"
       >
         <CardHeader className="gap-2 px-5 sm:px-6">
           <p className="text-xs uppercase tracking-[0.18em] text-[var(--wellstudio-blue-deep)]">
-            Confirmación completada
+            Confirmando tu acceso
           </p>
           <CardTitle className="font-display text-balance text-4xl uppercase tracking-[0.04em] text-[var(--wellstudio-ink)]">
-            Redirigiendo tu acceso
+            Activando tu sesión
           </CardTitle>
           <CardDescription className="text-[0.95rem] leading-7 text-muted-foreground">
-            Tu correo ya está verificado. Si no podemos abrir tu sesión automáticamente, te llevaremos al login con todo preparado.
+            Estamos cerrando la verificación de tu correo y abriendo tu cuenta para que entres directamente.
           </CardDescription>
         </CardHeader>
         <CardContent className="px-5 sm:px-6">
           <div className="flex items-center gap-3 rounded-2xl border border-[color:color-mix(in_srgb,var(--wellstudio-blue)_16%,var(--border))] bg-[color:color-mix(in_srgb,var(--wellstudio-blue)_4%,white)] px-4 py-4 text-sm text-muted-foreground">
             <Spinner />
-            Preparando el acceso…
+            Verificando correo y preparando tu acceso…
           </div>
         </CardContent>
       </Card>
-    )
-  }
-
-  return (
-    <Card
-      size="sm"
-      className="border-white/70 bg-white/82 py-5 shadow-[0_18px_60px_rgba(47,75,103,0.12)] ring-1 ring-[color:color-mix(in_srgb,var(--wellstudio-blue)_12%,transparent)] backdrop-blur"
-    >
-      <CardHeader className="gap-2 px-5 sm:px-6">
-        <p className="text-xs uppercase tracking-[0.18em] text-[var(--wellstudio-blue-deep)]">
-          Confirmando tu acceso
-        </p>
-        <CardTitle className="font-display text-balance text-4xl uppercase tracking-[0.04em] text-[var(--wellstudio-ink)]">
-          Activando tu sesión
-        </CardTitle>
-        <CardDescription className="text-[0.95rem] leading-7 text-muted-foreground">
-          Estamos cerrando la verificación de tu correo y abriendo tu cuenta para que entres directamente.
-        </CardDescription>
-      </CardHeader>
-      <CardContent className="px-5 sm:px-6">
-        <div className="flex items-center gap-3 rounded-2xl border border-[color:color-mix(in_srgb,var(--wellstudio-blue)_16%,var(--border))] bg-[color:color-mix(in_srgb,var(--wellstudio-blue)_4%,white)] px-4 py-4 text-sm text-muted-foreground">
-          <Spinner />
-          Verificando correo y preparando tu acceso…
-        </div>
-      </CardContent>
-    </Card>
+    </div>
   )
 }

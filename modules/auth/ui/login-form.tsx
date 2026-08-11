@@ -87,6 +87,7 @@ export function LoginForm({
       <CardContent className="px-0 pb-0">
         <form
           className="flex flex-col gap-5"
+          data-safe-redirect={resolveSafeInternalPath(redirectTo, '/auth/after-login')}
           onSubmit={(event) => {
             event.preventDefault()
             handleSubmit(new FormData(event.currentTarget))

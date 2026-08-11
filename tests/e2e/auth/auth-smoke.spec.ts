@@ -105,4 +105,66 @@ test.describe('Auth smoke @smoke @auth', () => {
     )
     await expect(page.locator('button[type="submit"]')).toBeVisible()
   })
+
+  test('login strips absolute open-redirect targets from the rendered page', async ({
+    request,
+  }) => {
+    const response = await request.get('/login?redirectTo=https://evil.example/phish')
+    const body = await response.text()
+
+    expect(response.ok()).toBe(true)
+    expect(response.url()).toContain('/login')
+    expect(body).toMatch(/data-safe-redirect="\/auth\/after-login"/)
+    expect(body).not.toMatch(/data-safe-redirect="[^"]*evil\.example/)
+  })
+
+  test('login strips protocol-relative open-redirect targets', async ({ request }) => {
+    const response = await request.get('/login?redirectTo=//evil.example')
+    const body = await response.text()
+
+    expect(response.ok()).toBe(true)
+    expect(response.url()).toContain('/login')
+    expect(body).toMatch(/data-safe-redirect="\/auth\/after-login"/)
+    expect(body).not.toMatch(/data-safe-redirect="[^"]*evil\.example/)
+  })
+
+  test('auth confirm refuses open-redirect next values after a failed verification', async ({
+    request,
+  }) => {
+    const response = await request.get(
+      '/auth/confirm?token_hash=invalid-token&type=signup&next=//evil.example',
+      { maxRedirects: 0 },
+    )
+
+    expect(response.status()).toBe(307)
+    const location = response.headers()['location'] ?? ''
+    expect(location).toContain('/login')
+    expect(location).toContain('redirectTo=%2Fapp')
+    expect(location).not.toContain('evil.example')
+  })
+
+  test('auth callback refuses open-redirect next values in the rendered markup', async ({
+    request,
+  }) => {
+    const response = await request.get('/auth/callback?next=https://evil.example/phish')
+    const body = await response.text()
+
+    expect(response.ok()).toBe(true)
+    expect(body).toMatch(/data-safe-next="\/app"/)
+    expect(body).not.toMatch(/data-safe-next="[^"]*evil\.example/)
+  })
+
+  test('public auth responses include baseline security headers', async ({ request }) => {
+    const response = await request.get('/login')
+    const headers = response.headers()
+    const csp = headers['content-security-policy'] ?? ''
+
+    expect(response.ok()).toBe(true)
+    expect(csp).toContain("default-src 'self'")
+    expect(csp).toContain("frame-ancestors 'none'")
+    expect(csp).toContain('https://*.supabase.co')
+    expect(headers['x-frame-options']?.toLowerCase()).toBe('deny')
+    expect(headers['x-content-type-options']?.toLowerCase()).toBe('nosniff')
+    expect(headers['referrer-policy']).toBe('strict-origin-when-cross-origin')
+  })
 })
