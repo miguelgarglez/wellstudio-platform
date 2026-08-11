@@ -77,11 +77,10 @@ export function PublicLeadForm({ leadAttribution }: PublicLeadFormProps) {
             Solicitar información
           </p>
           <h3 className="mt-2 text-[1.48rem] font-semibold leading-[1.05] tracking-[-0.045em] sm:text-2xl sm:leading-[1.02]">
-            Te llamamos para resolver tus dudas
+            Cuéntanos cómo contactarte
           </h3>
           <p className="mt-2 text-sm leading-7 text-[color:color-mix(in_srgb,var(--foreground)_70%,white)]">
-            Déjanos tu teléfono y el equipo de WellStudio te contactará para orientarte antes de
-            empezar.
+            Déjanos tu teléfono y te llamamos para orientarte antes de empezar.
           </p>
         </div>
       </div>
@@ -236,7 +235,7 @@ function PublicLeadStatusNotice({ state }: { state: NonNullable<PublicLeadAction
         />
         <div className="min-w-0 space-y-1">
           <p className="text-sm font-medium">
-            {success ? 'Solicitud recibida' : 'Revisa la solicitud'}
+            {success ? '¡Listo! Hemos recibido tu solicitud' : 'Revisa los datos'}
           </p>
           <p className="text-sm leading-6 text-[color:color-mix(in_srgb,var(--foreground)_74%,white)]">
             {state.message}

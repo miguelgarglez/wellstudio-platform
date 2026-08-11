@@ -34,7 +34,7 @@ export default async function AdminLeadsPage({ searchParams }: AdminLeadsPagePro
     <AdminSectionShell
       eyebrow="Admin · Solicitudes"
       title="Solicitudes de contacto"
-      description="Revisa las solicitudes captadas desde la web, busca por datos de contacto y mantén su estado operativo al día."
+      description="Revisa las solicitudes de la web, busca por contacto y actualiza su estado."
     >
       <Suspense fallback={<AdminLeadsDashboardSkeleton />}>
         <AdminLeadsSection

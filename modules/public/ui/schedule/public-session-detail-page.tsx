@@ -49,14 +49,14 @@ export function PublicSessionDetailPage({ session }: { session: PublicScheduleSe
 
               <div className="mt-7 rounded-[1.35rem] border border-[color:color-mix(in_srgb,var(--wellstudio-blue)_14%,white)] bg-[color:color-mix(in_srgb,var(--wellstudio-blue)_5%,white)] p-5">
                 <p className="font-medium text-[var(--wellstudio-ink)]">Disponibilidad en tiempo real</p>
-                <p className="mt-2 text-sm leading-7 text-muted-foreground">Las plazas se confirman dentro del portal, donde WellStudio comprueba tu plan o créditos antes de reservar. Esta página pública no bloquea plazas.</p>
+                <p className="mt-2 text-sm leading-7 text-muted-foreground">Las plazas se confirman dentro del portal, donde comprobamos tu plan o créditos antes de reservar. Esta página pública no bloquea plazas.</p>
               </div>
             </section>
 
             <aside className="self-start rounded-[1.5rem] border border-[color:color-mix(in_srgb,var(--wellstudio-blue)_16%,white)] bg-white p-5 shadow-[0_16px_44px_rgba(17,19,22,0.06)] lg:sticky lg:top-28">
               <p className="text-xs uppercase tracking-[0.2em] text-[var(--wellstudio-blue-deep)]">Siguiente paso</p>
               <h2 className="mt-3 text-xl font-medium text-[var(--wellstudio-ink)]">Reserva desde tu cuenta</h2>
-              <p className="mt-2 text-sm leading-7 text-muted-foreground">Accede para comprobar elegibilidad y completar la reserva o la lista de espera.</p>
+              <p className="mt-2 text-sm leading-7 text-muted-foreground">Accede para comprobar tu plan o créditos y completar la reserva o la lista de espera.</p>
               <Link href="/login?redirectTo=/app/reservations" className="mt-5 inline-flex h-12 w-full items-center justify-center gap-2 rounded-full bg-[var(--wellstudio-blue)] px-5 text-sm font-medium text-white transition hover:bg-[var(--wellstudio-blue-deep)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--wellstudio-blue)] focus-visible:ring-offset-2">
                 Acceder y reservar <ArrowRight className="size-4" aria-hidden="true" />
               </Link>

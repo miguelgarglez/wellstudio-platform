@@ -123,7 +123,7 @@ export async function createPublicLead(
     return {
       success: true,
       status: 'spam_ignored',
-      message: 'Solicitud recibida. El equipo de WellStudio te contactará por teléfono.',
+      message: 'Hemos recibido tu solicitud. Te llamaremos en breve.',
     }
   }
 
@@ -143,7 +143,7 @@ export async function createPublicLead(
       success: true,
       status: 'deduped',
       message:
-        'Ya tenemos una solicitud reciente con este teléfono. El equipo de WellStudio te contactará.',
+        'Ya tenemos una solicitud reciente con este teléfono. Te llamaremos en breve.',
     }
   }
 
@@ -179,7 +179,7 @@ export async function createPublicLead(
   return {
     success: true,
     status: 'created',
-    message: 'Solicitud recibida. El equipo de WellStudio te contactará por teléfono.',
+    message: 'Hemos recibido tu solicitud. Te llamaremos en breve.',
   }
 }
 

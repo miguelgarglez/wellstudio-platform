@@ -142,7 +142,7 @@ export function AdminLeadsDashboard({ overview, updatedState, noticeId }: AdminL
               <Mail className="size-5" aria-hidden="true" />
             </span>
             <div>
-              <p className="text-xs uppercase tracking-[0.24em] text-[var(--wellstudio-blue-deep)]">Inbox operativo</p>
+              <p className="text-xs uppercase tracking-[0.24em] text-[var(--wellstudio-blue-deep)]">Solicitudes</p>
               <h2 className="mt-1 text-2xl font-medium text-[var(--wellstudio-ink)]">Solicitudes recientes</h2>
               <p className="mt-2 max-w-2xl text-sm leading-6 text-[color:color-mix(in_srgb,var(--foreground)_70%,white)]">
                 Contacta, conserva notas y deja cada cambio trazado sin convertir esta vista en un CRM.
@@ -270,7 +270,7 @@ function LeadDetailSheet({
                 <div className="flex items-start justify-between gap-4">
                   <div className="min-w-0">
                     <SheetTitle className="truncate text-2xl text-[var(--wellstudio-ink)]">{lead.displayName}</SheetTitle>
-                    <SheetDescription className="mt-2">Seguimiento operativo y trazabilidad del equipo.</SheetDescription>
+                    <SheetDescription className="mt-2">Historial de contacto y notas del equipo.</SheetDescription>
                   </div>
                   <LeadStatusBadge lead={lead} />
                 </div>

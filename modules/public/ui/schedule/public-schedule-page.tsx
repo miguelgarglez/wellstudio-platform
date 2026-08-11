@@ -56,7 +56,7 @@ export function PublicSchedulePage({
           <div className="max-w-2xl">
             <p className="text-xs uppercase tracking-[0.24em] text-[var(--wellstudio-blue-soft)]">Tu plaza, desde el portal</p>
             <h2 className="mt-3 font-display text-4xl uppercase leading-none sm:text-5xl">¿Ya entrenas con nosotros?</h2>
-            <p className="mt-4 text-sm leading-7 text-white/68">Accede para consultar tu elegibilidad, reservar una plaza o entrar en lista de espera.</p>
+            <p className="mt-4 text-sm leading-7 text-white/68">Entra para ver tu plan o créditos, reservar una plaza o apuntarte a la lista de espera.</p>
           </div>
           <div className="mt-6 flex flex-col gap-3 sm:flex-row lg:mt-0">
             <Link href="/login?redirectTo=/app/reservations" className="inline-flex h-12 items-center justify-center gap-2 rounded-full bg-[var(--wellstudio-blue)] px-6 text-sm font-medium transition hover:bg-[var(--wellstudio-blue-deep)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white/60">

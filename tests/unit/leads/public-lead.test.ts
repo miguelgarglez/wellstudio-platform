@@ -67,7 +67,7 @@ describe('createPublicLead', () => {
     expect(result).toEqual({
       success: true,
       status: 'created',
-      message: 'Solicitud recibida. El equipo de WellStudio te contactará por teléfono.',
+      message: 'Hemos recibido tu solicitud. Te llamaremos en breve.',
     })
     expect(repository.findRecentActiveByNormalizedPhone).toHaveBeenCalledWith({
       normalizedPhone: '+34612345678',
@@ -113,8 +113,12 @@ describe('createPublicLead', () => {
       { repository, notifier },
     )
 
-    expect(result.success).toBe(true)
-    expect(result.success ? result.status : null).toBe('deduped')
+    expect(result).toEqual({
+      success: true,
+      status: 'deduped',
+      message:
+        'Ya tenemos una solicitud reciente con este teléfono. Te llamaremos en breve.',
+    })
     expect(repository.create).not.toHaveBeenCalled()
     expect(notifier.notifyPublicLeadCaptured).not.toHaveBeenCalled()
   })
@@ -133,8 +137,11 @@ describe('createPublicLead', () => {
       { repository, notifier },
     )
 
-    expect(result.success).toBe(true)
-    expect(result.success ? result.status : null).toBe('spam_ignored')
+    expect(result).toEqual({
+      success: true,
+      status: 'spam_ignored',
+      message: 'Hemos recibido tu solicitud. Te llamaremos en breve.',
+    })
     expect(repository.findRecentActiveByNormalizedPhone).not.toHaveBeenCalled()
     expect(repository.create).not.toHaveBeenCalled()
     expect(notifier.notifyPublicLeadCaptured).not.toHaveBeenCalled()
