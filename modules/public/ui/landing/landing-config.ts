@@ -20,6 +20,3 @@ export const solidButtonClass = `${baseButtonClass} h-12 rounded-full px-6 text-
 
 export const outlineButtonClass =
   `${baseButtonClass} h-12 rounded-full border px-6 text-sm font-medium`
-
-export const heroSurfaceClass =
-  'bg-[radial-gradient(circle_at_top_left,rgba(79,137,197,0.32),transparent_24%),radial-gradient(circle_at_78%_12%,rgba(183,206,231,0.14),transparent_22%),linear-gradient(180deg,rgba(15,16,18,0.98),rgba(15,16,18,0.92))]'

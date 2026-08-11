@@ -57,7 +57,7 @@ export function LandingHeroParallaxBackdrop({
   return (
     <div
       aria-hidden="true"
-      className="pointer-events-none absolute inset-0 overflow-hidden lg:hidden"
+      className="pointer-events-none absolute inset-0 overflow-hidden"
     >
       <div
         ref={mediaRef}
@@ -69,11 +69,18 @@ export function LandingHeroParallaxBackdrop({
           fill
           priority
           sizes="100vw"
-          className="object-cover object-[center_28%]"
+          className="object-cover object-[center_28%] lg:object-[72%_center]"
         />
       </div>
-      <div className="absolute inset-0 bg-[linear-gradient(180deg,rgba(8,10,12,0.72)_0%,rgba(8,10,12,0.58)_42%,rgba(8,10,12,0.82)_100%)]" />
-      <div className="absolute inset-0 bg-[radial-gradient(circle_at_18%_12%,rgba(79,137,197,0.28),transparent_36%)]" />
+
+      {/* Mobile: vertical readability veil */}
+      <div className="absolute inset-0 bg-[linear-gradient(180deg,rgba(8,10,12,0.72)_0%,rgba(8,10,12,0.58)_42%,rgba(8,10,12,0.82)_100%)] lg:hidden" />
+      <div className="absolute inset-0 bg-[radial-gradient(circle_at_18%_12%,rgba(79,137,197,0.28),transparent_36%)] lg:hidden" />
+
+      {/* Desktop: left text shelter + right image reveal */}
+      <div className="absolute inset-0 hidden bg-[linear-gradient(90deg,rgba(8,10,12,0.92)_0%,rgba(8,10,12,0.78)_34%,rgba(8,10,12,0.38)_58%,rgba(8,10,12,0.22)_78%,rgba(8,10,12,0.42)_100%)] lg:block" />
+      <div className="absolute inset-0 hidden bg-[linear-gradient(180deg,rgba(8,10,12,0.42)_0%,transparent_28%,rgba(8,10,12,0.55)_100%)] lg:block" />
+      <div className="absolute inset-0 hidden bg-[radial-gradient(circle_at_16%_18%,rgba(79,137,197,0.26),transparent_34%)] lg:block" />
     </div>
   );
 }
