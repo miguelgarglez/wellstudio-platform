@@ -18,6 +18,8 @@ export default async function LoginPage({ searchParams }: LoginPageProps) {
   const infoMessage =
     resolvedSearchParams?.authStatus === 'confirmed'
       ? 'Tu correo ya está confirmado. Si no te hemos abierto la sesión automáticamente, entra con tu contraseña y continúa.'
+      : resolvedSearchParams?.authStatus === 'password_updated'
+      ? 'Tu contraseña ya está actualizada. Entra de nuevo con tu email y la nueva contraseña.'
       : resolvedSearchParams?.authError === 'verification_failed'
       ? 'No hemos podido verificar tu enlace de acceso. Solicita un nuevo registro o vuelve a iniciar sesión.'
       : undefined

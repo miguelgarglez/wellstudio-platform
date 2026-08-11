@@ -29,6 +29,15 @@ type LocalIdentity = {
   roles: UserRole[]
 }
 
+type IdentityLinkMode = 'auth_id' | 'email' | 'create'
+
+export class IdentityLinkConflictError extends Error {
+  constructor(message: string) {
+    super(message)
+    this.name = 'IdentityLinkConflictError'
+  }
+}
+
 const resolveAuthContextUncached = async (): Promise<AuthContext> => {
   const { createSupabaseServerClient } = await import('@/modules/auth/lib/supabase-server-client')
   const supabase = await createSupabaseServerClient()
@@ -95,31 +104,29 @@ export async function ensureLocalUser(authUser: SupabaseUser): Promise<LocalIden
   const normalizedEmail = normalizeEmail(email)
   const status = mapSupabaseUserStatus(authUser)
   const { firstName, lastName } = getProfileNames(authUser)
+  const provisionInput: IdentityProvisionInput = {
+    email,
+    normalizedEmail,
+    status,
+    firstName,
+    lastName,
+    phone: authUser.phone || null,
+    emailVerifiedAt: authUser.email_confirmed_at ? new Date(authUser.email_confirmed_at) : null,
+  }
 
   try {
-    return await provisionLocalIdentity(authUser.id, {
-      email,
-      normalizedEmail,
-      status,
-      firstName,
-      lastName,
-      phone: authUser.phone || null,
-      emailVerifiedAt: authUser.email_confirmed_at ? new Date(authUser.email_confirmed_at) : null,
-    })
+    return await provisionLocalIdentity(authUser.id, provisionInput)
   } catch (error) {
+    if (error instanceof IdentityLinkConflictError) {
+      throw error
+    }
+
     if (!isUniqueConstraintError(error)) {
       throw error
     }
 
-    return await provisionLocalIdentity(authUser.id, {
-      email,
-      normalizedEmail,
-      status,
-      firstName,
-      lastName,
-      phone: authUser.phone || null,
-      emailVerifiedAt: authUser.email_confirmed_at ? new Date(authUser.email_confirmed_at) : null,
-    })
+    // Unique races retry once; conflict policy still applies on the second pass.
+    return await provisionLocalIdentity(authUser.id, provisionInput)
   }
 }
 
@@ -133,24 +140,59 @@ type IdentityProvisionInput = {
   emailVerifiedAt: Date | null
 }
 
+type IdentityLinkTarget = {
+  existingUser: User | null
+  linkMode: IdentityLinkMode
+}
+
+async function resolveLinkTarget(
+  tx: Prisma.TransactionClient,
+  externalAuthId: string,
+  input: IdentityProvisionInput,
+): Promise<IdentityLinkTarget> {
+  const byAuthId = await tx.user.findFirst({
+    where: {
+      externalAuthProvider: 'supabase',
+      externalAuthId,
+    },
+  })
+
+  if (byAuthId) {
+    return { existingUser: byAuthId, linkMode: 'auth_id' }
+  }
+
+  const byEmail = await tx.user.findFirst({
+    where: {
+      normalizedEmail: input.normalizedEmail,
+    },
+  })
+
+  if (!byEmail) {
+    return { existingUser: null, linkMode: 'create' }
+  }
+
+  if (byEmail.externalAuthId && byEmail.externalAuthId !== externalAuthId) {
+    throw new IdentityLinkConflictError(
+      'This email is already linked to a different authentication identity',
+    )
+  }
+
+  // Claim an unlinked local row only with a verified Supabase email.
+  if (!input.emailVerifiedAt) {
+    throw new IdentityLinkConflictError(
+      'A verified email is required to link an existing local identity',
+    )
+  }
+
+  return { existingUser: byEmail, linkMode: 'email' }
+}
+
 async function provisionLocalIdentity(
   externalAuthId: string,
   input: IdentityProvisionInput,
 ): Promise<LocalIdentity> {
   return prisma.$transaction(async (tx) => {
-    const existingUser = await tx.user.findFirst({
-      where: {
-        OR: [
-          {
-            externalAuthProvider: 'supabase',
-            externalAuthId,
-          },
-          {
-            normalizedEmail: input.normalizedEmail,
-          },
-        ],
-      },
-    })
+    const { existingUser, linkMode } = await resolveLinkTarget(tx, externalAuthId, input)
 
     const localUser = existingUser
       ? await tx.user.update({
@@ -178,6 +220,19 @@ async function provisionLocalIdentity(
             lastLoginAt: new Date(),
           },
         })
+
+    // Email-only first link must not silently inherit privileged roles.
+    // ADMIN/STAFF are granted by controlled tooling (e.g. sandbox admin script), never by auto-claim.
+    if (linkMode === 'email') {
+      await tx.userRole.deleteMany({
+        where: {
+          userId: localUser.id,
+          role: {
+            in: ['ADMIN', 'STAFF'],
+          },
+        },
+      })
+    }
 
     const existingMember = await tx.member.findUnique({
       where: {

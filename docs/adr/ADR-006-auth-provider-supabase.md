@@ -75,10 +75,17 @@ Decision operativa alineada con `@supabase/ssr`:
   - redirects post-auth restringidos a paths internos (`resolveSafeInternalPath`)
   - `Cache-Control: private, no-store` en respuestas del proxy
 - riesgos diferidos a tickets (no “arreglos” por inercia sin decision):
-  - vinculacion local por email que puede heredar roles → `MIG-142`
-  - endurecimiento CSP / higiene XSS alrededor del tradeoff non-httpOnly → `MIG-143`
-  - re-auth opcional tras password recovery → `MIG-144`
+  - vinculacion local por email que puede heredar roles → `MIG-142` (**mitigado**: conflict fail-closed si el email ya tiene otro `externalAuthId`; en primer link por email se eliminan `ADMIN`/`STAFF`)
+  - endurecimiento CSP / higiene XSS alrededor del tradeoff non-httpOnly → `MIG-143` (**mitigado**: headers de seguridad en `next.config.ts`)
+  - re-auth opcional tras password recovery → `MIG-144` (**mitigado**: `signOut` global + redirect a login)
   - tracking: `MIG-141` (open redirect cerrado en `MIG-145`)
+
+### Politica de identity linking (MIG-142)
+
+1. Resolver primero por `(supabase, externalAuthId)`.
+2. Si no hay match, resolver por `normalizedEmail` solo cuando el row local no tiene otro `externalAuthId`.
+3. Si el email ya esta ligado a otra identidad Auth → `IdentityLinkConflictError` (no se absorbe la cuenta).
+4. Primer link por email exige email verificado en Supabase y **no** conserva `ADMIN`/`STAFF` (grant manual / scripts controlados).
 
 La arquitectura ideal (`httpOnly` + CSRF clasico) sigue siendo valida como norte; en V1 se documenta explicitamente la desviacion por el stack Supabase SSR elegido en este ADR.
 

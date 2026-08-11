@@ -2,7 +2,6 @@
 
 import Link from 'next/link'
 import { useEffect, useMemo, useRef, useState, useTransition } from 'react'
-import { useRouter } from 'next/navigation'
 
 import { Button, buttonVariants } from '@/components/ui/button'
 import {
@@ -36,7 +35,6 @@ type ResetPasswordFormProps = {
 type ResetState = 'checking' | 'ready' | 'invalid'
 
 export function ResetPasswordForm({ flow }: ResetPasswordFormProps) {
-  const router = useRouter()
   const supabase = useMemo(() => createSupabaseBrowserClient(), [])
   const passwordInputRef = useRef<HTMLInputElement | null>(null)
   const [state, setState] = useState<ResetState>(flow === 'recovery' ? 'checking' : 'invalid')
@@ -130,8 +128,9 @@ export function ResetPasswordForm({ flow }: ResetPasswordFormProps) {
         return
       }
 
-      router.push('/app')
-      router.refresh()
+      // End the recovery session so a stolen reset link cannot keep browsing as the user.
+      await supabase.auth.signOut({ scope: 'global' })
+      window.location.assign('/login?authStatus=password_updated')
     })
   }
 
@@ -263,7 +262,8 @@ export function ResetPasswordForm({ flow }: ResetPasswordFormProps) {
               Actualización segura
             </p>
             <p className="mt-1">
-              Cuando guardes la nueva contraseña, recuperaremos tu acceso normal a la cuenta y volverás a entrar con continuidad.
+              Al guardar, cerraremos la sesión de recuperación y te pediremos
+              iniciar sesión de nuevo con la nueva contraseña.
             </p>
           </section>
 
