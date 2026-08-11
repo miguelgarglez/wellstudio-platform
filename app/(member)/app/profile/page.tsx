@@ -10,7 +10,7 @@ export default function MemberProfilePage() {
     <MemberPortalSectionShell
       eyebrow="Perfil"
       title="Tus datos"
-      description="Perfil concentra la información personal base del socio para que puedas revisar tu identidad, tu estado y los consentimientos ya registrados sin mezclarlo con reservas ni con la capa comercial."
+      description="Revisa tu nombre, estado y consentimientos. Las reservas y los pagos viven en otras secciones."
     >
       <Suspense fallback={<MemberProfileSectionSkeleton />}>
         <MemberProfileSection />

@@ -15,7 +15,7 @@ export default async function MemberAccountPage({
     <MemberPortalSectionShell
       eyebrow="Cuenta"
       title="Cuenta y pagos"
-      description="Cuenta reúne la capa comercial del portal: plan, créditos, tarjeta principal, pagos recientes y las señales operativas que hoy ya se pueden inferir sin inventar reglas nuevas."
+      description="Aquí gestionas tu plan, bonos, tarjeta y pagos recientes."
     >
       <Suspense fallback={<MemberAccountSectionSkeleton />}>
         <MemberAccountSection params={params} />

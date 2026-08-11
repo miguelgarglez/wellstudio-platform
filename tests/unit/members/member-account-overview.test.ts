@@ -33,14 +33,25 @@ function buildAuthenticatedContext(): Extract<AuthContext, { isAuthenticated: tr
 
 describe('member account helpers', () => {
   it('builds real alerts from existing commercial signals', () => {
-    expect(
-      buildMemberAccountAlerts({
-        currentPlanName: null,
-        pendingPlanName: 'Premium',
-        creditsRemaining: 0,
-        hasLinkedCard: false,
-      }).map((alert) => alert.kind),
-    ).toEqual(['no-entitlement', 'pending-plan', 'no-card'])
+    const alerts = buildMemberAccountAlerts({
+      currentPlanName: null,
+      pendingPlanName: 'Premium',
+      creditsRemaining: 0,
+      hasLinkedCard: false,
+    })
+
+    expect(alerts.map((alert) => alert.kind)).toEqual([
+      'no-entitlement',
+      'pending-plan',
+      'no-card',
+    ])
+    expect(alerts.find((alert) => alert.kind === 'no-entitlement')?.description).toContain('bono')
+    expect(alerts.find((alert) => alert.kind === 'no-entitlement')?.description).not.toContain(
+      'cobertura activa',
+    )
+    expect(alerts.find((alert) => alert.kind === 'no-card')?.description).not.toContain(
+      'checkout alojado',
+    )
   })
 
   it('observes only payments that are still awaiting provider confirmation', () => {
@@ -233,7 +244,7 @@ describe('buildMemberAccountOverview', () => {
     expect(overview.highlights.plan.title).toBe('Sin plan activo')
     expect(overview.highlights.credits).toMatchObject({
       title: 'Sin créditos activos',
-      description: 'Cuando actives un bono o pack, su saldo aparecerá aquí.',
+      description: 'Compra un bono más abajo cuando quieras más reservas.',
     })
     expect(overview.alerts.map((alert) => alert.kind)).toContain('no-entitlement')
   })

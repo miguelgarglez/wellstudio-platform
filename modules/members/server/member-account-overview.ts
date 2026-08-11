@@ -314,7 +314,7 @@ export function buildMemberAccountOverview({
           ? buildPlanWindowLabel(currentPlan, now)
           : pendingPlan
             ? `${pendingPlan.membershipPlan.name} pendiente de activación`
-            : 'No detectamos una membresía activa en tu cuenta.',
+            : 'Aún no tienes una membresía activa.',
       },
       credits: {
         eyebrow: 'Créditos',
@@ -322,14 +322,14 @@ export function buildMemberAccountOverview({
         description:
           effectiveCreditAccounts.length > 0
             ? effectiveCreditAccounts.map((account) => account.creditPack.name).join(' · ')
-            : 'Cuando actives un bono o pack, su saldo aparecerá aquí.',
+            : 'Compra un bono más abajo cuando quieras más reservas.',
       },
       card: {
         eyebrow: 'Tarjeta principal',
         title: linkedCardLabel ?? 'Sin tarjeta vinculada',
         description: primaryCard
           ? buildCardMetaLabel(primaryCard)
-          : 'Puedes vincular una tarjeta de forma segura desde esta página. WellStudio solo guarda la referencia del proveedor.',
+          : 'Puedes vincular una tarjeta desde esta página. Solo guardamos la referencia segura del pago.',
       },
     },
     alerts: buildMemberAccountAlerts({
@@ -541,7 +541,7 @@ export function buildMemberAccountAlerts({
       kind: 'no-entitlement',
       title: 'Sin plan ni créditos activos',
       description:
-        'Tu cuenta está visible, pero ahora mismo no detectamos una cobertura activa para operar reservas con normalidad.',
+        'Para reservar con normalidad necesitas un plan activo o créditos. Puedes comprar un bono en esta misma página.',
     })
   }
 
@@ -549,7 +549,7 @@ export function buildMemberAccountAlerts({
     alerts.push({
       kind: 'pending-plan',
       title: 'Hay una activación pendiente',
-      description: `${pendingPlanName} todavía no ha pasado a estado activo. En cuanto lo haga, se consolidará como tu plan principal.`,
+      description: `${pendingPlanName} todavía no está activo. Cuando se active, será tu plan principal.`,
     })
   }
 
@@ -558,7 +558,7 @@ export function buildMemberAccountAlerts({
       kind: 'no-card',
       title: 'Aún no hay tarjeta principal',
       description:
-        'Los bonos se compran mediante checkout alojado. No necesitas vincular una tarjeta para completar un pago puntual.',
+        'No hace falta para comprar un bono puntual. Vincúlala si quieres tener un método de pago guardado.',
     })
   }
 

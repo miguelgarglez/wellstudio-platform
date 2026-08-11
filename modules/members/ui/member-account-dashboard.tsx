@@ -76,7 +76,7 @@ export function MemberAccountDashboard({ overview }: MemberAccountDashboardProps
           ) : (
             <EmptyInsetCard
               title="Aún no hay pagos registrados"
-              description="Cuando completes una compra, aquí tendrás un histórico corto para recuperar el contexto comercial sin salir del portal."
+              description="Cuando compres un bono, verás aquí el importe, la fecha y el estado."
             />
           )
         }
@@ -90,7 +90,7 @@ export function MemberAccountDashboard({ overview }: MemberAccountDashboardProps
           ) : (
             <EmptyInsetCard
               title="Todo en orden por ahora"
-              description="No detectamos señales comerciales que requieran atención inmediata dentro de tu cuenta."
+              description="No hay avisos pendientes en tu cuenta."
             />
           )
         }
@@ -107,7 +107,7 @@ export function MemberAccountDashboard({ overview }: MemberAccountDashboardProps
               icon={Wallet}
               eyebrow="Estado actual"
               title={overview.summary.memberStatusLabel}
-              detail={`Roles activos: ${overview.summary.rolesLabel}`}
+              detail={overview.summary.rolesLabel}
             />
             <div className="pt-2">
               <LogoutButton />
@@ -190,8 +190,8 @@ function MemberAccountDashboardLayout({
         <SectionCard title="Pagos recientes">{paymentsContent}</SectionCard>
 
         <div className="grid gap-4">
-          <SectionCard title="Alertas comerciales">{alertsContent}</SectionCard>
-          <SectionCard title="Sesión y seguridad">{securityContent}</SectionCard>
+          <SectionCard title="Avisos">{alertsContent}</SectionCard>
+          <SectionCard title="Acceso y sesión">{securityContent}</SectionCard>
         </div>
       </div>
     </div>

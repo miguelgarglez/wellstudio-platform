@@ -64,7 +64,7 @@ export function MemberProfileDashboard({ overview }: MemberProfileDashboardProps
         ) : (
           <EmptyInsetCard
             title="Aún no hay consentimientos registrados"
-            description="Cuando se consoliden más flujos de cuenta, aquí quedará visible el estado legal y comercial asociado al perfil."
+            description="Cuando haya consentimientos asociados a tu cuenta, aparecerán aquí."
           />
         )
       }

@@ -34,8 +34,8 @@ export function MemberCardLinking({
             </p>
             <p className="mt-2 text-sm leading-6 text-muted-foreground">
               {hasLinkedCard
-                ? 'Puedes sustituir la tarjeta principal con una nueva vinculación segura. WellStudio nunca ve el número completo ni el CVC.'
-                : 'Vincula una tarjeta para tener un método de pago listo en tu cuenta. El flujo es alojado y WellStudio solo guarda la referencia del proveedor.'}
+                ? 'Puedes sustituir la tarjeta principal con una nueva vinculación segura. Nunca vemos el número completo ni el CVC.'
+                : 'Vincula una tarjeta para tener un método de pago listo. El proceso es seguro y solo guardamos la referencia.'}
             </p>
           </div>
           <span className="inline-flex size-10 shrink-0 items-center justify-center rounded-full bg-[color:color-mix(in_srgb,var(--wellstudio-blue)_10%,white)] text-[var(--wellstudio-blue-deep)]">
