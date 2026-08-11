@@ -26,6 +26,7 @@ import {
   AUTH_FORM_EYEBROW_CLASS,
   AUTH_FORM_TITLE_CLASS,
 } from '@/modules/auth/ui/auth-form-classes'
+import { resolveSafeInternalPath } from '@/modules/auth/lib/safe-internal-path'
 import { createSupabaseBrowserClient } from '@/modules/auth/lib/supabase-browser-client'
 
 type LoginFormProps = {
@@ -64,7 +65,9 @@ export function LoginForm({
         return
       }
 
-      window.location.assign(redirectTo)
+      window.location.assign(
+        resolveSafeInternalPath(redirectTo, '/auth/after-login'),
+      )
     })
   }
 

@@ -1,3 +1,4 @@
+import { resolveSafeInternalPath } from '@/modules/auth/lib/safe-internal-path'
 import { AuthShell } from '@/modules/auth/ui/auth-shell'
 import type { AuthShellPanelContent } from '@/modules/auth/ui/auth-page-content'
 import { AuthCallbackCard } from '@/modules/auth/ui/auth-callback-card'
@@ -41,7 +42,7 @@ export default async function AuthCallbackPage({
     <AuthShell panel={panel}>
       <AuthCallbackCard
         email={resolvedSearchParams?.email}
-        nextPath={resolvedSearchParams?.next || '/app'}
+        nextPath={resolveSafeInternalPath(resolvedSearchParams?.next, '/app')}
       />
     </AuthShell>
   )

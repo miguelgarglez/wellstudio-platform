@@ -2,22 +2,15 @@ import { type NextRequest, NextResponse } from 'next/server'
 import { createServerClient } from '@supabase/ssr'
 import type { EmailOtpType } from '@supabase/supabase-js'
 
+import { resolveSafeInternalPath } from '@/modules/auth/lib/safe-internal-path'
 import { getSupabaseAuthEnv } from '@/modules/auth/lib/supabase-auth-env'
-
-function resolveSafeNextPath(next: string | null) {
-  if (!next || !next.startsWith('/')) {
-    return '/app'
-  }
-
-  return next
-}
 
 export async function GET(request: NextRequest) {
   const { searchParams, origin } = new URL(request.url)
   const tokenHash = searchParams.get('token_hash')
   const type = searchParams.get('type') as EmailOtpType | null
   const email = searchParams.get('email')
-  const next = resolveSafeNextPath(searchParams.get('next'))
+  const next = resolveSafeInternalPath(searchParams.get('next'), '/app')
 
   if (tokenHash && type) {
     const successRedirect = NextResponse.redirect(new URL(next, origin))

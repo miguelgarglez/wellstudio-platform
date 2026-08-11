@@ -692,7 +692,7 @@ APIs clave:
 - sesiones persistidas
 - cookies `httpOnly` en web si se quiere simplificar seguridad en frontend
 
-Recomendacion:
+Recomendacion (norte de arquitectura):
 
 - usar cookie segura para sesion web
 - evitar exponer bearer token al frontend si no es necesario
@@ -701,6 +701,17 @@ Motivo:
 
 - reduce superficie XSS
 - encaja mejor con una app web cerrada
+
+### Implementacion V1 (Supabase Auth + `@supabase/ssr`)
+
+La V1 **desvia** del norte `httpOnly` de forma consciente:
+
+- cookies de sesion siguen los defaults de `@supabase/ssr` (`httpOnly: false`, `sameSite: lax`) para permitir refresh en el browser client
+- validacion de acceso usa `getUser()` en `proxy.ts` e identity server; roles viven en Prisma
+- redirects post-auth se restringen a paths internos (`resolveSafeInternalPath`)
+- el tradeoff y las mitigaciones estan documentados en `docs/adr/ADR-006-auth-provider-supabase.md` (seccion *Seguridad de sesion*)
+
+No “arreglar” esto hacia `httpOnly` puro sin una decision nueva de arquitectura: romperia el modelo browser client actual.
 
 ### Flujo recomendado
 

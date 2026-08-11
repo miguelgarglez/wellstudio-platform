@@ -11,6 +11,7 @@ import {
   CardTitle,
 } from '@/components/ui/card'
 import { Spinner } from '@/components/ui/spinner'
+import { resolveSafeInternalPath } from '@/modules/auth/lib/safe-internal-path'
 import { createSupabaseBrowserClient } from '@/modules/auth/lib/supabase-browser-client'
 
 type AuthCallbackCardProps = {
@@ -20,14 +21,6 @@ type AuthCallbackCardProps = {
 
 type CallbackState = 'checking' | 'fallback'
 
-function resolveSafeNextPath(nextPath: string | undefined) {
-  if (!nextPath || !nextPath.startsWith('/')) {
-    return '/app'
-  }
-
-  return nextPath
-}
-
 export function AuthCallbackCard({
   email,
   nextPath,
@@ -35,7 +28,7 @@ export function AuthCallbackCard({
   const router = useRouter()
   const supabase = useMemo(() => createSupabaseBrowserClient(), [])
   const [state, setState] = useState<CallbackState>('checking')
-  const safeNextPath = resolveSafeNextPath(nextPath)
+  const safeNextPath = resolveSafeInternalPath(nextPath, '/app')
 
   useEffect(() => {
     let isMounted = true
@@ -71,25 +64,29 @@ export function AuthCallbackCard({
     })
 
     async function resolveCallbackState() {
-      const { data } = await supabase.auth.getSession()
+      const {
+        data: { user },
+      } = await supabase.auth.getUser()
 
       if (!isMounted) {
         return
       }
 
-      if (data.session) {
+      if (user) {
         redirectToApp()
         return
       }
 
       fallbackTimeoutId = window.setTimeout(async () => {
-        const { data: retryData } = await supabase.auth.getSession()
+        const {
+          data: { user: retryUser },
+        } = await supabase.auth.getUser()
 
         if (!isMounted) {
           return
         }
 
-        if (retryData.session) {
+        if (retryUser) {
           redirectToApp()
           return
         }

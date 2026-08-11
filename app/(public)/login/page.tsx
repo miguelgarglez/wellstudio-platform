@@ -1,3 +1,4 @@
+import { resolveSafeInternalPath } from '@/modules/auth/lib/safe-internal-path'
 import { AuthShell } from '@/modules/auth/ui/auth-shell'
 import { authPageContent } from '@/modules/auth/ui/auth-page-content'
 import { LoginForm } from '@/modules/auth/ui/login-form'
@@ -20,7 +21,10 @@ export default async function LoginPage({ searchParams }: LoginPageProps) {
       : resolvedSearchParams?.authError === 'verification_failed'
       ? 'No hemos podido verificar tu enlace de acceso. Solicita un nuevo registro o vuelve a iniciar sesión.'
       : undefined
-  const redirectTo = resolvedSearchParams?.redirectTo || '/auth/after-login'
+  const redirectTo = resolveSafeInternalPath(
+    resolvedSearchParams?.redirectTo,
+    '/auth/after-login',
+  )
 
   return (
     <AuthShell

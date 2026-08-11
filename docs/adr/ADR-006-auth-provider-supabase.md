@@ -61,6 +61,27 @@ Elegir `Supabase Auth` como proveedor de autenticacion para WellStudio V1.
 - se acepta una integracion SSR algo mas manual a cambio de menor coste y buena capacidad funcional
 - la estrategia inicial de entornos sera `sandbox + production`, sin tercer proyecto Supabase por ahora
 
+## Seguridad de sesion (V1)
+
+Decision operativa alineada con `@supabase/ssr`:
+
+- las cookies de sesion usan los defaults del cliente SSR (`path=/`, `sameSite=lax`, `httpOnly=false`)
+- esto permite al browser client refrescar y persistir la sesion; **no** es el modelo ideal de cookie `httpOnly` descrito en la arquitectura generica
+- el riesgo residual es: cualquier XSS puede leer tokens de sesion
+- mitigaciones V1:
+  - validar sesion con `getUser()` en proxy e identity (no confiar solo en `getSession()`)
+  - RBAC en Prisma, nunca en `user_metadata` editable
+  - `service_role` solo en scripts sandbox, fuera del runtime de app
+  - redirects post-auth restringidos a paths internos (`resolveSafeInternalPath`)
+  - `Cache-Control: private, no-store` en respuestas del proxy
+- riesgos diferidos a tickets (no “arreglos” por inercia sin decision):
+  - vinculacion local por email que puede heredar roles → `MIG-142`
+  - endurecimiento CSP / higiene XSS alrededor del tradeoff non-httpOnly → `MIG-143`
+  - re-auth opcional tras password recovery → `MIG-144`
+  - tracking: `MIG-141` (open redirect cerrado en `MIG-145`)
+
+La arquitectura ideal (`httpOnly` + CSRF clasico) sigue siendo valida como norte; en V1 se documenta explicitamente la desviacion por el stack Supabase SSR elegido en este ADR.
+
 ## Impacto en implementacion
 
 - integrar Supabase Auth en el monolito `Next.js`
@@ -68,6 +89,7 @@ Elegir `Supabase Auth` como proveedor de autenticacion para WellStudio V1.
 - los metadatos de Supabase inicializan nombre y telefono solo al crear `Member`; despues, `modules/members` es la fuente de verdad y cada login no puede sobrescribir el perfil local
 - proteger rutas privadas y admin desde el boundary de auth
 - mantener roles y permisos de negocio en la base de datos propia
+- validar redirects post-login / confirmacion con allowlist de path relativo interno
 
 ## Referencias
 
@@ -80,3 +102,5 @@ Elegir `Supabase Auth` como proveedor de autenticacion para WellStudio V1.
 - `MIG-33`
 - `MIG-35`
 - `MIG-36`
+- `MIG-141` (session security audit follow-ups)
+- `MIG-142` / `MIG-143` / `MIG-144` / `MIG-145`
