@@ -40,3 +40,9 @@ Cuando un documento deje de ser vigente:
 - `runbooks/agentation-local-isolation.md`
 - `runbooks/reservation-notification-delivery.md`
 - `runbooks/credit-pack-checkout.md`
+- `runbooks/stripe-preview-rollout.md`
+- `runbooks/stripe-production-golive.md`
+- `runbooks/gym-onboarding-handoff.md`
+- `runbooks/gym-intake-checklist.md`
+- `runbooks/gym-staff-onepager.md`
+- `runbooks/software-delivery-commercial-template.md`

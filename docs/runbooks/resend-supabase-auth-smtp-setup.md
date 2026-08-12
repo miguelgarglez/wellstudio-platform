@@ -144,6 +144,18 @@ Recomendacion operativa:
 - usar un marcador visible en `sandbox`, por ejemplo `[DEV]`, para no confundir correos de prueba con correos reales
 - dejar `production` sin marcadores de entorno en el asunto
 
+### Cutover a dominio de marca del gym (handoff)
+
+El remitente actual de producción puede seguir siendo operativo (`auth.miguelgarglez.com` u otro dominio técnico) hasta el intake del centro. Para el piloto con clientes reales:
+
+1. Verificar en Resend el **dominio final** aportado en [gym-intake-checklist.md](./gym-intake-checklist.md)
+2. Actualizar sender name / from en Supabase production al remitente acordado (`no-reply@…` del gym)
+3. Alinear `Site URL` y Redirect URLs con el host canónico de Production ([vercel-preview-and-production.md](./vercel-preview-and-production.md))
+4. Confirmar plantillas sin `[DEV]` y smoke de register / reset
+5. Inbox staff de leads apuntando a la bandeja del centro
+
+Detalle de fases: [gym-onboarding-handoff.md](./gym-onboarding-handoff.md).
+
 ## URL Configuration validada en Supabase
 
 En `Authentication > URL Configuration`, el setup que funcionó fue:

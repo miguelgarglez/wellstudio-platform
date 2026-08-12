@@ -106,6 +106,6 @@ pnpm test:e2e:payments:sandbox
 pnpm test:e2e:notifications
 ```
 
-Before production enablement, verify a Stripe test payment, webhook delivery, duplicate event replay, cancellation and account balance. Production migration and live-mode smoke remain explicit operations.
+Before production enablement, verify a Stripe test payment, webhook delivery, duplicate event replay, cancellation and account balance. Production migration and live-mode smoke remain explicit operations — follow [stripe-production-golive.md](./stripe-production-golive.md) and the gym Gate in [gym-onboarding-handoff.md](./gym-onboarding-handoff.md).
 
 The sandbox E2E also delays provider confirmation deliberately. It verifies that the processing feedback is visible, the webhook-equivalent confirmation updates the balance automatically, exactly one durable purchase notification is enqueued and a slow confirmation degrades to a manual status check without granting credits early. The notification E2E renders the purchase email at mobile and desktop widths and checks that its account CTA and fiscal disclaimer remain readable.

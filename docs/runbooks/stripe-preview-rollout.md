@@ -104,5 +104,5 @@ No mezclar: Preview `whsec` != local `stripe listen` `whsec`.
 
 - Nunca escribir secretos en el repo, Linear o runbooks
 - Nunca poner `sk_live_` / webhook live en Preview
-- Production go-live es una operacion separada y explicita
+- Production go-live es una operacion separada y explicita: [stripe-production-golive.md](./stripe-production-golive.md)
 - Mantener un solo webhook Preview; endpoints duplicados al mismo URL pueden generar entregas extras (la idempotencia del dominio debe absorberlas)

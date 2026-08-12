@@ -206,15 +206,19 @@ Importante:
 Antes de considerar `Production` operativa, confirmar:
 
 - `Supabase production` con `Site URL`:
-  - `https://wellstudio.miguelgarglez.com`
+  - dominio canónico final del gym (hoy puede ser `https://wellstudio.miguelgarglez.com` hasta el cutover de intake)
 - `Redirect URLs` en `Supabase production`:
-  - `https://wellstudio.miguelgarglez.com/**`
-  - `https://wellstudio-platform.vercel.app/**`
-- `Resend` configurado como `custom SMTP` en `Supabase production`
-- plantillas de signup y reset alineadas con las validadas en sandbox
+  - `https://<production-host>/**`
+  - `https://wellstudio-platform.vercel.app/**` (alias de respaldo si sigue activo)
+- `Resend` configurado como `custom SMTP` en `Supabase production` con **dominio de marca del gym** cuando el intake lo aporte (ver [resend-supabase-auth-smtp-setup.md](./resend-supabase-auth-smtp-setup.md) y [gym-intake-checklist.md](./gym-intake-checklist.md))
+- plantillas de signup y reset alineadas con sandbox pero **sin** marcador `[DEV]` en Production
+- `NEXT_PUBLIC_APP_URL` de Production = mismo host canónico
 - `DATABASE_URL` de runtime por `pooler`
 - `DIRECT_URL` disponible para operaciones de schema
 - login, register y reset password probados manualmente en `Production`
+
+Handoff del centro y piloto: [gym-onboarding-handoff.md](./gym-onboarding-handoff.md).  
+Stripe live (solo tras Gate): [stripe-production-golive.md](./stripe-production-golive.md).
 
 ## Rollback
 
