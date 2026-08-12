@@ -14,6 +14,7 @@ export async function createPublicLeadAction(
     email: readOptionalField(formData, 'email'),
     privacyAccepted: formData.get('privacyAccepted') === 'on',
     honeypot: readOptionalField(formData, 'website'),
+    captchaToken: readOptionalField(formData, 'cf-turnstile-response'),
     utmSource: readOptionalField(formData, 'utmSource'),
     utmMedium: readOptionalField(formData, 'utmMedium'),
     utmCampaign: readOptionalField(formData, 'utmCampaign'),

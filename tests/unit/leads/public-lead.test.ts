@@ -147,6 +147,56 @@ describe('createPublicLead', () => {
     expect(notifier.notifyPublicLeadCaptured).not.toHaveBeenCalled()
   })
 
+  it('rejects submissions when captcha verification fails', async () => {
+    const repository = createRepository()
+    const notifier = createNotifier()
+    const captchaVerifier = vi.fn().mockResolvedValue({
+      success: false,
+      message: 'Confirma que no eres un robot antes de enviar.',
+    })
+
+    const result = await createPublicLead(
+      {
+        name: 'Marta',
+        phone: '612 345 678',
+        privacyAccepted: true,
+        captchaToken: null,
+      },
+      { repository, notifier, captchaVerifier },
+    )
+
+    expect(result).toEqual({
+      success: false,
+      message: 'Confirma que no eres un robot antes de enviar.',
+      fieldErrors: {
+        captcha: 'Confirma que no eres un robot antes de enviar.',
+      },
+    })
+    expect(captchaVerifier).toHaveBeenCalledWith({ token: null })
+    expect(repository.create).not.toHaveBeenCalled()
+    expect(notifier.notifyPublicLeadCaptured).not.toHaveBeenCalled()
+  })
+
+  it('creates the lead when captcha verification succeeds', async () => {
+    const repository = createRepository()
+    const notifier = createNotifier()
+    const captchaVerifier = vi.fn().mockResolvedValue({ success: true })
+
+    const result = await createPublicLead(
+      {
+        name: 'Marta',
+        phone: '612 345 678',
+        privacyAccepted: true,
+        captchaToken: 'turnstile-token',
+      },
+      { repository, notifier, captchaVerifier },
+    )
+
+    expect(result.success).toBe(true)
+    expect(captchaVerifier).toHaveBeenCalledWith({ token: 'turnstile-token' })
+    expect(repository.create).toHaveBeenCalledOnce()
+  })
+
   it('validates required fields, phone format, optional email and privacy acceptance', async () => {
     const repository = createRepository()
     const notifier = createNotifier()

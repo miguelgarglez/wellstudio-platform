@@ -163,6 +163,7 @@ test.describe('Auth smoke @smoke @auth', () => {
     expect(csp).toContain("default-src 'self'")
     expect(csp).toContain("frame-ancestors 'none'")
     expect(csp).toContain('https://*.supabase.co')
+    expect(csp).toContain('https://challenges.cloudflare.com')
     expect(headers['x-frame-options']?.toLowerCase()).toBe('deny')
     expect(headers['x-content-type-options']?.toLowerCase()).toBe('nosniff')
     expect(headers['referrer-policy']).toBe('strict-origin-when-cross-origin')

@@ -13,6 +13,7 @@ import { Label } from '@/components/ui/label'
 import { Spinner } from '@/components/ui/spinner'
 import { cn } from '@/lib/utils'
 import type { LandingLeadAttribution } from '@/modules/public/ui/landing/public-landing-page'
+import { TurnstileWidget } from '@/modules/public/ui/landing/turnstile-widget'
 
 const initialState: PublicLeadActionState = null
 
@@ -27,6 +28,7 @@ export function PublicLeadForm({ leadAttribution }: PublicLeadFormProps) {
   )
 
   const fieldErrors = state?.success === false ? state.fieldErrors : {}
+  const turnstileSiteKey = process.env.NEXT_PUBLIC_TURNSTILE_SITE_KEY?.trim() || null
 
   return (
     <form
@@ -173,6 +175,10 @@ export function PublicLeadForm({ leadAttribution }: PublicLeadFormProps) {
             </p>
           ) : null}
         </div>
+
+        {turnstileSiteKey ? (
+          <TurnstileWidget siteKey={turnstileSiteKey} error={fieldErrors.captcha} />
+        ) : null}
 
         <SubmitButton />
       </div>

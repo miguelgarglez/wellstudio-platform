@@ -122,7 +122,11 @@ No bloquear Wave 1 por marketing perfecto.
 ## 7. Captcha (pre-widen público)
 
 - [ ] Decisión: activar captcha en leads antes de campañas
-- Ticket aparte; no bloquea intake ni Wave 1–2
+- [ ] Crear sitio Cloudflare Turnstile y aportar site key + secret (o darnos acceso)
+- [ ] Configurar en Vercel Production:
+  - `NEXT_PUBLIC_TURNSTILE_SITE_KEY`
+  - `TURNSTILE_SECRET_KEY`
+- Ticket: MIG-156 (implementación en producto). No bloquea intake ni Wave 1–2; sí conviene antes de publicitar la web.
 
 ## 8. Checklist “listo para PrepOps”
 

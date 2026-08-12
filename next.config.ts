@@ -12,11 +12,12 @@ const contentSecurityPolicy = [
   "object-src 'none'",
   "form-action 'self'",
   // Next.js + JSON-LD require inline script/style in V1; tighten later with nonces if needed.
-  "script-src 'self' 'unsafe-inline' 'unsafe-eval'",
+  "script-src 'self' 'unsafe-inline' 'unsafe-eval' https://challenges.cloudflare.com",
   "style-src 'self' 'unsafe-inline'",
   "img-src 'self' data: blob: https:",
   "font-src 'self' data:",
-  "connect-src 'self' https://*.supabase.co wss://*.supabase.co https://api.stripe.com",
+  "frame-src https://challenges.cloudflare.com",
+  "connect-src 'self' https://*.supabase.co wss://*.supabase.co https://api.stripe.com https://challenges.cloudflare.com",
 ].join('; ')
 
 const securityHeaders = [

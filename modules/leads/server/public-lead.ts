@@ -3,6 +3,10 @@ import {
   resendLeadNotificationSender,
   type LeadNotificationSender,
 } from '@/modules/leads/server/lead-notification'
+import {
+  defaultTurnstileVerifier,
+  type TurnstileVerifier,
+} from '@/modules/leads/server/turnstile'
 
 export const PUBLIC_LEAD_SOURCE = 'public_home'
 export const PUBLIC_LEAD_PRIVACY_POLICY_VERSION = '2026-05-06'
@@ -20,6 +24,7 @@ export type PublicLeadInput = {
   email?: string | null
   privacyAccepted: boolean
   honeypot?: string | null
+  captchaToken?: string | null
   utmSource?: string | null
   utmMedium?: string | null
   utmCampaign?: string | null
@@ -38,7 +43,7 @@ export type PublicLeadResult =
     }
 
 export type PublicLeadFieldErrors = Partial<
-  Record<'name' | 'phone' | 'email' | 'privacyAccepted', string>
+  Record<'name' | 'phone' | 'email' | 'privacyAccepted' | 'captcha', string>
 >
 
 type ExistingLeadLookup = {
@@ -112,18 +117,32 @@ export async function createPublicLead(
   dependencies: {
     repository?: PublicLeadRepository
     notifier?: LeadNotificationSender
+    captchaVerifier?: TurnstileVerifier
     now?: Date
   } = {},
 ): Promise<PublicLeadResult> {
   const now = dependencies.now ?? new Date()
   const repository = dependencies.repository ?? prismaPublicLeadRepository
   const notifier = dependencies.notifier ?? resendLeadNotificationSender
+  const captchaVerifier = dependencies.captchaVerifier ?? defaultTurnstileVerifier
 
   if (input.honeypot?.trim()) {
     return {
       success: true,
       status: 'spam_ignored',
       message: 'Hemos recibido tu solicitud. Te llamaremos en breve.',
+    }
+  }
+
+  const captcha = await captchaVerifier({ token: input.captchaToken })
+
+  if (!captcha.success) {
+    return {
+      success: false,
+      message: captcha.message,
+      fieldErrors: {
+        captcha: captcha.message,
+      },
     }
   }
 
