@@ -141,7 +141,7 @@ Checklist Wave 2:
 ### Widen
 
 - Ampliar socios tras 3–7 días estables en Wave 2.
-- Activar captcha en leads **antes** de publicitar mucho la web (no bloquea Wave 1–2).
+- Activar captcha en leads **antes** de publicitar mucho la web (no bloquea Wave 1–2). Setup: [lead-turnstile.md](./lead-turnstile.md) (`MIG-156`).
 - Memberships recurrentes online siguen diferidas; altas de plan por staff.
 
 ## Orden de trabajo
