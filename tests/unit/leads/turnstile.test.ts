@@ -11,7 +11,7 @@ describe('turnstile config', () => {
     const config = readTurnstileConfig({
       NEXT_PUBLIC_TURNSTILE_SITE_KEY: '  ',
       TURNSTILE_SECRET_KEY: '',
-    } as NodeJS.ProcessEnv)
+    } as unknown as NodeJS.ProcessEnv)
 
     expect(config).toEqual({ siteKey: null, secretKey: null })
     expect(isTurnstileEnforced(config)).toBe(false)
@@ -21,7 +21,7 @@ describe('turnstile config', () => {
     const config = readTurnstileConfig({
       NEXT_PUBLIC_TURNSTILE_SITE_KEY: 'site-key',
       TURNSTILE_SECRET_KEY: 'secret-key',
-    } as NodeJS.ProcessEnv)
+    } as unknown as NodeJS.ProcessEnv)
 
     expect(isTurnstileEnforced(config)).toBe(true)
   })

@@ -47,3 +47,4 @@ Cuando un documento deje de ser vigente:
 - `runbooks/gym-staff-onepager.md`
 - `runbooks/software-delivery-commercial-template.md`
 - `runbooks/lead-turnstile.md`
+- `runbooks/showcase-demo-scripts.md`

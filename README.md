@@ -1,99 +1,61 @@
 # WellStudio Platform
 
-Monolito modular en `Next.js` para WellStudio.
+Producto para centros boutique: **reservas, mostrador y cobros en un solo sistema**.
 
-Estado actual:
+## Ver el producto
 
-- repo base creado y operativo
-- documentacion fundacional importada
-- stack objetivo definido
-- `schema.prisma`, test unitario base y smoke E2E inicial ya preparados
-- deploy objetivo inmediato redefinido a `Vercel-first`
+- **Showcase comercial (slides):** [`/showcase`](./app/(public)/showcase/page.tsx) — en local `http://localhost:3000/showcase`
+- **Preview en vivo:** [preview-wellstudio.miguelgarglez.com](https://preview-wellstudio.miguelgarglez.com)
+- **Deck orientado a dueños de gym** (también sirve como portfolio): journeys público → socio → staff
 
-## Direccion tecnica
+### Tres journeys
 
-- `Next.js` monolitico modular
-- `Prisma`
-- `Supabase Auth`
-- `Supabase Postgres`
-- `Vercel` para `Preview` y `Production`
-- `Docker` solo como artefacto opcional de empaquetado local
+1. **Público** — agenda real y captación de leads  
+2. **Socio** — reservar / cancelar, cuenta, bonos  
+3. **Staff** — overview del día, sesiones, reserva asistida  
 
-## Estructura de documentacion
+Guion de mini-demos (clips ≤45 s): [`docs/runbooks/showcase-demo-scripts.md`](./docs/runbooks/showcase-demo-scripts.md)
 
-- [`docs/adr`](./docs/adr): decisiones tecnicas aceptadas
-- [`docs/architecture`](./docs/architecture): arquitectura y modelo de datos
-- [`docs/product`](./docs/product): PRD, flujos y testing strategy
-- [`docs/discovery`](./docs/discovery): reverse engineering y contexto origen
-- [`docs/runbooks`](./docs/runbooks): material operativo y de entrega comercial
+## Stack
 
-## Fuente de verdad
+- `Next.js` monolito modular (`app/` + `modules/*`)
+- `TypeScript` · `Prisma` · `PostgreSQL` (Supabase)
+- `Supabase Auth` (único boundary de auth)
+- `Stripe` Checkout (bonos + vinculación de tarjeta)
+- `Vercel` Preview / Production
 
-Usar esta regla:
+## Estado
 
-- arquitectura y decisiones aceptadas: `docs/adr` y `docs/architecture`
-- producto, flujos y criterios de testing: `docs/product`
-- backlog y progreso: Linear
-- setup y operacion del repo: `README` y futuros runbooks dentro del repo
+V1 usable en Preview: web pública, auth, reservas, admin, pagos en test mode, handoff/go-live documentado.  
+Captcha Turnstile en leads (activo cuando hay keys). Stripe live y datos piloto pendientes de intake del gym.
 
-## Prioridad inmediata
+## Documentación
 
-1. boundary de `Supabase Auth`
-2. workflow `Vercel Preview / Production`
-3. fixtures y gates iniciales de testing
-4. primeros casos de uso de auth y members
+- [`docs/adr`](./docs/adr) — decisiones técnicas  
+- [`docs/architecture`](./docs/architecture) — arquitectura y datos  
+- [`docs/product`](./docs/product) — PRD, flujos, testing  
+- [`docs/runbooks`](./docs/runbooks) — operación, handoff y showcase  
+
+Fuente de verdad: ADRs + arquitectura; producto/testing en `docs/product`; backlog en Linear.
 
 ## Comandos base
 
 ```bash
 pnpm dev
-pnpm db:push
-pnpm db:studio
-pnpm lint
-pnpm typecheck
 pnpm check:foundation
 pnpm check:auth
 pnpm test:unit
-pnpm test:e2e
 pnpm test:e2e:smoke
 ```
 
-## Visual feedback en desarrollo
-
-`Agentation` queda integrado de forma `dev-only` mediante un bridge cliente propio.
-
-- activar/desactivar desde `NEXT_PUBLIC_AGENTATION_ENABLED`
-- el endpoint MCP por defecto es `http://localhost:4747`
-- no montar `<Agentation />` directamente en `layout` ni en otras rutas
-- la sesion local se aisla por proyecto con `project slug + origin + pathname`
-- comprobar el setup con `pnpm agentation:doctor`
-- arrancar el servidor manualmente con `pnpm agentation:mcp`
-- si SQLite da problemas locales, usar `pnpm agentation:mcp:memory`
-- diagnostico y mantenimiento: [`docs/runbooks/agentation-local-isolation.md`](./docs/runbooks/agentation-local-isolation.md)
-
 ## Deploy y entornos
 
-Referencias:
-
-- [`docs/adr/ADR-008-vercel-first-deployments.md`](./docs/adr/ADR-008-vercel-first-deployments.md)
-- [`docs/product/wellstudio-supabase-environments-strategy.md`](./docs/product/wellstudio-supabase-environments-strategy.md)
-- [`docs/runbooks/vercel-preview-and-production.md`](./docs/runbooks/vercel-preview-and-production.md)
-- [`docs/runbooks/supabase-postgres-prisma-workflow.md`](./docs/runbooks/supabase-postgres-prisma-workflow.md)
-- [`docs/runbooks/docker-local-and-vps.md`](./docs/runbooks/docker-local-and-vps.md)
-- [`docs/runbooks/codex-cloud-agent-setup.md`](./docs/runbooks/codex-cloud-agent-setup.md)
-
-## Modelo mental de datos
-
-- `Supabase Auth` gestiona identidad, sesión y credenciales
-- `Supabase Postgres` aloja el dominio WellStudio (`User`, `Member`, reservas, planes, pagos)
-- `Prisma` es la capa con la que el monolito habla con esa base
-- en local, la app puede apuntar al proyecto `sandbox`
-- la rama `preview` despliega contra `Supabase sandbox`
-- la rama `main` publica contra `Supabase production`
+- rama `preview` → Vercel Preview + Supabase sandbox  
+- rama `main` → Vercel Production + Supabase production  
+- runbooks: [`vercel-preview-and-production.md`](./docs/runbooks/vercel-preview-and-production.md), [`gym-onboarding-handoff.md`](./docs/runbooks/gym-onboarding-handoff.md)
 
 ## Notas
 
-- no mezclar logica de negocio en UI
-- no tratar Supabase como fuente de verdad del dominio
-- mantener el dominio desacoplado del proveedor de auth
-- no usar credenciales o datos de `production` en `Preview`
+- no mezclar lógica de negocio en UI  
+- no tratar Supabase Auth como fuente de verdad del dominio  
+- no usar credenciales de production en Preview  
