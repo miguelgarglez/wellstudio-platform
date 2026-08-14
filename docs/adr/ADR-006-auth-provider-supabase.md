@@ -86,6 +86,7 @@ Decision operativa alineada con `@supabase/ssr`:
 2. Si no hay match, resolver por `normalizedEmail` solo cuando el row local no tiene otro `externalAuthId`.
 3. Si el email ya esta ligado a otra identidad Auth → `IdentityLinkConflictError` (no se absorbe la cuenta).
 4. Primer link por email exige email verificado en Supabase y **no** conserva `ADMIN`/`STAFF` (grant manual / scripts controlados).
+5. Borrar solo `auth.users` deja el `User` local huérfano; un re-registro con el mismo email choca con esa política. El reset de prueba tiene que cubrir Auth **y** la fila Prisma, o reenlazar `externalAuthId` a mano. Comando: `pnpm sandbox:auth:delete`. `/auth/after-login` captura el conflicto y redirige a login (`MIG-164`).
 
 La arquitectura ideal (`httpOnly` + CSRF clasico) sigue siendo valida como norte; en V1 se documenta explicitamente la desviacion por el stack Supabase SSR elegido en este ADR.
 

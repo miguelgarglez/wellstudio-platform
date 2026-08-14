@@ -185,7 +185,33 @@ Nota importante de configuración:
 - si no se hace, `Supabase` cae al `Site URL` y los enlaces de recovery/signup pueden volver a `localhost`
 - dry-run / apply: `pnpm auth:urls:hosted -- --project-ref=$SUPABASE_SANDBOX_PROJECT_REF --environment=sandbox`
 
+### Resetear un usuario real para re-probar registro
+
+Auth y el dominio local **no son la misma fila**. Borrar solo en Authentication deja un `User` Prisma con el `externalAuthId` viejo. Un signup nuevo crea otro UUID de Auth; al confirmar, `ensureLocalUser()` lanza `IdentityLinkConflictError` (política fail-closed de `MIG-142`) y `/auth/after-login` no puede provisionar.
+
+Usa el comando de sandbox, no el Table Editor:
+
+```bash
+pnpm sandbox:auth:delete -- tu@email.com
+pnpm sandbox:auth:delete -- tu@email.com --apply --confirm-sandbox-delete
+```
+
+El dry-run enseña qué hay en Auth y en Prisma. `--apply` borra las dos identidades, desengancha FKs que no hacen cascade (`AuditLog`, `Coach`, leads convertidos) y se niega a tocar las cuentas e2e de escenario salvo `--include-e2e-scenario`.
+
+Si el usuario concedió overrides de reserva, el comando aborta: esos rows tienen un actor NOT NULL. Solo entonces, y a sabiendas de que afecta a otros socios, `--detach-grants`.
+
+Si lo que quieres es **seguir con el mismo socio** tras recrear Auth, no borres: actualiza `externalAuthId` al UUID nuevo de `auth.users`.
+
 ## Incidencias típicas
+
+### 500 o “cuenta ya ligada” al confirmar un registro repetido
+
+Revisar:
+
+- que no quede un `User` local con el mismo `normalizedEmail` y un `externalAuthId` distinto al UUID actual de Auth
+- el runbook de reset de usuario real más arriba
+- que `/auth/after-login` redirija a `/login?authError=identity_conflict` en lugar de petar
+- `pnpm sandbox:auth:delete -- email --apply --confirm-sandbox-delete` para un reset completo en sandbox
 
 ### El login sandbox falla con credenciales válidas
 
