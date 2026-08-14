@@ -3,7 +3,7 @@ import Link from 'next/link'
 import { buttonVariants } from '@/components/ui/button-variants'
 import { cn } from '@/lib/utils'
 
-type NotFoundAction = {
+export type NotFoundAction = {
   href: string
   label: string
   variant?: 'default' | 'outline'
