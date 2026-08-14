@@ -1,3 +1,4 @@
+import { resolveLoginInfoMessage } from '@/modules/auth/lib/login-info-message'
 import { resolveSafeInternalPath } from '@/modules/auth/lib/safe-internal-path'
 import { AuthShell } from '@/modules/auth/ui/auth-shell'
 import { authPageContent } from '@/modules/auth/ui/auth-page-content'
@@ -15,14 +16,10 @@ type LoginPageProps = {
 
 export default async function LoginPage({ searchParams }: LoginPageProps) {
   const resolvedSearchParams = searchParams ? await searchParams : undefined
-  const infoMessage =
-    resolvedSearchParams?.authStatus === 'confirmed'
-      ? 'Tu correo ya está confirmado. Si no te hemos abierto la sesión automáticamente, entra con tu contraseña y continúa.'
-      : resolvedSearchParams?.authStatus === 'password_updated'
-      ? 'Tu contraseña ya está actualizada. Entra de nuevo con tu email y la nueva contraseña.'
-      : resolvedSearchParams?.authError === 'verification_failed'
-      ? 'No hemos podido verificar tu enlace de acceso. Solicita un nuevo registro o vuelve a iniciar sesión.'
-      : undefined
+  const infoMessage = resolveLoginInfoMessage({
+    authStatus: resolvedSearchParams?.authStatus,
+    authError: resolvedSearchParams?.authError,
+  })
   const redirectTo = resolveSafeInternalPath(
     resolvedSearchParams?.redirectTo,
     '/auth/after-login',

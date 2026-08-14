@@ -1,3 +1,4 @@
+import type { ReactNode } from 'react'
 import Link from 'next/link'
 
 import { buttonVariants } from '@/components/ui/button-variants'
@@ -10,26 +11,39 @@ export type NotFoundAction = {
 }
 
 type NotFoundPanelProps = {
+  code?: string
+  asideEyebrow?: string
   eyebrow?: string
   title: string
   description: string
   note: string
   actions: NotFoundAction[]
+  leadingAction?: ReactNode
+  digest?: string
   shellClassName?: string
   panelClassName?: string
 }
 
 export function NotFoundPanel({
+  code = '404',
+  asideEyebrow = 'Ruta perdida',
   eyebrow = 'Error 404',
   title,
   description,
   note,
   actions,
+  leadingAction,
+  digest,
   shellClassName,
   panelClassName,
 }: NotFoundPanelProps) {
+  const isServerError = code === '500'
+
   return (
-    <main className={cn('flex min-h-screen items-center px-5 py-12 sm:px-8 lg:px-10', shellClassName)}>
+    <main
+      id="main-content"
+      className={cn('flex min-h-screen items-center px-5 py-12 sm:px-8 lg:px-10', shellClassName)}
+    >
       <section
         className={cn(
           'relative mx-auto grid w-full max-w-5xl overflow-hidden rounded-[2rem] border border-white/70 bg-white/90 shadow-[0_34px_90px_-52px_rgba(15,18,22,0.58)] ring-1 ring-[color:color-mix(in_srgb,var(--wellstudio-blue)_10%,transparent)] backdrop-blur sm:rounded-[2.35rem] lg:grid-cols-[0.72fr_1.28fr]',
@@ -41,14 +55,26 @@ export function NotFoundPanel({
           <div className="absolute inset-x-0 top-0 h-24 bg-[linear-gradient(180deg,color-mix(in_srgb,var(--wellstudio-blue-soft)_28%,transparent),transparent)]" />
           <div className="relative flex h-full flex-col justify-between gap-12">
             <div>
-              <p className="text-xs uppercase tracking-[0.24em] text-[var(--wellstudio-blue-deep)]">Ruta perdida</p>
-              <p className="mt-4 font-display text-[8.5rem] leading-none tracking-[0.02em] text-[color:color-mix(in_srgb,var(--wellstudio-blue)_24%,white)]">
-                404
+              <p className="text-xs uppercase tracking-[0.24em] text-[var(--wellstudio-blue-deep)]">
+                {asideEyebrow}
+              </p>
+              <p
+                className={cn(
+                  'mt-4 font-display text-[8.5rem] leading-none tracking-[0.02em]',
+                  isServerError
+                    ? 'text-[color:color-mix(in_srgb,var(--destructive)_26%,white)]'
+                    : 'text-[color:color-mix(in_srgb,var(--wellstudio-blue)_24%,white)]',
+                )}
+              >
+                {code}
               </p>
             </div>
-            <p className="max-w-56 text-sm leading-6 text-[color:color-mix(in_srgb,var(--wellstudio-ink)_62%,white)]">
-              {note}
-            </p>
+            <div className="flex max-w-56 flex-col gap-3">
+              <p className="text-sm leading-6 text-[color:color-mix(in_srgb,var(--wellstudio-ink)_62%,white)]">
+                {note}
+              </p>
+              {digest ? <DigestNote digest={digest} /> : null}
+            </div>
           </div>
         </aside>
 
@@ -65,26 +91,45 @@ export function NotFoundPanel({
           <p className="mt-5 rounded-[1.25rem] border border-[color:color-mix(in_srgb,var(--wellstudio-blue)_14%,white)] bg-[color:color-mix(in_srgb,var(--wellstudio-blue)_5%,white)] px-4 py-3 text-sm leading-6 text-[var(--wellstudio-blue-deep)] lg:hidden">
             {note}
           </p>
+          {digest ? (
+            <div className="mt-3 lg:hidden">
+              <DigestNote digest={digest} />
+            </div>
+          ) : null}
           <nav aria-label="Accesos recomendados" className="mt-8 flex flex-col gap-3 sm:flex-row sm:flex-wrap">
-            {actions.map((action, index) => (
-              <Link
-                key={action.href}
-                href={action.href}
-                className={cn(
-                  buttonVariants({ variant: action.variant ?? (index === 0 ? 'default' : 'outline'), size: 'lg' }),
-                  'rounded-full px-6 transition-[background-color,border-color,color,box-shadow,transform] duration-[160ms] ease-[cubic-bezier(0.23,1,0.32,1)] active:scale-[0.98] sm:min-w-36',
-                  index === 0 &&
-                    'bg-[var(--wellstudio-blue)] text-[var(--wellstudio-ink)] shadow-[0_18px_38px_rgba(79,137,197,0.22)] hover:bg-[color:color-mix(in_srgb,var(--wellstudio-blue)_86%,white)]',
-                  index > 0 &&
-                    'border-[color:color-mix(in_srgb,var(--wellstudio-blue)_16%,var(--border))] bg-white/60 hover:border-[color:color-mix(in_srgb,var(--wellstudio-blue)_28%,var(--border))] hover:bg-[color:color-mix(in_srgb,var(--wellstudio-blue)_5%,white)]',
-                )}
-              >
-                {action.label}
-              </Link>
-            ))}
+            {leadingAction}
+            {actions.map((action, index) => {
+              const isPrimary = !leadingAction && index === 0
+
+              return (
+                <Link
+                  key={action.href}
+                  href={action.href}
+                  className={cn(
+                    buttonVariants({ variant: action.variant ?? (isPrimary ? 'default' : 'outline'), size: 'lg' }),
+                    'rounded-full px-6 transition-[background-color,border-color,color,box-shadow,transform] duration-[160ms] ease-[cubic-bezier(0.23,1,0.32,1)] active:scale-[0.98] sm:min-w-36',
+                    isPrimary &&
+                      'bg-[var(--wellstudio-blue)] text-[var(--wellstudio-ink)] shadow-[0_18px_38px_rgba(79,137,197,0.22)] hover:bg-[color:color-mix(in_srgb,var(--wellstudio-blue)_86%,white)]',
+                    !isPrimary &&
+                      'border-[color:color-mix(in_srgb,var(--wellstudio-blue)_16%,var(--border))] bg-white/60 hover:border-[color:color-mix(in_srgb,var(--wellstudio-blue)_28%,var(--border))] hover:bg-[color:color-mix(in_srgb,var(--wellstudio-blue)_5%,white)]',
+                  )}
+                >
+                  {action.label}
+                </Link>
+              )
+            })}
           </nav>
         </div>
       </section>
     </main>
+  )
+}
+
+function DigestNote({ digest }: { digest: string }) {
+  return (
+    <p className="text-xs leading-5 text-[color:color-mix(in_srgb,var(--wellstudio-ink)_48%,white)]">
+      Si el problema continúa, el código de incidencia es{' '}
+      <span className="font-medium tracking-wide text-[var(--wellstudio-ink)]">{digest}</span>.
+    </p>
   )
 }

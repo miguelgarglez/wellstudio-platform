@@ -42,6 +42,7 @@
     "test:e2e:headed": "playwright test --headed",
     "sandbox:auth:member": "node scripts/auth/ensure-sandbox-user.mjs member --confirm-sandbox-reset",
     "sandbox:auth:admin": "node scripts/auth/ensure-sandbox-user.mjs admin --confirm-sandbox-reset",
+    "sandbox:auth:delete": "node scripts/auth/delete-sandbox-user.mjs",
     "auth:templates:hosted": "node scripts/auth/apply-hosted-email-templates.mjs",
     "auth:urls:hosted": "node scripts/auth/ensure-hosted-auth-urls.mjs",
     "sandbox:scenario": "node scripts/sandbox/ensure-member-scenario.mjs --confirm-sandbox-scenario",
