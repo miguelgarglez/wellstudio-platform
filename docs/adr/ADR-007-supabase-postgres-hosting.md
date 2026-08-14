@@ -59,6 +59,7 @@ Usar `Supabase Postgres` como hosting de base de datos para WellStudio V1 y mant
 - `Prisma` sigue siendo la capa principal de acceso a datos
 - el VPS queda centrado en servir el monolito `Next.js`
 - Docker deja de ser obligatorio para la base de datos en local
+- las tablas `public` llevan **RLS activado sin políticas** (`anon` / `authenticated` no leen ni escriben vía Data API). Prisma no se ve afectado: `DATABASE_URL` usa un rol con `BYPASSRLS`. No duplicar reglas de dominio en políticas PostgREST.
 
 ## Impacto en implementacion
 

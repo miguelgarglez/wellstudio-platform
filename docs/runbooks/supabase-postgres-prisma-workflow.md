@@ -191,6 +191,12 @@ La idea futura es:
 - local: `Supabase sandbox`
 - producción: `Supabase production`
 
+## RLS y Data API
+
+Las tablas `public` tienen Row Level Security **activado y sin políticas**. La anon key del browser no puede leer ni escribir dominio vía PostgREST. Prisma (`DATABASE_URL`) sigue operando con normalidad.
+
+Tras añadir una tabla Prisma nueva, incluir `ALTER TABLE "…" ENABLE ROW LEVEL SECURITY;` en la misma migración. No crear políticas `auth.uid()` salvo decisión explícita de usar la Data API.
+
 ## Bootstrap de production
 
 Cuando levantamos `production` por primera vez puede pasar esto:
