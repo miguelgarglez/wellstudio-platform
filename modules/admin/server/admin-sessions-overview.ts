@@ -1,4 +1,5 @@
 import { prisma } from '@/lib/db/prisma'
+import type { AttendanceStatus, ClassSessionStatus, ReservationStatus } from '@prisma/client'
 
 const SESSION_WINDOW_DAYS = 45
 
@@ -12,7 +13,7 @@ type SessionRecord = {
   reservedCount: number
   waitlistEnabled: boolean
   locationLabel: string | null
-  status: string
+  status: ClassSessionStatus
   classTypeId: string
   coachId: string | null
   updatedAt: Date
@@ -25,8 +26,8 @@ type SessionRecord = {
 
 type RosterRecord = {
   id: string
-  status: string
-  attendanceStatus: string
+  status: ReservationStatus
+  attendanceStatus: AttendanceStatus
   bookedAt: Date
   member: {
     id: string
