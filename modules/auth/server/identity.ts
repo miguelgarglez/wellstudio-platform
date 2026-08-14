@@ -38,12 +38,31 @@ export class IdentityLinkConflictError extends Error {
   }
 }
 
-const resolveAuthContextUncached = async (): Promise<AuthContext> => {
+const AUTH_USER_LOOKUP_RETRY_DELAY_MS = 120
+
+async function getSupabaseAuthUserWithRetry() {
   const { createSupabaseServerClient } = await import('@/modules/auth/lib/supabase-server-client')
   const supabase = await createSupabaseServerClient()
-  const {
-    data: { user: authUser },
-  } = await supabase.auth.getUser()
+
+  for (let attempt = 0; attempt < 2; attempt += 1) {
+    const { data, error } = await supabase.auth.getUser()
+    if (data.user?.email) {
+      return data.user
+    }
+
+    if (error && attempt === 0) {
+      await new Promise((resolve) => setTimeout(resolve, AUTH_USER_LOOKUP_RETRY_DELAY_MS))
+      continue
+    }
+
+    return data.user
+  }
+
+  return null
+}
+
+const resolveAuthContextUncached = async (): Promise<AuthContext> => {
+  const authUser = await getSupabaseAuthUserWithRetry()
 
   if (!authUser?.email) {
     return {
@@ -85,14 +104,28 @@ export function hasAnyRole(
   return authContext.roles.some((role) => roleSet.has(role.role))
 }
 
-export const requireAdminOrStaffContext = cache(async () => {
-  const authContext = await requireAuthenticatedContext()
+export type AdminAccessResult =
+  | { kind: 'ok'; context: Extract<AuthContext, { isAuthenticated: true }> }
+  | { kind: 'unauthenticated' }
+  | { kind: 'forbidden' }
 
-  if (!hasAnyRole(authContext, ['ADMIN', 'STAFF'])) {
-    return null
+export const resolveAdminAccess = cache(async (): Promise<AdminAccessResult> => {
+  const authContext = await resolveAuthContext()
+
+  if (!authContext.isAuthenticated) {
+    return { kind: 'unauthenticated' }
   }
 
-  return authContext
+  if (!hasAnyRole(authContext, ['ADMIN', 'STAFF'])) {
+    return { kind: 'forbidden' }
+  }
+
+  return { kind: 'ok', context: authContext }
+})
+
+export const requireAdminOrStaffContext = cache(async () => {
+  const access = await resolveAdminAccess()
+  return access.kind === 'ok' ? access.context : null
 })
 
 export async function ensureLocalUser(authUser: SupabaseUser): Promise<LocalIdentity> {

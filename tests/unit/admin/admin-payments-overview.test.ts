@@ -121,6 +121,37 @@ describe('admin payments overview', () => {
     expect(JSON.stringify(overview.selectedPayment)).not.toContain('abcdefghijklmnop')
   })
 
+  it('labels canceled payments without webhook noise', () => {
+    const overview = buildAdminPaymentsOverview({
+      query: '',
+      status: 'all',
+      payments: [{
+        id: 'payment-canceled-1',
+        status: 'CANCELED',
+        paymentType: 'CREDIT_PACK_PURCHASE',
+        amount: 6500,
+        currency: 'EUR',
+        provider: 'stripe',
+        createdAt: now,
+        member: {
+          firstName: 'Miguel',
+          lastName: 'García',
+          user: { email: 'miguel@example.com' },
+        },
+        items: [{ itemType: 'CREDIT_PACK', referenceId: 'pack-1' }],
+        events: [],
+      }] as never,
+      failedCount: 0,
+      activeCount: 0,
+      succeededRecentCount: 0,
+      selectedPayment: null,
+      productNames: { 'pack-1': 'Bono 5 sesiones' },
+      now,
+    })
+
+    expect(overview.payments[0]?.eventHealthLabel).toBe('Cancelado sin cobro')
+  })
+
   it('normalizes manipulated filters and truncates operational references', () => {
     expect(parseAdminPaymentStatusFilter('unexpected')).toBe('all')
     expect(parseAdminPaymentStatusFilter('pending')).toBe('pending')

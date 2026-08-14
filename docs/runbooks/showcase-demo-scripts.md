@@ -49,6 +49,21 @@ Mensaje: “El mostrador opera sin saltarse el producto.”
 
 Sustituir el texto placeholder `Clip ≤45s · …` por `<video>` o embed cuando existan los archivos (idealmente en `modules/public/ui/showcase/assets/` o CDN).
 
+## Galería de capturas (lightbox)
+
+El deck incluye una galería fullscreen accesible desde **Ver galería** (header) o clic en cualquier captura.
+
+| Paso | Comando / acción |
+|---|---|
+| 0. Seed vitrina | `pnpm sandbox:showcase-vitrina` (+ `SHOWCASE_MEMBER_EMAIL` si aplica). Ver [`showcase-vitrina-seed.md`](./showcase-vitrina-seed.md). |
+| 1. Capturar PNG | `node scripts/capture-showcase-shots.mjs` (credenciales en env) |
+| 2. Optimizar WebP | `node scripts/optimize-showcase-shots.mjs` (requiere `cwebp`: `brew install webp`) |
+| 3. Verificar en local | `pnpm dev` → `/showcase` → clic en captura o **Ver galería** |
+
+Salida por shot: `{name}-thumb.webp` (960px, deck) y `{name}.webp` (captura completa, lightbox). Los PNG originales se mantienen como fuente; los imports en `showcase-visuals.ts` apuntan a WebP.
+
+Tras re-capturar, volver a ejecutar el paso 2 antes de commitear assets.
+
 ## README / web personal
 
 Reutilizar los mismos tres clips. No grabar narrativas distintas.

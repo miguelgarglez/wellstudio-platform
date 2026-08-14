@@ -1,3 +1,5 @@
+import type { ShowcaseVisualSpec } from '@/modules/public/ui/showcase/showcase-visuals'
+
 export type ShowcaseSlideId =
   | 'hero'
   | 'pain'
@@ -16,7 +18,7 @@ export type ShowcaseSlide = {
   body: string
   kind: 'hero' | 'copy' | 'journey' | 'outcome' | 'cta'
   bullets?: string[]
-  frame?: 'public' | 'member' | 'staff' | 'payments'
+  visual?: ShowcaseVisualSpec
   demoPlaceholder?: string
 }
 
@@ -30,6 +32,11 @@ export const showcaseSlides: ShowcaseSlide[] = [
     title: 'Reservas, mostrador y cobros en un solo producto',
     body: 'Software para centros boutique: socios reservan, el staff opera el día a día y los bonos se cobran online — sin ensamblar widgets.',
     kind: 'hero',
+    visual: {
+      layout: 'trio',
+      shots: ['public-classes', 'member-home', 'staff-overview'],
+      priority: true,
+    },
   },
   {
     id: 'pain',
@@ -42,6 +49,10 @@ export const showcaseSlides: ShowcaseSlide[] = [
       'Agenda pública que no habla con el mostrador',
       'Cobros y créditos fuera del flujo de reserva',
     ],
+    visual: {
+      layout: 'duo',
+      shots: ['public-plans', 'staff-sessions'],
+    },
   },
   {
     id: 'promise',
@@ -54,6 +65,10 @@ export const showcaseSlides: ShowcaseSlide[] = [
       'Socio: reservar, cancelar, cuenta y bonos',
       'Staff: sesiones, fichas y reservas asistidas',
     ],
+    visual: {
+      layout: 'trio',
+      shots: ['public-home', 'member-home', 'staff-overview'],
+    },
   },
   {
     id: 'public',
@@ -61,8 +76,13 @@ export const showcaseSlides: ShowcaseSlide[] = [
     title: 'La agenda convence antes del registro',
     body: 'Visitantes ven horarios reales, disponibilidad y dejan su teléfono. El centro responde desde el mismo producto.',
     kind: 'journey',
-    frame: 'public',
     demoPlaceholder: 'Clip ≤45s · agenda → lead',
+    visual: {
+      layout: 'hero-stack',
+      primary: 'public-classes',
+      shots: ['public-classes', 'public-home', 'public-plans', 'public-lead'],
+      priority: true,
+    },
   },
   {
     id: 'member',
@@ -70,8 +90,12 @@ export const showcaseSlides: ShowcaseSlide[] = [
     title: 'Reservar y cancelar sin fricción',
     body: 'El socio entra, ve su cobertura y gestiona plazas con reglas claras. La cuenta muestra saldo, bonos y tarjeta con confianza.',
     kind: 'journey',
-    frame: 'member',
     demoPlaceholder: 'Clip ≤45s · login → reserva',
+    visual: {
+      layout: 'hero-stack',
+      primary: 'member-home',
+      shots: ['member-home', 'member-reservations', 'member-account'],
+    },
   },
   {
     id: 'staff',
@@ -79,8 +103,12 @@ export const showcaseSlides: ShowcaseSlide[] = [
     title: 'El mostrador controla el día',
     body: 'Overview operativo, sesiones, ficha del socio y reserva asistida con las mismas reglas — sin saltarse aforo a escondidas.',
     kind: 'journey',
-    frame: 'staff',
     demoPlaceholder: 'Clip ≤45s · overview → asistida',
+    visual: {
+      layout: 'hero-stack',
+      primary: 'staff-overview',
+      shots: ['staff-overview', 'staff-sessions', 'staff-members'],
+    },
   },
   {
     id: 'payments',
@@ -88,7 +116,10 @@ export const showcaseSlides: ShowcaseSlide[] = [
     title: 'Bonos online que activan créditos al momento',
     body: 'Checkout Stripe alojado: el centro no toca tarjetas. Al confirmarse el pago, el socio ya puede reservar.',
     kind: 'journey',
-    frame: 'payments',
+    visual: {
+      layout: 'duo',
+      shots: ['staff-payments', 'member-account'],
+    },
   },
   {
     id: 'outcome',
@@ -103,6 +134,17 @@ export const showcaseSlides: ShowcaseSlide[] = [
       'Cobrar un bono online o en mostrador',
       'Recibir un lead y responder',
     ],
+    visual: {
+      layout: 'strip',
+      shots: [
+        'public-classes',
+        'member-reservations',
+        'staff-overview',
+        'public-lead',
+        'member-account',
+        'staff-payments',
+      ],
+    },
   },
   {
     id: 'cta',
@@ -110,5 +152,10 @@ export const showcaseSlides: ShowcaseSlide[] = [
     title: 'Míralo en vivo o hablemos',
     body: 'El showcase es la historia. Preview es el producto real. Si encaja con tu centro, lo afinamos juntos.',
     kind: 'cta',
+    visual: {
+      layout: 'quad',
+      shots: ['public-home', 'member-home', 'staff-sessions', 'staff-payments'],
+      chrome: false,
+    },
   },
 ]

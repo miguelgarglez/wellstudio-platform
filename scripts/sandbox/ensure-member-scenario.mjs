@@ -27,6 +27,11 @@ import {
   MEMBER_RESERVATIONS_FLOW_OPERATIONS,
   MEMBER_RESERVATIONS_FLOW_SCENARIO,
 } from '../../modules/testing/server/sandbox-scenarios/member-reservations-flow.mjs'
+import {
+  ensureShowcaseVitrinaScenario,
+  SHOWCASE_VITRINA_CONFIRM_MEMBER_FLAG,
+  SHOWCASE_VITRINA_SCENARIO,
+} from '../../modules/testing/server/sandbox-scenarios/showcase-vitrina.mjs'
 
 const ROOT = process.cwd()
 const SCENARIOS = {
@@ -46,6 +51,12 @@ const SCENARIOS = {
     requiresMemberAuthUser: false,
     operations: {
       [MEMBER_RESERVATIONS_FLOW_OPERATIONS.full]: ensureAdminPlaygroundScenario,
+    },
+  },
+  [SHOWCASE_VITRINA_SCENARIO]: {
+    requiresMemberAuthUser: false,
+    operations: {
+      [MEMBER_RESERVATIONS_FLOW_OPERATIONS.full]: ensureShowcaseVitrinaScenario,
     },
   },
 }
@@ -101,7 +112,9 @@ const prisma = new PrismaClient({
 try {
   const scenarioInput = await buildScenarioInput({
     scenarioConfig,
+    scenarioName,
     supabaseUrl,
+    args,
   })
   const scenario = await scenarioConfig.operations[scenarioOperationName]({
     prisma,
@@ -122,7 +135,19 @@ try {
   await prisma.$disconnect()
 }
 
-async function buildScenarioInput({ scenarioConfig, supabaseUrl }) {
+async function buildScenarioInput({ scenarioConfig, scenarioName, supabaseUrl, args }) {
+  if (scenarioName === SHOWCASE_VITRINA_SCENARIO) {
+    const showcaseMemberEmail = process.env.SHOWCASE_MEMBER_EMAIL?.trim() || null
+
+    if (showcaseMemberEmail && !args.includes(SHOWCASE_VITRINA_CONFIRM_MEMBER_FLAG)) {
+      exitWithHelp(
+        `Refusing to reconcile showcase member "${showcaseMemberEmail}" without ${SHOWCASE_VITRINA_CONFIRM_MEMBER_FLAG}.`,
+      )
+    }
+
+    return { showcaseMemberEmail }
+  }
+
   if (!scenarioConfig.requiresMemberAuthUser) {
     return {
       adminEmail:
@@ -190,6 +215,11 @@ async function findAuthUserByEmail(client, email) {
 }
 
 function printSummary({ scenario, currentProjectRef, scenarioOperationName }) {
+  if (scenario.scenario === SHOWCASE_VITRINA_SCENARIO) {
+    printShowcaseVitrinaSummary({ scenario, currentProjectRef, scenarioOperationName })
+    return
+  }
+
   if (scenario.scenario === ADMIN_PLAYGROUND_SCENARIO) {
     printAdminPlaygroundSummary({
       scenario,
@@ -222,6 +252,28 @@ function printSummary({ scenario, currentProjectRef, scenarioOperationName }) {
   console.log('1. agent-browser --session-name wellstudio-sandbox open http://localhost:3000/login')
   console.log('2. Log in with the sandbox member credentials')
   console.log('3. Open /app and /app/reservations to validate the scenario visually')
+}
+
+function printShowcaseVitrinaSummary({ scenario, currentProjectRef, scenarioOperationName }) {
+  console.log(
+    `Reconciled sandbox scenario "${scenario.scenario}" (${scenarioOperationName}) in project ${currentProjectRef}.`,
+  )
+  console.log(`Plans: ${scenario.planSlugs.join(', ')}`)
+  console.log(`Credit pack: ${scenario.creditPackSlug}`)
+  console.log(`Class types: ${scenario.classTypeSlugs.join(', ')}`)
+  console.log(`Published sessions: ${scenario.sessionCount}`)
+  console.log(`Demo members: ${scenario.demoMemberEmails.join(', ')}`)
+
+  if (scenario.showcaseMemberEmail) {
+    console.log(`Showcase member: ${scenario.showcaseMemberEmail}`)
+    console.log(`Upcoming reservation id: ${scenario.upcomingReservationId ?? 'none'}`)
+  }
+
+  console.log('')
+  console.log('Recommended next steps:')
+  console.log('1. Open /classes and /plans on Preview — commercial names, populated agenda')
+  console.log('2. Log in as showcase member and open /app — plan + próxima reserva')
+  console.log('3. Re-capture: node scripts/capture-showcase-shots.mjs && node scripts/optimize-showcase-shots.mjs')
 }
 
 function printAdminPlaygroundSummary({
@@ -288,6 +340,9 @@ function exitWithHelp(message) {
   )
   console.error(
     `  node scripts/sandbox/ensure-member-scenario.mjs ${ADMIN_PLAYGROUND_SCENARIO} ${SCENARIO_CONFIRMATION_FLAG}`,
+  )
+  console.error(
+    `  SHOWCASE_MEMBER_EMAIL=you@example.com node scripts/sandbox/ensure-member-scenario.mjs ${SHOWCASE_VITRINA_SCENARIO} ${SCENARIO_CONFIRMATION_FLAG} ${SHOWCASE_VITRINA_CONFIRM_MEMBER_FLAG}`,
   )
   process.exit(1)
 }

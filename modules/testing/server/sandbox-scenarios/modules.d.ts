@@ -125,3 +125,24 @@ declare module '@/modules/testing/server/sandbox-scenarios/admin-playground.mjs'
     now?: Date
   }): Promise<unknown>
 }
+
+declare module '@/modules/testing/server/sandbox-scenarios/showcase-vitrina.mjs' {
+  export const SHOWCASE_VITRINA_SCENARIO: string
+  export const SHOWCASE_VITRINA_CONFIRM_MEMBER_FLAG: string
+
+  export function buildShowcaseVitrinaSessionBlueprints(now?: Date): Array<{
+    key: string
+    classTypeKey: string
+    startsAt: Date
+    endsAt: Date
+    capacity: number
+    reservedCount: number
+    locationLabel: string
+  }>
+
+  export function ensureShowcaseVitrinaScenario(input: {
+    prisma: unknown
+    now?: Date
+    showcaseMemberEmail?: string | null
+  }): Promise<unknown>
+}

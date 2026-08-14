@@ -46,6 +46,8 @@
     "auth:urls:hosted": "node scripts/auth/ensure-hosted-auth-urls.mjs",
     "sandbox:scenario": "node scripts/sandbox/ensure-member-scenario.mjs --confirm-sandbox-scenario",
     "sandbox:admin-playground": "node scripts/sandbox/ensure-member-scenario.mjs admin-playground --confirm-sandbox-scenario",
+    "sandbox:showcase-vitrina": "node scripts/sandbox/ensure-member-scenario.mjs showcase-vitrina --confirm-sandbox-scenario",
+    "sandbox:showcase-demo-admin": "node scripts/auth/ensure-showcase-demo-admin.mjs --confirm-showcase-demo-admin",
     "codex:doctor": "node scripts/codex/check-cloud-env.mjs"
   },
   "dependencies": {

@@ -1,6 +1,7 @@
 import { cache } from 'react'
 
 import type { AuthContext } from '@/modules/auth/server/identity'
+import { resolveAdminAccess } from '@/modules/auth/server/identity'
 
 export type AdminShellSummary = {
   displayName: string
@@ -9,14 +10,13 @@ export type AdminShellSummary = {
 }
 
 export const getAuthenticatedAdminShellSummary = cache(async (): Promise<AdminShellSummary> => {
-  const { requireAdminOrStaffContext } = await import('@/modules/auth/server/identity')
-  const authContext = await requireAdminOrStaffContext()
+  const access = await resolveAdminAccess()
 
-  if (!authContext) {
+  if (access.kind !== 'ok') {
     throw new Error('Admin or staff context required')
   }
 
-  return buildAdminShellSummary(authContext)
+  return buildAdminShellSummary(access.context)
 })
 
 export function buildAdminShellSummary(

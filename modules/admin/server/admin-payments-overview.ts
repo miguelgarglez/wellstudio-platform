@@ -313,6 +313,9 @@ function formatEventHealth(
   if (paymentStatus === 'PENDING' || paymentStatus === 'REQUIRES_ACTION') {
     return { label: 'Esperando confirmación', tone: 'blue' as const }
   }
+  if (paymentStatus === 'CANCELED') {
+    return { label: 'Cancelado sin cobro', tone: 'neutral' as const }
+  }
   return { label: 'Sin evento asociado', tone: 'neutral' as const }
 }
 

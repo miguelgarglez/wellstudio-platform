@@ -48,3 +48,5 @@ Cuando un documento deje de ser vigente:
 - `runbooks/software-delivery-commercial-template.md`
 - `runbooks/lead-turnstile.md`
 - `runbooks/showcase-demo-scripts.md`
+- `runbooks/showcase-vitrina-seed.md`
+- `runbooks/showcase-capture-findings.md`

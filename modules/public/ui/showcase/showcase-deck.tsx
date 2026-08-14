@@ -3,7 +3,7 @@
 import Image from 'next/image'
 import Link from 'next/link'
 import { useEffect, useEffectEvent, useRef, useState } from 'react'
-import { ArrowLeft, ArrowRight, ExternalLink } from 'lucide-react'
+import { ArrowLeft, ArrowRight, ExternalLink, Images } from 'lucide-react'
 
 import { cn } from '@/lib/utils'
 import heroBarbellImage from '@/modules/public/ui/landing/assets/hero-barbell.jpeg'
@@ -13,12 +13,27 @@ import {
   showcaseSlides,
   type ShowcaseSlide,
 } from '@/modules/public/ui/showcase/showcase-content'
-import { ShowcaseFrame } from '@/modules/public/ui/showcase/showcase-frames'
+import { ShowcaseGalleryLightbox } from '@/modules/public/ui/showcase/showcase-gallery-lightbox'
+import {
+  ShowcaseGalleryProvider,
+  useShowcaseGallery,
+} from '@/modules/public/ui/showcase/showcase-gallery-context'
+import { ShowcaseVisualPanel } from '@/modules/public/ui/showcase/showcase-visual-panel'
 
 export function ShowcaseDeck() {
+  return (
+    <ShowcaseGalleryProvider>
+      <ShowcaseDeckInner />
+      <ShowcaseGalleryLightbox />
+    </ShowcaseGalleryProvider>
+  )
+}
+
+function ShowcaseDeckInner() {
   const scrollerRef = useRef<HTMLDivElement | null>(null)
   const activeIndexRef = useRef(0)
   const [activeIndex, setActiveIndex] = useState(0)
+  const { isOpen: galleryOpen, openGallery, registerTrigger } = useShowcaseGallery()
 
   const syncActiveFromScroll = useEffectEvent(() => {
     const root = scrollerRef.current
@@ -53,8 +68,18 @@ export function ShowcaseDeck() {
     return () => root.removeEventListener('scroll', syncActiveFromScroll)
   }, [])
 
+  function goTo(index: number) {
+    const next = Math.max(0, Math.min(showcaseSlides.length - 1, index))
+    const root = scrollerRef.current
+    const target = root?.querySelectorAll<HTMLElement>('[data-showcase-slide]')[next]
+    target?.scrollIntoView({ behavior: 'smooth', block: 'start' })
+    activeIndexRef.current = next
+    setActiveIndex(next)
+  }
+
   useEffect(() => {
     const onKeyDown = (event: KeyboardEvent) => {
+      if (galleryOpen) return
       const current = activeIndexRef.current
       if (event.key === 'ArrowDown' || event.key === 'ArrowRight' || event.key === 'PageDown') {
         event.preventDefault()
@@ -76,16 +101,7 @@ export function ShowcaseDeck() {
 
     window.addEventListener('keydown', onKeyDown)
     return () => window.removeEventListener('keydown', onKeyDown)
-  }, [])
-
-  function goTo(index: number) {
-    const next = Math.max(0, Math.min(showcaseSlides.length - 1, index))
-    const root = scrollerRef.current
-    const target = root?.querySelectorAll<HTMLElement>('[data-showcase-slide]')[next]
-    target?.scrollIntoView({ behavior: 'smooth', block: 'start' })
-    activeIndexRef.current = next
-    setActiveIndex(next)
-  }
+  }, [galleryOpen])
 
   return (
     <div className="relative h-[100svh] overflow-hidden bg-[var(--wellstudio-ink)] text-white">
@@ -98,15 +114,29 @@ export function ShowcaseDeck() {
         >
           WellStudio
         </Link>
-        <a
-          href={SHOWCASE_PREVIEW_URL}
-          target="_blank"
-          rel="noreferrer"
-          className="pointer-events-auto inline-flex items-center gap-2 rounded-full border border-white/18 bg-white/6 px-3.5 py-2 text-xs uppercase tracking-[0.16em] text-white/85 backdrop-blur-md transition-colors hover:bg-white/10"
-        >
-          Demo en vivo
-          <ExternalLink className="size-3.5" aria-hidden="true" />
-        </a>
+        <div className="pointer-events-auto flex items-center gap-2">
+          <button
+            type="button"
+            onClick={(event) => {
+              registerTrigger(event.currentTarget)
+              openGallery()
+            }}
+            className="inline-flex items-center gap-2 rounded-full border border-white/18 bg-white/6 px-3.5 py-2 text-xs uppercase tracking-[0.16em] text-white/85 backdrop-blur-md transition-colors hover:bg-white/10 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[var(--wellstudio-blue)]"
+            aria-label="Ver galería de capturas"
+          >
+            Ver galería
+            <Images className="size-3.5" aria-hidden="true" />
+          </button>
+          <a
+            href={SHOWCASE_PREVIEW_URL}
+            target="_blank"
+            rel="noreferrer"
+            className="inline-flex items-center gap-2 rounded-full border border-white/18 bg-white/6 px-3.5 py-2 text-xs uppercase tracking-[0.16em] text-white/85 backdrop-blur-md transition-colors hover:bg-white/10"
+          >
+            Demo en vivo
+            <ExternalLink className="size-3.5" aria-hidden="true" />
+          </a>
+        </div>
       </header>
 
       <div
@@ -174,6 +204,9 @@ function ShowcaseSlideView({
   index: number
   active: boolean
 }) {
+  const { openGallery, registerTrigger } = useShowcaseGallery()
+  const visualFirst = slide.kind !== 'hero'
+
   return (
     <section
       data-showcase-slide={slide.id}
@@ -196,11 +229,19 @@ function ShowcaseSlideView({
 
       <div
         className={cn(
-          'relative mx-auto grid w-full max-w-6xl gap-10 transition-all duration-700 ease-out lg:grid-cols-[minmax(0,1.05fr)_minmax(0,0.95fr)] lg:items-center',
+          'relative mx-auto grid w-full max-w-[90rem] gap-8 transition-all duration-700 ease-out lg:items-center lg:gap-10',
+          slide.visual
+            ? 'lg:grid-cols-[minmax(0,0.32fr)_minmax(0,0.68fr)]'
+            : 'max-w-6xl lg:grid-cols-1',
           active ? 'translate-y-0 opacity-100' : 'translate-y-6 opacity-55',
         )}
       >
-        <div className="max-w-2xl">
+        <div
+          className={cn(
+            slide.visual ? 'max-w-lg lg:max-w-none' : 'max-w-2xl',
+            visualFirst && slide.visual ? 'order-2 lg:order-1' : 'order-1',
+          )}
+        >
           <p className="text-[0.72rem] uppercase tracking-[0.22em] text-[var(--wellstudio-blue-soft)]">
             {slide.eyebrow}
           </p>
@@ -257,38 +298,51 @@ function ShowcaseSlideView({
 
           {slide.kind === 'hero' ? (
             <p className="mt-8 text-xs uppercase tracking-[0.2em] text-white/40">
-              Desliza o usa ← →
+              Desliza o usa ← → · Toca una captura para ampliar
             </p>
+          ) : null}
+
+          {slide.kind === 'journey' && slide.visual ? (
+            <button
+              type="button"
+              onClick={(event) => {
+                registerTrigger(event.currentTarget)
+                openGallery()
+              }}
+              className="mt-6 inline-flex items-center gap-2 text-xs uppercase tracking-[0.18em] text-white/45 transition-colors hover:text-white/75 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[var(--wellstudio-blue)]"
+            >
+              <Images className="size-3.5" aria-hidden="true" />
+              Ver galería completa
+            </button>
           ) : null}
         </div>
 
-        <div className="relative">
-          {slide.frame ? <ShowcaseFrame variant={slide.frame} /> : null}
-          {slide.demoPlaceholder ? (
-            <p className="mt-3 text-center text-[0.7rem] uppercase tracking-[0.18em] text-white/40">
-              {slide.demoPlaceholder}
-            </p>
-          ) : null}
-          {slide.kind === 'cta' ? (
-            <div className="rounded-[1.6rem] border border-white/12 bg-white/[0.04] p-6 sm:p-8">
-              <p className="font-display text-2xl uppercase tracking-[0.04em] text-white sm:text-3xl">
-                Un producto. Tres journeys.
+        {slide.visual ? (
+          <div
+            className={cn(
+              'relative w-full',
+              visualFirst ? 'order-1 lg:order-2' : 'order-2',
+              slide.kind === 'hero' && 'mt-2 lg:mt-0',
+            )}
+          >
+            <ShowcaseVisualPanel visual={slide.visual} />
+            {slide.demoPlaceholder ? (
+              <p className="mt-3 text-center text-[0.7rem] uppercase tracking-[0.18em] text-white/40">
+                {slide.demoPlaceholder}
               </p>
-              <p className="mt-3 text-sm leading-7 text-white/65">
-                Público · Socio · Staff. Misma marca, mismas reglas, menos fricción operativa.
-              </p>
-              <p className="mt-8 text-[0.7rem] leading-5 text-white/35">
-                Producto diseñado y construido por Miguel García — monolito Next.js.
-              </p>
-            </div>
-          ) : null}
-          {slide.kind === 'copy' || slide.kind === 'outcome' ? (
-            <div
-              aria-hidden="true"
-              className="hidden min-h-48 rounded-[1.6rem] border border-white/8 bg-[linear-gradient(145deg,rgba(79,137,197,0.16),rgba(255,255,255,0.03))] lg:block"
-            />
-          ) : null}
-        </div>
+            ) : null}
+            {slide.kind === 'cta' ? (
+              <div className="mt-4 rounded-[1.4rem] border border-white/12 bg-white/[0.04] px-5 py-4 sm:px-6 sm:py-5">
+                <p className="font-display text-xl uppercase tracking-[0.04em] text-white sm:text-2xl">
+                  Un producto. Tres journeys.
+                </p>
+                <p className="mt-2 text-sm leading-7 text-white/65">
+                  Público · Socio · Staff. Misma marca, mismas reglas, menos fricción operativa.
+                </p>
+              </div>
+            ) : null}
+          </div>
+        ) : null}
       </div>
     </section>
   )

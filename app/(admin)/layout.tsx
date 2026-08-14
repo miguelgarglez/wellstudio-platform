@@ -1,8 +1,8 @@
 import type { ReactNode } from 'react'
-import { notFound } from 'next/navigation'
+import { notFound, redirect } from 'next/navigation'
 
-import { requireAdminOrStaffContext } from '@/modules/auth/server/identity'
-import { getAuthenticatedAdminShellSummary } from '@/modules/admin/server/admin-shell-summary'
+import { buildAdminShellSummary } from '@/modules/admin/server/admin-shell-summary'
+import { resolveAdminAccess } from '@/modules/auth/server/identity'
 import { AdminShell } from '@/modules/admin/ui/admin-shell'
 
 export default async function AdminLayout({
@@ -10,13 +10,17 @@ export default async function AdminLayout({
 }: {
   children: ReactNode
 }) {
-  const authContext = await requireAdminOrStaffContext()
+  const access = await resolveAdminAccess()
 
-  if (!authContext) {
+  if (access.kind === 'unauthenticated') {
+    redirect('/login?redirectTo=/admin')
+  }
+
+  if (access.kind === 'forbidden') {
     notFound()
   }
 
-  const summary = await getAuthenticatedAdminShellSummary()
+  const summary = buildAdminShellSummary(access.context)
 
   return <AdminShell summary={summary}>{children}</AdminShell>
 }

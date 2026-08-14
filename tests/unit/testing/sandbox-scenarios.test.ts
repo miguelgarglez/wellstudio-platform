@@ -17,6 +17,10 @@ import {
   MEMBER_RESERVATIONS_FLOW_SESSION_KEYS,
 } from '@/modules/testing/server/sandbox-scenarios/member-reservations-flow.mjs'
 import {
+  buildShowcaseVitrinaSessionBlueprints,
+  SHOWCASE_VITRINA_SCENARIO,
+} from '@/modules/testing/server/sandbox-scenarios/showcase-vitrina.mjs'
+import {
   extractProjectRef,
   isManagedScenarioEmail,
 } from '@/modules/testing/server/sandbox-scenarios/shared.mjs'
@@ -24,6 +28,7 @@ import {
 describe('sandbox scenario helpers', () => {
   it('accepts only managed sandbox scenario emails', () => {
     expect(isManagedScenarioEmail('e2e.member.sandbox@wellstudio.test')).toBe(true)
+    expect(isManagedScenarioEmail('e2e.showcase.laura.sandbox@wellstudio.test')).toBe(true)
     expect(isManagedScenarioEmail('e2e.member.flow.sandbox@wellstudio.test')).toBe(true)
     expect(
       isManagedScenarioEmail(ADMIN_PLAYGROUND_MEMBER_EMAILS.weeklyActive),
@@ -159,5 +164,18 @@ describe('sandbox scenario helpers', () => {
       null,
     ])
     expect(profiles.some((profile) => !profile.hasMembership)).toBe(true)
+  })
+
+  it('builds showcase vitrina sessions with commercial labels', () => {
+    const now = new Date('2026-08-14T12:00:00.000Z')
+    const blueprints = buildShowcaseVitrinaSessionBlueprints(now)
+
+    expect(SHOWCASE_VITRINA_SCENARIO).toBe('showcase-vitrina')
+    expect(blueprints).toHaveLength(6)
+    expect(blueprints.every((session) => session.reservedCount > 0)).toBe(true)
+    expect(blueprints.some((session) => session.classTypeKey === 'fuerza')).toBe(true)
+    expect(blueprints.find((session) => session.key === 'fuerzaManana')?.locationLabel).toBe(
+      'Sala principal',
+    )
   })
 })
