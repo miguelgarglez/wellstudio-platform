@@ -1,6 +1,10 @@
 import { cache } from 'react'
 
 import { prisma } from '@/lib/db/prisma'
+import {
+  isSandboxFixtureProduct,
+  withoutSandboxFixtureProducts,
+} from '@/modules/public/server/sandbox-fixtures'
 
 const PUBLIC_SCHEDULE_DAYS = 30
 
@@ -43,35 +47,50 @@ type PublicSessionRecord = {
   coach: { id: string; displayName: string } | null
 }
 
-export const getPublicSchedule = cache(async (now = new Date()) => {
+export const getPublicSchedule = cache(async (includeSandboxFixtures = false) => {
+  const now = new Date()
   const until = new Date(now.getTime() + PUBLIC_SCHEDULE_DAYS * 86_400_000)
   const sessions = await prisma.classSession.findMany({
     where: {
       startsAt: { gt: now, lte: until },
       status: 'PUBLISHED',
-      classType: { status: 'ACTIVE', isPublic: true },
+      classType: {
+        status: 'ACTIVE',
+        isPublic: true,
+        ...withoutSandboxFixtureProducts(includeSandboxFixtures),
+      },
     },
     orderBy: [{ startsAt: 'asc' }, { id: 'asc' }],
     select: publicSessionSelect,
   })
 
-  return buildPublicSchedule(sessions, now, until)
+  return buildPublicSchedule(sessions, now, until, { includeSandboxFixtures })
 })
 
-export const getPublicSessionDetail = cache(async (sessionId: string, now = new Date()) => {
+export const getPublicSessionDetail = cache(async (
+  sessionId: string,
+  includeSandboxFixtures = false,
+) => {
   if (!sessionId) return null
 
+  const now = new Date()
   const session = await prisma.classSession.findFirst({
     where: {
       id: sessionId,
       startsAt: { gt: now },
       status: 'PUBLISHED',
-      classType: { status: 'ACTIVE', isPublic: true },
+      classType: {
+        status: 'ACTIVE',
+        isPublic: true,
+        ...withoutSandboxFixtureProducts(includeSandboxFixtures),
+      },
     },
     select: publicSessionSelect,
   })
 
-  return session ? mapPublicSession(session) : null
+  if (!session) return null
+  if (!includeSandboxFixtures && isSandboxFixtureProduct(session.classType)) return null
+  return mapPublicSession(session)
 })
 
 const publicSessionSelect = {
@@ -98,8 +117,11 @@ export function buildPublicSchedule(
   sessions: PublicSessionRecord[],
   now: Date,
   until: Date,
+  options: { includeSandboxFixtures?: boolean } = {},
 ) {
-  const items = sessions.map(mapPublicSession)
+  const items = sessions
+    .filter((session) => options.includeSandboxFixtures || !isSandboxFixtureProduct(session.classType))
+    .map(mapPublicSession)
   const groups = new Map<string, PublicScheduleSession[]>()
 
   for (const session of items) {

@@ -1,5 +1,6 @@
 import { Suspense } from 'react'
 
+import { readIncludeSandboxFixtures } from '@/lib/sandbox-fixture-request'
 import { getMemberAccountOverview } from '@/modules/members/server/member-account-overview'
 import { MemberAccountDashboard } from '@/modules/members/ui/member-account-dashboard'
 import { MemberAccountSectionSkeleton } from '@/modules/members/ui/member-portal-section-skeleton'
@@ -32,6 +33,7 @@ async function MemberAccountSection({ params }: {
     checkout: params.checkout,
     card: params.card,
     paymentId: params.payment,
+    includeSandboxFixtures: await readIncludeSandboxFixtures(),
   })
 
   return <MemberAccountDashboard overview={overview} />

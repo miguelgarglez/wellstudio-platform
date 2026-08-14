@@ -1,9 +1,12 @@
 import { Suspense } from 'react'
 import { redirect } from 'next/navigation'
 
+import { readIncludeSandboxFixtures } from '@/lib/sandbox-fixture-request'
 import { getAdminHomeOverview } from '@/modules/admin/server/admin-home-overview'
+import { readAdminOverview } from '@/modules/admin/server/admin-overview-result'
 import { AdminHomeDashboard, AdminHomeDashboardSkeleton } from '@/modules/admin/ui/admin-home-dashboard'
 import { AdminSectionShell } from '@/modules/admin/ui/admin-section-shell'
+import { AdminOverviewUnavailable } from '@/modules/admin/ui/admin-unavailable-panel'
 
 type AdminHomePageProps = {
   searchParams?: Promise<{ plan?: string; updated?: string }>
@@ -33,6 +36,11 @@ export default async function AdminHomePage({ searchParams }: AdminHomePageProps
 }
 
 async function AdminHomeSection() {
-  const overview = await getAdminHomeOverview()
-  return <AdminHomeDashboard overview={overview} />
+  const overview = await readAdminOverview(async () =>
+    getAdminHomeOverview({
+      includeSandboxFixtures: await readIncludeSandboxFixtures(),
+    }),
+  )
+  if (!overview.ok) return <AdminOverviewUnavailable retryHref="/admin" />
+  return <AdminHomeDashboard overview={overview.data} />
 }

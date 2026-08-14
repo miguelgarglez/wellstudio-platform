@@ -22,6 +22,7 @@ import {
   selectCurrentMembership,
   selectPendingMembership,
 } from '@/modules/members/server/member-commercial'
+import { withoutSandboxFixtureClassTypes } from '@/modules/public/server/sandbox-fixtures'
 
 type ReservationWithSession = Reservation & {
   classSession: {
@@ -192,7 +193,7 @@ export type MemberReservationsOverview = {
 }
 
 export const getMemberReservationsOverview = cache(
-  async (): Promise<MemberReservationsOverview> => {
+  async (includeSandboxFixtures = false): Promise<MemberReservationsOverview> => {
     const { requireAuthenticatedContext } = await import('@/modules/auth/server/identity')
     const authContext = await requireAuthenticatedContext()
     const member = authContext.member
@@ -205,6 +206,7 @@ export const getMemberReservationsOverview = cache(
     return getMemberReservationsOverviewForMember({
       memberId,
       memberStatus: member.status,
+      includeSandboxFixtures,
     })
   },
 )
@@ -213,10 +215,12 @@ export async function getMemberReservationsOverviewForMember(input: {
   memberId: string
   memberStatus: MemberStatus
   now?: Date
+  includeSandboxFixtures?: boolean
 }): Promise<MemberReservationsOverview> {
     const { prisma } = await import('@/lib/db/prisma')
     const memberId = input.memberId
     const now = input.now ?? new Date()
+    const includeSandboxFixtures = input.includeSandboxFixtures ?? false
 
     const [upcomingReservations, activeWaitlists, recentHistory, publishedSessions, creditAccounts] =
       await prisma.$transaction([
@@ -340,6 +344,7 @@ export async function getMemberReservationsOverviewForMember(input: {
           startsAt: {
             gte: now,
           },
+          ...withoutSandboxFixtureClassTypes(includeSandboxFixtures),
         },
         select: {
           id: true,

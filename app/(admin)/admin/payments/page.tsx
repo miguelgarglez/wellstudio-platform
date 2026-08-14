@@ -1,8 +1,11 @@
 import { Suspense } from 'react'
 
+import { readAdminOverview } from '@/modules/admin/server/admin-overview-result'
+import { readIncludeSandboxFixtures } from '@/lib/sandbox-fixture-request'
 import { getAdminPaymentsOverview } from '@/modules/admin/server/admin-payments-overview'
 import { AdminPaymentsDashboard, AdminPaymentsDashboardSkeleton } from '@/modules/admin/ui/admin-payments-dashboard'
 import { AdminSectionShell } from '@/modules/admin/ui/admin-section-shell'
+import { AdminOverviewUnavailable } from '@/modules/admin/ui/admin-unavailable-panel'
 
 type AdminPaymentsPageProps = {
   searchParams?: Promise<{ q?: string; status?: string; payment?: string }>
@@ -29,6 +32,14 @@ export default async function AdminPaymentsPage({ searchParams }: AdminPaymentsP
 }
 
 async function AdminPaymentsSection({ query, status, selectedPaymentId }: { query: string | null; status: string | null; selectedPaymentId: string | null }) {
-  const overview = await getAdminPaymentsOverview({ query, status, selectedPaymentId })
-  return <AdminPaymentsDashboard overview={overview} />
+  const overview = await readAdminOverview(async () =>
+    getAdminPaymentsOverview({
+      query,
+      status,
+      selectedPaymentId,
+      includeSandboxFixtures: await readIncludeSandboxFixtures(query),
+    }),
+  )
+  if (!overview.ok) return <AdminOverviewUnavailable retryHref="/admin/payments" />
+  return <AdminPaymentsDashboard overview={overview.data} />
 }

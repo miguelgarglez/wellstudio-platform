@@ -6,6 +6,7 @@ import type {
 } from '@prisma/client'
 
 import { prisma } from '@/lib/db/prisma'
+import { withoutSandboxFixtureMembers } from '@/modules/public/server/sandbox-fixtures'
 
 const LIST_LIMIT = 50
 const RECENT_WINDOW_MS = 24 * 60 * 60 * 1_000
@@ -34,11 +35,13 @@ export async function getAdminPaymentsOverview(input: {
   status?: string | null
   selectedPaymentId?: string | null
   now?: Date
+  includeSandboxFixtures?: boolean
 } = {}) {
   const now = input.now ?? new Date()
   const query = normalizeQuery(input.query)
   const status = parseAdminPaymentStatusFilter(input.status)
-  const where = buildPaymentListWhere({ query, status })
+  const includeSandboxFixtures = input.includeSandboxFixtures ?? false
+  const where = buildPaymentListWhere({ query, status, includeSandboxFixtures })
   const recentSince = new Date(now.getTime() - RECENT_WINDOW_MS)
 
   const [payments, failedCount, activeCount, succeededRecentCount, selectedPayment] = await Promise.all([
@@ -53,11 +56,8 @@ export async function getAdminPaymentsOverview(input: {
     prisma.payment.count({
       where: { status: 'SUCCEEDED', capturedAt: { gte: recentSince } },
     }),
-    input.selectedPaymentId
-      ? prisma.payment.findUnique({
-          where: { id: input.selectedPaymentId },
-          select: paymentDetailSelect,
-        })
+    input.selectedPaymentId?.trim()
+      ? loadSelectedPayment(input.selectedPaymentId.trim())
       : Promise.resolve(null),
   ])
 
@@ -133,6 +133,7 @@ export function truncateOperationalId(value: string | null) {
 function buildPaymentListWhere(input: {
   query: string
   status: AdminPaymentStatusFilter
+  includeSandboxFixtures: boolean
 }): Prisma.PaymentWhereInput {
   const statuses: PaymentStatus[] | undefined = input.status === 'pending'
     ? ['PENDING', 'REQUIRES_ACTION']
@@ -160,7 +161,13 @@ function buildPaymentListWhere(input: {
           })),
         }
       : {}),
+    ...withoutSandboxFixturePaymentMembers(input.includeSandboxFixtures),
   }
+}
+
+function withoutSandboxFixturePaymentMembers(includeSandboxFixtures: boolean) {
+  if (includeSandboxFixtures) return {}
+  return { member: withoutSandboxFixtureMembers(false) }
 }
 
 function mapPaymentListItem(
@@ -273,6 +280,18 @@ async function loadProductNames(items: Array<{
   )
 }
 
+async function loadSelectedPayment(paymentId: string) {
+  try {
+    return await prisma.payment.findUnique({
+      where: { id: paymentId },
+      select: paymentDetailSelect,
+    })
+  } catch (error) {
+    console.error('Failed to load selected admin payment', error)
+    return null
+  }
+}
+
 function formatMemberName(member: { firstName: string; lastName: string }) {
   return `${member.firstName} ${member.lastName}`.trim()
 }
@@ -301,6 +320,8 @@ function formatPaymentStatus(status: PaymentStatus) {
       return { label: 'Cancelado', tone: 'neutral' as const }
     case 'REFUNDED':
       return { label: 'Reembolsado', tone: 'neutral' as const }
+    default:
+      return { label: 'Estado desconocido', tone: 'neutral' as const }
   }
 }
 
@@ -329,6 +350,8 @@ function formatEventStatus(status: PaymentEventProcessingStatus) {
       return { label: 'Evento ignorado', tone: 'neutral' as const }
     case 'FAILED':
       return { label: 'Evento fallido', tone: 'danger' as const }
+    default:
+      return { label: 'Evento desconocido', tone: 'neutral' as const }
   }
 }
 

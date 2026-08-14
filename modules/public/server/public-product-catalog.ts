@@ -2,6 +2,10 @@ import { cache } from 'react'
 
 import { prisma } from '@/lib/db/prisma'
 import {
+  isSandboxFixtureProduct,
+  withoutSandboxFixtureProducts,
+} from '@/modules/public/server/sandbox-fixtures'
+import {
   resolveEffectiveMembershipBookingPolicy,
   type MembershipBookingPolicySnapshot,
 } from '@/modules/reservations/server/membership-booking-policy'
@@ -61,10 +65,11 @@ export type PublicProductCatalog = {
   productCount: number
 }
 
-export const getPublicProductCatalog = cache(async () => {
+export const getPublicProductCatalog = cache(async (includeSandboxFixtures = false) => {
+  const commercialProductFilter = withoutSandboxFixtureProducts(includeSandboxFixtures)
   const [plans, creditPacks] = await Promise.all([
     prisma.membershipPlan.findMany({
-      where: { status: 'ACTIVE', isPublic: true },
+      where: { status: 'ACTIVE', isPublic: true, ...commercialProductFilter },
       orderBy: [{ priceAmount: 'asc' }, { name: 'asc' }],
       select: {
         id: true,
@@ -84,7 +89,7 @@ export const getPublicProductCatalog = cache(async () => {
       },
     }),
     prisma.creditPack.findMany({
-      where: { status: 'ACTIVE', isPublic: true },
+      where: { status: 'ACTIVE', isPublic: true, ...commercialProductFilter },
       orderBy: [{ priceAmount: 'asc' }, { name: 'asc' }],
       select: {
         id: true,
@@ -101,19 +106,22 @@ export const getPublicProductCatalog = cache(async () => {
     }),
   ])
 
-  return buildPublicProductCatalog({ plans, creditPacks })
+  return buildPublicProductCatalog({ plans, creditPacks, includeSandboxFixtures })
 })
 
 export function buildPublicProductCatalog(input: {
   plans: PublicPlanRecord[]
   creditPacks: PublicCreditPackRecord[]
+  includeSandboxFixtures?: boolean
 }): PublicProductCatalog {
   const plans = input.plans
     .filter(isPublicActiveProduct)
+    .filter((plan) => input.includeSandboxFixtures || !isSandboxFixtureProduct(plan))
     .sort(compareProductRecords)
     .map(mapPublicMembershipPlan)
   const creditPacks = input.creditPacks
     .filter(isPublicActiveProduct)
+    .filter((pack) => input.includeSandboxFixtures || !isSandboxFixtureProduct(pack))
     .sort(compareProductRecords)
     .map(mapPublicCreditPack)
 

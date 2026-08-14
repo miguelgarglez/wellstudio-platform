@@ -18,6 +18,12 @@ import {
 } from '@/modules/testing/server/sandbox-scenarios/member-reservations-flow.mjs'
 import {
   buildShowcaseVitrinaSessionBlueprints,
+  SHOWCASE_VITRINA_CLASS_TYPE_SLUGS,
+  SHOWCASE_VITRINA_COACH_NAMES,
+  SHOWCASE_VITRINA_CREDIT_PACK_SLUG,
+  SHOWCASE_VITRINA_DEMO_MEMBERS,
+  SHOWCASE_VITRINA_LEGACY_DEMO_MEMBER_EMAILS,
+  SHOWCASE_VITRINA_PLAN_SLUGS,
   SHOWCASE_VITRINA_SCENARIO,
 } from '@/modules/testing/server/sandbox-scenarios/showcase-vitrina.mjs'
 import {
@@ -28,12 +34,12 @@ import {
 describe('sandbox scenario helpers', () => {
   it('accepts only managed sandbox scenario emails', () => {
     expect(isManagedScenarioEmail('e2e.member.sandbox@wellstudio.test')).toBe(true)
-    expect(isManagedScenarioEmail('e2e.showcase.laura.sandbox@wellstudio.test')).toBe(true)
     expect(isManagedScenarioEmail('e2e.member.flow.sandbox@wellstudio.test')).toBe(true)
     expect(
       isManagedScenarioEmail(ADMIN_PLAYGROUND_MEMBER_EMAILS.weeklyActive),
     ).toBe(true)
     expect(isManagedScenarioEmail('miguel.garglez@gmail.com')).toBe(false)
+    expect(isManagedScenarioEmail('laura.mendez@wellstudio.es')).toBe(false)
     expect(isManagedScenarioEmail('e2e.member.local@wellstudio.test')).toBe(false)
   })
 
@@ -177,5 +183,28 @@ describe('sandbox scenario helpers', () => {
     expect(blueprints.find((session) => session.key === 'fuerzaManana')?.locationLabel).toBe(
       'Sala principal',
     )
+  })
+
+  it('keeps vitrina catalog and demo members on commercial identifiers', () => {
+    expect(SHOWCASE_VITRINA_PLAN_SLUGS).toEqual([
+      'showcase-plan-constancia',
+      'showcase-plan-flex',
+    ])
+    expect(SHOWCASE_VITRINA_CREDIT_PACK_SLUG).toBe('showcase-bono-6')
+    expect(SHOWCASE_VITRINA_CLASS_TYPE_SLUGS.every((slug) => slug.startsWith('showcase-'))).toBe(true)
+    expect(SHOWCASE_VITRINA_COACH_NAMES).toEqual(['Laura Martínez', 'Carlos Vega'])
+
+    const demoMembers = Object.values(SHOWCASE_VITRINA_DEMO_MEMBERS)
+    expect(demoMembers.map((member) => `${member.firstName} ${member.lastName}`)).toEqual([
+      'Laura Méndez',
+      'Carlos Ruiz',
+      'Ana Torres',
+      'Pablo Navarro',
+    ])
+    expect(demoMembers.every((member) => member.email.endsWith('@wellstudio.es'))).toBe(true)
+    expect(demoMembers.every((member) => (member.sessionKeys?.length ?? 0) > 0)).toBe(true)
+    expect(SHOWCASE_VITRINA_DEMO_MEMBERS.laura.planKey).toBe('constancia')
+    expect(SHOWCASE_VITRINA_DEMO_MEMBERS.ana.creditPack).toBe(true)
+    expect(SHOWCASE_VITRINA_LEGACY_DEMO_MEMBER_EMAILS.every((email) => email.endsWith('@wellstudio.test'))).toBe(true)
   })
 })

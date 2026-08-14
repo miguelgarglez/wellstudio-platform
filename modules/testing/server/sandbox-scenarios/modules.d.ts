@@ -129,6 +129,22 @@ declare module '@/modules/testing/server/sandbox-scenarios/admin-playground.mjs'
 declare module '@/modules/testing/server/sandbox-scenarios/showcase-vitrina.mjs' {
   export const SHOWCASE_VITRINA_SCENARIO: string
   export const SHOWCASE_VITRINA_CONFIRM_MEMBER_FLAG: string
+  export const SHOWCASE_VITRINA_PLAN_SLUGS: string[]
+  export const SHOWCASE_VITRINA_CREDIT_PACK_SLUG: string
+  export const SHOWCASE_VITRINA_CLASS_TYPE_SLUGS: string[]
+  export const SHOWCASE_VITRINA_COACH_NAMES: string[]
+  export const SHOWCASE_VITRINA_LEGACY_DEMO_MEMBER_EMAILS: string[]
+  export const SHOWCASE_VITRINA_DEMO_MEMBERS: Record<
+    string,
+    {
+      email: string
+      firstName: string
+      lastName: string
+      planKey: string | null
+      creditPack?: boolean
+      sessionKeys: string[]
+    }
+  >
 
   export function buildShowcaseVitrinaSessionBlueprints(now?: Date): Array<{
     key: string

@@ -1,6 +1,7 @@
 import type { Metadata } from 'next'
 import { Suspense } from 'react'
 
+import { readIncludeSandboxFixtures } from '@/lib/sandbox-fixture-request'
 import { getPublicSchedule } from '@/modules/public/server/public-schedule'
 import { PublicSchedulePage } from '@/modules/public/ui/schedule/public-schedule-page'
 import { PublicScheduleSkeleton } from '@/modules/public/ui/schedule/public-schedule-skeleton'
@@ -44,7 +45,7 @@ export default function ClassesPage({ searchParams }: ClassesPageProps) {
 async function ClassesContent({ searchParams }: ClassesPageProps) {
   const emptyFilters: { class?: string | string[]; coach?: string | string[] } = {}
   const [schedule, filters] = await Promise.all([
-    getPublicSchedule(),
+    getPublicSchedule(await readIncludeSandboxFixtures()),
     searchParams ?? Promise.resolve(emptyFilters),
   ])
 

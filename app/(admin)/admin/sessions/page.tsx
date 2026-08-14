@@ -1,11 +1,14 @@
 import { Suspense } from 'react'
 
+import { readAdminOverview } from '@/modules/admin/server/admin-overview-result'
+import { readIncludeSandboxFixtures } from '@/lib/sandbox-fixture-request'
 import { getAdminSessionOverview } from '@/modules/admin/server/admin-sessions-overview'
 import {
   AdminSessionsDashboard,
   AdminSessionsDashboardSkeleton,
 } from '@/modules/admin/ui/admin-sessions-dashboard'
 import { AdminSectionShell } from '@/modules/admin/ui/admin-section-shell'
+import { AdminOverviewUnavailable } from '@/modules/admin/ui/admin-unavailable-panel'
 
 type Props = {
   searchParams?: Promise<{ session?: string; updated?: string; notice?: string }>
@@ -39,6 +42,12 @@ async function AdminSessionsSection({
   updated: string | null
   notice: string | null
 }) {
-  const overview = await getAdminSessionOverview({ selectedSessionId: sessionId })
-  return <AdminSessionsDashboard overview={overview} updated={updated} notice={notice} />
+  const overview = await readAdminOverview(async () =>
+    getAdminSessionOverview({
+      selectedSessionId: sessionId,
+      includeSandboxFixtures: await readIncludeSandboxFixtures(),
+    }),
+  )
+  if (!overview.ok) return <AdminOverviewUnavailable retryHref="/admin/sessions" />
+  return <AdminSessionsDashboard overview={overview.data} updated={updated} notice={notice} />
 }

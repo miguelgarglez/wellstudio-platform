@@ -248,4 +248,39 @@ describe('buildMemberAccountOverview', () => {
     })
     expect(overview.alerts.map((alert) => alert.kind)).toContain('no-entitlement')
   })
+
+  it('hides E2E credit packs from the commercial purchase list', () => {
+    const overview = buildMemberAccountOverview({
+      authContext: buildAuthenticatedContext(),
+      memberships: [],
+      creditAccounts: [],
+      cards: [],
+      payments: [],
+      creditPacks: [
+        {
+          id: 'pack-commercial',
+          slug: 'showcase-bono-6',
+          name: 'Bono 6 sesiones',
+          description: null,
+          creditsTotal: 6,
+          expiresAfterDays: 90,
+          priceAmount: 6500,
+          currency: 'EUR',
+        },
+        {
+          id: 'pack-e2e',
+          slug: 'e2e-payment-checkout',
+          name: 'E2E Bono Checkout',
+          description: null,
+          creditsTotal: 6,
+          expiresAfterDays: 90,
+          priceAmount: 6500,
+          currency: 'EUR',
+        },
+      ],
+      now: new Date('2026-03-20T09:00:00.000Z'),
+    })
+
+    expect(overview.purchasableCreditPacks.map((pack) => pack.id)).toEqual(['pack-commercial'])
+  })
 })

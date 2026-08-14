@@ -18,6 +18,7 @@ import {
   selectPendingMembership,
   selectPrimaryCard,
 } from '@/modules/members/server/member-commercial'
+import { isSandboxFixtureProduct, withoutSandboxFixtureProducts } from '@/modules/public/server/sandbox-fixtures'
 import {
   buildMemberShellSummary,
   type MemberShellSummary,
@@ -113,6 +114,7 @@ export const getMemberAccountOverview = cache(async (options: {
   checkout?: string
   card?: string
   paymentId?: string
+  includeSandboxFixtures?: boolean
 } = {}): Promise<MemberAccountOverview> => {
   const { requireAuthenticatedContext } = await import('@/modules/auth/server/identity')
   const { prisma } = await import('@/lib/db/prisma')
@@ -213,7 +215,11 @@ export const getMemberAccountOverview = cache(async (options: {
       take: 5,
     }),
     prisma.creditPack.findMany({
-      where: { status: 'ACTIVE', isPublic: true },
+      where: {
+        status: 'ACTIVE',
+        isPublic: true,
+        ...withoutSandboxFixtureProducts(options.includeSandboxFixtures ?? false),
+      },
       select: {
         id: true,
         slug: true,
@@ -256,6 +262,7 @@ export const getMemberAccountOverview = cache(async (options: {
     card: options.card,
     checkoutPayment,
     cardSetupPayment,
+    includeSandboxFixtures: options.includeSandboxFixtures ?? false,
     now,
   })
 })
@@ -272,6 +279,7 @@ export function buildMemberAccountOverview({
   card,
   checkoutPayment,
   cardSetupPayment,
+  includeSandboxFixtures = false,
   now,
 }: {
   authContext: Extract<AuthContext, { isAuthenticated: true }>
@@ -294,6 +302,7 @@ export function buildMemberAccountOverview({
   card?: string
   checkoutPayment?: { id?: string; status: PaymentStatus } | null
   cardSetupPayment?: { id?: string; status: PaymentStatus } | null
+  includeSandboxFixtures?: boolean
   now: Date
 }): MemberAccountOverview {
   const summary = buildMemberShellSummary(authContext)
@@ -339,8 +348,12 @@ export function buildMemberAccountOverview({
       hasLinkedCard: Boolean(primaryCard),
     }),
     payments: payments.map((payment) => mapPaymentItem(payment)),
-    purchasableCreditPacks: creditPacks.map(mapPurchasableCreditPack),
-    selectedCreditPackId: creditPacks.find((pack) => pack.slug === selectedPackSlug)?.id ?? null,
+    purchasableCreditPacks: creditPacks
+      .filter((pack) => includeSandboxFixtures || !isSandboxFixtureProduct(pack))
+      .map(mapPurchasableCreditPack),
+    selectedCreditPackId: creditPacks
+      .filter((pack) => includeSandboxFixtures || !isSandboxFixtureProduct(pack))
+      .find((pack) => pack.slug === selectedPackSlug)?.id ?? null,
     linkedCardLabel,
     hasLinkedCard: Boolean(primaryCard),
     checkoutNotice: buildCheckoutNotice({ checkout, payment: checkoutPayment }),

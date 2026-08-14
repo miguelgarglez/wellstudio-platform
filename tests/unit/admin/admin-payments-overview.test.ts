@@ -160,4 +160,38 @@ describe('admin payments overview', () => {
     expect(truncateOperationalId('short-reference')).toBe('short-reference')
     expect(truncateOperationalId('1234567890abcdefghij123456')).toBe('1234567890…123456')
   })
+
+  it('maps unknown payment statuses without throwing', () => {
+    const overview = buildAdminPaymentsOverview({
+      query: '',
+      status: 'all',
+      payments: [{
+        id: 'payment-legacy-1',
+        status: 'LEGACY' as never,
+        paymentType: 'CREDIT_PACK_PURCHASE',
+        amount: 1000,
+        currency: 'EUR',
+        provider: 'stripe',
+        createdAt: now,
+        member: {
+          firstName: 'Ana',
+          lastName: 'Socio',
+          user: { email: 'ana@example.com' },
+        },
+        items: [],
+        events: [],
+      }] as never,
+      failedCount: 0,
+      activeCount: 0,
+      succeededRecentCount: 0,
+      selectedPayment: null,
+      productNames: {},
+      now,
+    })
+
+    expect(overview.payments[0]).toMatchObject({
+      statusLabel: 'Estado desconocido',
+      eventHealthLabel: 'Sin evento asociado',
+    })
+  })
 })

@@ -64,31 +64,49 @@ const COACHES = [
 
 const DEMO_MEMBERS = {
   laura: {
-    email: 'e2e.showcase.laura.sandbox@wellstudio.test',
+    email: 'laura.mendez@wellstudio.es',
     firstName: 'Laura',
     lastName: 'Méndez',
     planKey: 'constancia',
+    sessionKeys: ['fuerzaManana', 'fuerzaTarde'],
   },
   carlos: {
-    email: 'e2e.showcase.carlos.sandbox@wellstudio.test',
+    email: 'carlos.ruiz@wellstudio.es',
     firstName: 'Carlos',
     lastName: 'Ruiz',
     planKey: 'flex',
+    sessionKeys: ['dinamicoManana'],
   },
   ana: {
-    email: 'e2e.showcase.ana.sandbox@wellstudio.test',
+    email: 'ana.torres@wellstudio.es',
     firstName: 'Ana',
     lastName: 'Torres',
     planKey: null,
     creditPack: true,
+    sessionKeys: ['movilidad'],
   },
   pablo: {
-    email: 'e2e.showcase.pablo.sandbox@wellstudio.test',
+    email: 'pablo.navarro@wellstudio.es',
     firstName: 'Pablo',
     lastName: 'Navarro',
     planKey: 'constancia',
+    sessionKeys: ['fuerzaMediodia'],
   },
 }
+
+const LEGACY_DEMO_MEMBER_EMAILS = [
+  'e2e.showcase.laura.sandbox@wellstudio.test',
+  'e2e.showcase.carlos.sandbox@wellstudio.test',
+  'e2e.showcase.ana.sandbox@wellstudio.test',
+  'e2e.showcase.pablo.sandbox@wellstudio.test',
+]
+
+export const SHOWCASE_VITRINA_PLAN_SLUGS = Object.values(PLANS).map((plan) => plan.slug)
+export const SHOWCASE_VITRINA_CREDIT_PACK_SLUG = CREDIT_PACK.slug
+export const SHOWCASE_VITRINA_CLASS_TYPE_SLUGS = Object.values(CLASS_TYPES).map((classType) => classType.slug)
+export const SHOWCASE_VITRINA_COACH_NAMES = COACHES.map((coach) => coach.displayName)
+export const SHOWCASE_VITRINA_DEMO_MEMBERS = DEMO_MEMBERS
+export const SHOWCASE_VITRINA_LEGACY_DEMO_MEMBER_EMAILS = LEGACY_DEMO_MEMBER_EMAILS
 
 export function buildShowcaseVitrinaSessionBlueprints(now = new Date()) {
   return [
@@ -192,7 +210,7 @@ export async function ensureShowcaseVitrinaScenario({
           now,
         })
 
-        await ensureDemoMembers(tx, { plans, creditPack, now })
+        await ensureDemoMembers(tx, { plans, creditPack, sessions, now })
         let showcaseMember = null
 
         if (showcaseMemberEmail) {
@@ -408,7 +426,9 @@ async function ensureSessions(tx, { classTypes, coaches, blueprints, now }) {
   return sessions
 }
 
-async function ensureDemoMembers(tx, { plans, creditPack, now }) {
+async function ensureDemoMembers(tx, { plans, creditPack, sessions, now }) {
+  await retireLegacyDemoMembers(tx, now)
+
   for (const profile of Object.values(DEMO_MEMBERS)) {
     const user = await ensureUser(tx, profile.email, now)
     const member = await ensureMember(tx, user.id, profile, now)
@@ -420,6 +440,10 @@ async function ensureDemoMembers(tx, { plans, creditPack, now }) {
     await tx.memberCreditAccount.updateMany({
       where: { memberId: member.id },
       data: { status: 'CANCELED' },
+    })
+    await tx.reservation.updateMany({
+      where: { memberId: member.id, status: 'BOOKED' },
+      data: { status: 'CANCELED', canceledAt: now },
     })
 
     if (profile.planKey) {
@@ -454,6 +478,59 @@ async function ensureDemoMembers(tx, { plans, creditPack, now }) {
         },
       })
     }
+
+    for (const sessionKey of profile.sessionKeys ?? []) {
+      const session = sessions.find((item) => item.key === sessionKey)
+      if (!session) continue
+
+      await tx.reservation.create({
+        data: {
+          memberId: member.id,
+          classSessionId: session.id,
+          status: 'BOOKED',
+          attendanceStatus: 'PENDING',
+          source: 'MEMBER_APP',
+          bookedAt: now,
+        },
+      })
+      await tx.classSession.update({
+        where: { id: session.id },
+        data: { reservedCount: { increment: 1 } },
+      })
+    }
+  }
+}
+
+async function retireLegacyDemoMembers(tx, now) {
+  for (const email of LEGACY_DEMO_MEMBER_EMAILS) {
+    const user = await tx.user.findUnique({
+      where: { normalizedEmail: email.trim().toLowerCase() },
+      select: { id: true },
+    })
+    if (!user) continue
+
+    const member = await tx.member.findUnique({
+      where: { userId: user.id },
+      select: { id: true },
+    })
+    if (!member) continue
+
+    await tx.reservation.updateMany({
+      where: { memberId: member.id, status: 'BOOKED' },
+      data: { status: 'CANCELED', canceledAt: now },
+    })
+    await tx.memberMembership.updateMany({
+      where: { memberId: member.id },
+      data: { status: 'CANCELED' },
+    })
+    await tx.memberCreditAccount.updateMany({
+      where: { memberId: member.id },
+      data: { status: 'CANCELED' },
+    })
+    await tx.member.update({
+      where: { id: member.id },
+      data: { status: 'INACTIVE' },
+    })
   }
 }
 

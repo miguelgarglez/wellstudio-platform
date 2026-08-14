@@ -9,8 +9,9 @@ Preparar datos **marketing-friendly** en Preview antes de capturar pantallas par
 
 - Planes y bonos con nombres comerciales (sin prefijo `E2E`)
 - Agenda pública poblada (Fuerza Premium, Dinámico, Movilidad & Core)
-- Socios demo con nombres reales en español
+- Socios demo con nombres reales en español y emails `@wellstudio.es`
 - Perfil vitrina del socio comercial (opcional: tu cuenta real)
+- Las superficies comerciales **ocultan** catálogo/socios/sesiones E2E aunque sigan en la misma BD
 
 ## Qué crea el escenario `showcase-vitrina`
 
@@ -19,10 +20,12 @@ Preparar datos **marketing-friendly** en Preview antes de capturar pantallas par
 | **Catálogo público** | Plan Constancia, Plan Flex, Bono 6 sesiones (`showcase-*` slugs) |
 | **Agenda** | 6 sesiones publicadas en los próximos días, aforo 40–80 % |
 | **Coaches** | Laura Martínez, Carlos Vega |
-| **Socios demo** | Laura Méndez, Carlos Ruiz, Ana Torres, Pablo Navarro (`e2e.showcase.*.sandbox@wellstudio.test`) |
-| **Socio vitrina** | Si pasas `SHOWCASE_MEMBER_EMAIL`: plan activo + bono + reserva próxima |
+| **Socios demo** | Laura Méndez, Carlos Ruiz, Ana Torres, Pablo Navarro (`*@wellstudio.es`), con plan o bono y reserva próxima |
+| **Socio vitrina** | Si pasas `SHOWCASE_MEMBER_EMAIL`: plan activo + bono comercial + reserva próxima |
 
-No borra fixtures E2E existentes; solo gestiona entidades con slug `showcase-*` y socios `e2e.showcase.*`.
+El seed **no borra** fixtures E2E (`e2e-*`, `E2E …`, `admin-playground-*`). Las queries de vitrina (planes, clases, cuenta, admin) las filtran. Los tests E2E las siguen viendo porque Playwright envía `x-wellstudio-sandbox-fixtures: 1`.
+
+Emails demo antiguos `e2e.showcase.*.sandbox@wellstudio.test` se marcan inactivos al re-seedar.
 
 ## Requisitos
 
@@ -46,6 +49,8 @@ SHOWCASE_MEMBER_EMAIL=miguel.garglez@gmail.com \
 ```
 
 (`--` separa args de pnpm del script.)
+
+Este re-seed en Preview es un **paso de operador**. El código no muta Preview por sí solo.
 
 ## Admin comercial para capturas (`@wellstudio.es`)
 
@@ -72,19 +77,18 @@ SHOWCASE_ADMIN_EMAIL=demo@wellstudio.es SHOWCASE_ADMIN_PASSWORD='…' \
 node scripts/optimize-showcase-shots.mjs   # brew install webp
 ```
 
-Staff usa `SHOWCASE_ADMIN_EMAIL` (fallback `E2E_ADMIN_EMAIL`).
+Staff usa `SHOWCASE_ADMIN_EMAIL` (fallback `E2E_ADMIN_EMAIL`). El script de captura **no** envía el header E2E, así que las pantallas quedan comerciales.
 
 ## Checklist visual post-seed
 
-- [ ] `/classes` — horarios esta semana, nombres comerciales, ocupación visible
+- [ ] `/classes` — horarios esta semana, nombres comerciales, ocupación visible (sin `E2E …`)
 - [ ] `/plans` — Plan Constancia / Bono 6 sesiones (no “E2E …”)
 - [ ] `/app` (socio vitrina) — plan activo + próxima reserva Fuerza Premium
 - [ ] `/app/account` — “Bono 6 sesiones”, no “E2E Bono Checkout”
-- [ ] `/admin/sessions` — agenda poblada
-- [ ] `/admin/members` — Laura Méndez, Carlos Ruiz, etc.
+- [ ] `/admin/sessions` — agenda poblada con Fuerza Premium / Dinámico
+- [ ] `/admin/members` — Laura Méndez, Carlos Ruiz, Ana Torres, Pablo Navarro
 
 ## Limitaciones
 
-- Preview comparte BD con E2E: pueden seguir apareciendo filas E2E antiguas en listados largos. El escenario vitrina no las elimina.
-- La agenda pública puede seguir mezclando sesiones E2E si existen; priorizar recaptura tras seed y revisar `/classes` manualmente.
+- Preview comparte BD con E2E: los fixtures de test siguen existiendo. Las listas comerciales los ocultan; un admin puede encontrarlos buscando `E2E` o `@wellstudio.test`.
 - Staff sidebar muestra **`demo@wellstudio.es`** tras `pnpm sandbox:showcase-demo-admin`.

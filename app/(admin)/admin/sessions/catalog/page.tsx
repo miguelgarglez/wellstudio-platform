@@ -1,8 +1,11 @@
 import { Suspense } from 'react'
 
+import { readIncludeSandboxFixtures } from '@/lib/sandbox-fixture-request'
 import { getAdminClassCatalogOverview } from '@/modules/admin/server/admin-class-catalog-overview'
+import { readAdminOverview } from '@/modules/admin/server/admin-overview-result'
 import { AdminClassCatalogDashboard, AdminClassCatalogDashboardSkeleton } from '@/modules/admin/ui/admin-class-catalog-dashboard'
 import { AdminSectionShell } from '@/modules/admin/ui/admin-section-shell'
+import { AdminOverviewUnavailable } from '@/modules/admin/ui/admin-unavailable-panel'
 
 type Props = { searchParams?: Promise<{ tab?: string; updated?: string; notice?: string }> }
 
@@ -21,6 +24,11 @@ export default async function AdminClassCatalogPage({ searchParams }: Props) {
 }
 
 async function CatalogSection({ tab, updated, notice }: { tab: 'classes' | 'coaches'; updated: string | null; notice: string | null }) {
-  const overview = await getAdminClassCatalogOverview()
-  return <AdminClassCatalogDashboard overview={overview} tab={tab} updated={updated} notice={notice} />
+  const overview = await readAdminOverview(async () =>
+    getAdminClassCatalogOverview({
+      includeSandboxFixtures: await readIncludeSandboxFixtures(),
+    }),
+  )
+  if (!overview.ok) return <AdminOverviewUnavailable retryHref="/admin/sessions/catalog" />
+  return <AdminClassCatalogDashboard overview={overview.data} tab={tab} updated={updated} notice={notice} />
 }

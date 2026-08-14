@@ -1,6 +1,7 @@
 import type { Metadata } from 'next'
 import { notFound } from 'next/navigation'
 
+import { readIncludeSandboxFixtures } from '@/lib/sandbox-fixture-request'
 import { getPublicSessionDetail } from '@/modules/public/server/public-schedule'
 import { PublicSessionDetailPage } from '@/modules/public/ui/schedule/public-session-detail-page'
 
@@ -10,7 +11,7 @@ type PublicSessionPageProps = {
 
 export async function generateMetadata({ params }: PublicSessionPageProps): Promise<Metadata> {
   const { sessionId } = await params
-  const session = await getPublicSessionDetail(sessionId)
+  const session = await getPublicSessionDetail(sessionId, await readIncludeSandboxFixtures())
 
   if (!session) {
     notFound()
@@ -36,7 +37,7 @@ export async function generateMetadata({ params }: PublicSessionPageProps): Prom
 
 export default async function PublicSessionPage({ params }: PublicSessionPageProps) {
   const { sessionId } = await params
-  const session = await getPublicSessionDetail(sessionId)
+  const session = await getPublicSessionDetail(sessionId, await readIncludeSandboxFixtures())
 
   if (!session) notFound()
 

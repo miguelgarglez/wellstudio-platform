@@ -174,6 +174,25 @@ describe('admin members overview', () => {
     expect(overview.selectedMemberId).toBeNull()
     expect(overview.selectedMember).toBeNull()
   })
+
+  it('keeps the member dossier when the booking workspace query fails', async () => {
+    const consoleError = vi.spyOn(console, 'error').mockImplementation(() => {})
+    memberFindManyMock.mockResolvedValue([])
+    memberFindUniqueMock.mockResolvedValue(buildSelectedMember())
+    bookingOverviewMock.mockRejectedValue(new Error('db timeout'))
+
+    const overview = await getAdminMembersOverview({
+      selectedMemberId: 'member-1',
+      now,
+    })
+
+    expect(overview.selectedMember).toMatchObject({
+      id: 'member-1',
+      displayName: 'Marta Semanal',
+      bookingWorkspace: null,
+    })
+    consoleError.mockRestore()
+  })
 })
 
 function buildSelectedMember() {

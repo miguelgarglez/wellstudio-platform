@@ -1,5 +1,10 @@
 import { prisma } from '@/lib/db/prisma'
-import type { AttendanceStatus, ClassSessionStatus, ReservationStatus } from '@prisma/client'
+import type { AttendanceStatus, ClassSessionStatus, Prisma, ReservationStatus } from '@prisma/client'
+import {
+  withoutSandboxFixtureClassTypes,
+  withoutSandboxFixtureCoaches,
+  withoutSandboxFixtureProducts,
+} from '@/modules/public/server/sandbox-fixtures'
 
 const SESSION_WINDOW_DAYS = 45
 
@@ -39,44 +44,49 @@ type RosterRecord = {
 
 export type AdminSessionOverview = Awaited<ReturnType<typeof getAdminSessionOverview>>
 
+const sessionListSelect = {
+  id: true,
+  startsAt: true,
+  endsAt: true,
+  capacity: true,
+  reservedCount: true,
+  waitlistEnabled: true,
+  locationLabel: true,
+  status: true,
+  classTypeId: true,
+  coachId: true,
+  updatedAt: true,
+  classType: { select: { name: true } },
+  coach: { select: { displayName: true } },
+  _count: {
+    select: {
+      waitlistEntries: { where: { status: { in: ['WAITING', 'NOTIFIED'] } } },
+    },
+  },
+} satisfies Prisma.ClassSessionSelect
+
 export async function getAdminSessionOverview(input: {
   selectedSessionId?: string | null
   from?: Date
+  includeSandboxFixtures?: boolean
 }) {
   const now = input.from ?? new Date()
   const earliest = new Date(now.getTime() - 14 * 86_400_000)
   const until = new Date(now.getTime() + SESSION_WINDOW_DAYS * 86_400_000)
-  const selectedSessionId = input.selectedSessionId ?? null
+  const selectedSessionId = input.selectedSessionId?.trim() || null
+  const includeSandboxFixtures = input.includeSandboxFixtures ?? false
 
-  const [sessions, classTypes, coaches, selectedRoster] = await Promise.all([
+  const [sessions, classTypes, coaches, selectedDetails] = await Promise.all([
     prisma.classSession.findMany({
       where: {
         startsAt: { gte: earliest, lte: until },
+        ...withoutSandboxFixtureClassTypes(includeSandboxFixtures),
       },
       orderBy: [{ startsAt: 'asc' }, { id: 'asc' }],
-      select: {
-        id: true,
-        startsAt: true,
-        endsAt: true,
-        capacity: true,
-        reservedCount: true,
-        waitlistEnabled: true,
-        locationLabel: true,
-        status: true,
-        classTypeId: true,
-        coachId: true,
-        updatedAt: true,
-        classType: { select: { name: true } },
-        coach: { select: { displayName: true } },
-        _count: {
-          select: {
-            waitlistEntries: { where: { status: { in: ['WAITING', 'NOTIFIED'] } } },
-          },
-        },
-      },
+      select: sessionListSelect,
     }),
     prisma.classType.findMany({
-      where: { status: 'ACTIVE' },
+      where: { status: 'ACTIVE', ...withoutSandboxFixtureProducts(includeSandboxFixtures) },
       orderBy: { name: 'asc' },
       select: {
         id: true,
@@ -87,22 +97,29 @@ export async function getAdminSessionOverview(input: {
       },
     }),
     prisma.coach.findMany({
-      where: { status: 'ACTIVE' },
+      where: { status: 'ACTIVE', ...withoutSandboxFixtureCoaches(includeSandboxFixtures) },
       orderBy: { displayName: 'asc' },
       select: { id: true, displayName: true },
     }),
-    selectedSessionId ? loadSessionRoster(selectedSessionId) : Promise.resolve([]),
+    selectedSessionId
+      ? loadSelectedSessionDetails(selectedSessionId)
+      : Promise.resolve({ record: null, roster: [] as RosterRecord[] }),
   ])
 
+  const selectedRecord =
+    selectedDetails.record
+    ?? sessions.find((session) => session.id === selectedSessionId)
+    ?? null
   const rosterBySessionId = selectedSessionId
-    ? new Map([[selectedSessionId, selectedRoster]])
+    ? new Map([[selectedSessionId, selectedDetails.roster]])
     : new Map<string, RosterRecord[]>()
 
   const items = sessions.map((session) =>
     mapAdminSessionItem(session, now, rosterBySessionId.get(session.id) ?? []),
   )
-  const selectedSession = selectedSessionId
-    ? items.find((session) => session.id === selectedSessionId) ?? null
+  const selectedSession = selectedRecord
+    ? items.find((session) => session.id === selectedRecord.id)
+      ?? mapAdminSessionItem(selectedRecord, now, selectedDetails.roster)
     : null
 
   return {
@@ -117,6 +134,23 @@ export async function getAdminSessionOverview(input: {
       drafts: items.filter((item) => item.status === 'DRAFT').length,
       closed: items.filter((item) => item.status === 'CLOSED').length,
     },
+  }
+}
+
+async function loadSelectedSessionDetails(sessionId: string) {
+  try {
+    const [record, roster] = await Promise.all([
+      prisma.classSession.findUnique({
+        where: { id: sessionId },
+        select: sessionListSelect,
+      }),
+      loadSessionRoster(sessionId),
+    ])
+
+    return { record, roster }
+  } catch (error) {
+    console.error('Failed to load selected admin session', error)
+    return { record: null, roster: [] as RosterRecord[] }
   }
 }
 

@@ -48,6 +48,29 @@ describe('public schedule', () => {
     expect(schedule.groups.map((group) => group.sessions[0].id)).toEqual(['late', 'next'])
   })
 
+  it('hides E2E class types from the commercial public agenda', () => {
+    const schedule = buildPublicSchedule(
+      [
+        sessionRecord({ id: 'commercial' }),
+        sessionRecord({
+          id: 'e2e',
+          classType: {
+            name: 'E2E Fuerza Pública',
+            slug: 'e2e-public-schedule',
+            description: null,
+            category: 'Strength',
+            durationMinutes: 50,
+          },
+        }),
+      ],
+      new Date('2026-08-08T10:00:00.000Z'),
+      new Date('2026-09-07T10:00:00.000Z'),
+    )
+
+    expect(schedule.sessionCount).toBe(1)
+    expect(schedule.groups[0]?.sessions.map((session) => session.id)).toEqual(['commercial'])
+  })
+
   it('derives sorted filter options with session counts', () => {
     const groups = buildPublicSchedule(
       [

@@ -1,6 +1,7 @@
 import type { Metadata } from 'next'
 import { Suspense } from 'react'
 
+import { readIncludeSandboxFixtures } from '@/lib/sandbox-fixture-request'
 import { getPublicProductCatalog } from '@/modules/public/server/public-product-catalog'
 import { PublicPlansPage } from '@/modules/public/ui/plans/public-plans-page'
 import { PublicPlansSkeleton } from '@/modules/public/ui/plans/public-plans-skeleton'
@@ -33,6 +34,6 @@ export default function PlansPage() {
 }
 
 async function PlansContent() {
-  const catalog = await getPublicProductCatalog()
+  const catalog = await getPublicProductCatalog(await readIncludeSandboxFixtures())
   return <PublicPlansPage catalog={catalog} />
 }

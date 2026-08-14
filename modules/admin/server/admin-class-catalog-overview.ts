@@ -1,13 +1,22 @@
 import { prisma } from '@/lib/db/prisma'
+import {
+  withoutSandboxFixtureCoaches,
+  withoutSandboxFixtureProducts,
+} from '@/modules/public/server/sandbox-fixtures'
 
 const OPERABLE_SESSION_STATUSES = ['DRAFT', 'PUBLISHED', 'CLOSED'] as const
 
 export type AdminClassCatalogOverview = Awaited<ReturnType<typeof getAdminClassCatalogOverview>>
 
-export async function getAdminClassCatalogOverview(input: { now?: Date } = {}) {
+export async function getAdminClassCatalogOverview(input: {
+  now?: Date
+  includeSandboxFixtures?: boolean
+} = {}) {
   const now = input.now ?? new Date()
+  const includeSandboxFixtures = input.includeSandboxFixtures ?? false
   const [classTypes, coaches] = await Promise.all([
     prisma.classType.findMany({
+      where: withoutSandboxFixtureProducts(includeSandboxFixtures),
       orderBy: [{ status: 'asc' }, { name: 'asc' }],
       select: {
         id: true,
@@ -33,6 +42,7 @@ export async function getAdminClassCatalogOverview(input: { now?: Date } = {}) {
       },
     }),
     prisma.coach.findMany({
+      where: withoutSandboxFixtureCoaches(includeSandboxFixtures),
       orderBy: [{ status: 'asc' }, { displayName: 'asc' }],
       select: {
         id: true,

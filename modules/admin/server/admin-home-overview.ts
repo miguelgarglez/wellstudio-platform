@@ -1,4 +1,5 @@
 import { prisma } from '@/lib/db/prisma'
+import { withoutSandboxFixtureClassTypes } from '@/modules/public/server/sandbox-fixtures'
 
 const WELLSTUDIO_TIME_ZONE = 'Europe/Madrid'
 const HOME_LIST_LIMIT = 4
@@ -24,8 +25,12 @@ type AdminHomeLeadRecord = {
 
 export type AdminHomeOverview = Awaited<ReturnType<typeof getAdminHomeOverview>>
 
-export async function getAdminHomeOverview(input: { now?: Date } = {}) {
+export async function getAdminHomeOverview(input: {
+  now?: Date
+  includeSandboxFixtures?: boolean
+} = {}) {
   const now = input.now ?? new Date()
+  const includeSandboxFixtures = input.includeSandboxFixtures ?? false
   const { start, end } = getBusinessDayRange(now)
 
   const [
@@ -42,6 +47,7 @@ export async function getAdminHomeOverview(input: { now?: Date } = {}) {
       where: {
         startsAt: { gte: start, lt: end },
         status: { not: 'CANCELED' },
+        ...withoutSandboxFixtureClassTypes(includeSandboxFixtures),
       },
       orderBy: [{ startsAt: 'asc' }, { id: 'asc' }],
       select: {

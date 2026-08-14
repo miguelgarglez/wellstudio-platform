@@ -3,6 +3,10 @@ import type { MemberStatus, Prisma } from '@prisma/client'
 import { prisma } from '@/lib/db/prisma'
 import { normalizeEmail } from '@/modules/auth/lib/normalize-email'
 import { buildPlanWindowLabel } from '@/modules/members/server/member-commercial'
+import {
+  withoutSandboxFixtureMembers,
+  withoutSandboxFixtureProducts,
+} from '@/modules/public/server/sandbox-fixtures'
 import { resolveEffectiveMembershipBookingPolicy } from '@/modules/reservations/server/membership-booking-policy'
 import { getMemberReservationsOverviewForMember } from '@/modules/reservations/server/member-reservations-overview'
 
@@ -141,10 +145,12 @@ export async function getAdminMembersOverview(input: {
   status?: string | null
   selectedMemberId?: string | null
   now?: Date
+  includeSandboxFixtures?: boolean
 }) {
   const now = input.now ?? new Date()
   const query = input.query?.trim() ?? ''
   const statusFilter = normalizeStatusFilter(input.status)
+  const includeSandboxFixtures = input.includeSandboxFixtures ?? false
   const where: Prisma.MemberWhereInput = {
     status:
       statusFilter === 'active'
@@ -163,6 +169,7 @@ export async function getAdminMembersOverview(input: {
           { user: { normalizedEmail: { contains: normalizeEmail(query) } } },
         ]
       : undefined,
+    ...withoutSandboxFixtureMembers(includeSandboxFixtures),
   }
 
   const [members, statusGroups, selectedMemberRecord, membershipPlans, creditPacks] = await Promise.all([
@@ -200,10 +207,13 @@ export async function getAdminMembersOverview(input: {
       ? prisma.member.findUnique({
           where: { id: input.selectedMemberId },
           select: adminMemberDetailSelect,
+        }).catch((error) => {
+          console.error('Failed to load selected admin member', error)
+          return null
         })
       : Promise.resolve(null),
     prisma.membershipPlan.findMany({
-      where: { status: 'ACTIVE' },
+      where: { status: 'ACTIVE', ...withoutSandboxFixtureProducts(includeSandboxFixtures) },
       orderBy: [{ name: 'asc' }, { id: 'asc' }],
       select: {
         id: true,
@@ -219,7 +229,7 @@ export async function getAdminMembersOverview(input: {
       },
     }),
     prisma.creditPack.findMany({
-      where: { status: 'ACTIVE' },
+      where: { status: 'ACTIVE', ...withoutSandboxFixtureProducts(includeSandboxFixtures) },
       orderBy: [{ name: 'asc' }, { id: 'asc' }],
       select: {
         id: true,
@@ -235,10 +245,11 @@ export async function getAdminMembersOverview(input: {
 
   const countsByStatus = new Map(statusGroups.map((group) => [group.status, group._count._all]))
   const bookingOverview = selectedMemberRecord
-    ? await getMemberReservationsOverviewForMember({
+    ? await loadMemberBookingOverview({
         memberId: selectedMemberRecord.id,
         memberStatus: selectedMemberRecord.status,
         now,
+        includeSandboxFixtures,
       })
     : null
 
@@ -278,6 +289,20 @@ export async function getAdminMembersOverview(input: {
       blocked: countsByStatus.get('BLOCKED') ?? 0,
     },
     isResultLimitReached: members.length === MEMBER_LIST_LIMIT,
+  }
+}
+
+async function loadMemberBookingOverview(input: {
+  memberId: string
+  memberStatus: AdminMemberDetailRecord['status']
+  now: Date
+  includeSandboxFixtures: boolean
+}) {
+  try {
+    return await getMemberReservationsOverviewForMember(input)
+  } catch (error) {
+    console.error('Failed to load admin member booking workspace', error)
+    return null
   }
 }
 

@@ -1,5 +1,6 @@
 import { Suspense } from 'react'
 
+import { readIncludeSandboxFixtures } from '@/lib/sandbox-fixture-request'
 import {
   cancelMemberReservationAction,
   joinSessionWaitlistAction,
@@ -40,7 +41,7 @@ export default function MemberReservationsPage() {
 }
 
 async function MemberReservationsSummaryLabels() {
-  const overview = await getMemberReservationsOverview()
+  const overview = await getMemberReservationsOverview(await readIncludeSandboxFixtures())
 
   return (
     <>
@@ -63,7 +64,7 @@ async function MemberReservationsSummaryLabels() {
 }
 
 async function MemberReservationsHeroAdvisory() {
-  const overview = await getMemberReservationsOverview()
+  const overview = await getMemberReservationsOverview(await readIncludeSandboxFixtures())
 
   if (overview.bookingState.canBook) {
     return null
@@ -102,7 +103,7 @@ async function MemberReservationsHeroAdvisory() {
 }
 
 async function MemberReservationsBody() {
-  const overview = await getMemberReservationsOverview()
+  const overview = await getMemberReservationsOverview(await readIncludeSandboxFixtures())
 
   return (
     <MemberReservationsDashboardBody

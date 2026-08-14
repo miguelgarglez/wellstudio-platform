@@ -66,6 +66,43 @@ describe('public product catalog', () => {
     expect(catalog.creditPacks.map((pack) => pack.id)).toEqual(['public-pack'])
     expect(catalog.productCount).toBe(3)
   })
+
+  it('hides E2E and playground products from the commercial catalog', () => {
+    const catalog = buildPublicProductCatalog({
+      plans: [
+        planRecord({ id: 'commercial', name: 'Plan Constancia', slug: 'showcase-plan-constancia' }),
+        planRecord({ id: 'e2e-plan', name: 'E2E Plan Constancia', slug: 'e2e-public-plan' }),
+        planRecord({
+          id: 'playground',
+          name: 'Admin Playground Weekly',
+          slug: 'admin-playground-weekly',
+        }),
+      ],
+      creditPacks: [
+        packRecord({ id: 'commercial-pack', name: 'Bono 6 sesiones', slug: 'showcase-bono-6' }),
+        packRecord({ id: 'e2e-pack', name: 'E2E Bono Checkout', slug: 'e2e-payment-checkout' }),
+      ],
+    })
+
+    expect(catalog.plans.map((plan) => plan.id)).toEqual(['commercial'])
+    expect(catalog.creditPacks.map((pack) => pack.id)).toEqual(['commercial-pack'])
+    expect(catalog.productCount).toBe(2)
+  })
+
+  it('keeps sandbox fixtures when an E2E request opts in', () => {
+    const catalog = buildPublicProductCatalog({
+      plans: [
+        planRecord({ id: 'e2e-plan', name: 'E2E Plan Constancia', slug: 'e2e-public-plan' }),
+      ],
+      creditPacks: [
+        packRecord({ id: 'e2e-pack', name: 'E2E Bono Flexible', slug: 'e2e-public-pack' }),
+      ],
+      includeSandboxFixtures: true,
+    })
+
+    expect(catalog.plans.map((plan) => plan.id)).toEqual(['e2e-plan'])
+    expect(catalog.creditPacks.map((pack) => pack.id)).toEqual(['e2e-pack'])
+  })
 })
 
 function planRecord(overrides: Partial<Parameters<typeof mapPublicMembershipPlan>[0]> = {}): Parameters<typeof mapPublicMembershipPlan>[0] {

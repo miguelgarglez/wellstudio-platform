@@ -1,11 +1,14 @@
 import { Suspense } from 'react'
 
+import { readIncludeSandboxFixtures } from '@/lib/sandbox-fixture-request'
 import { getAdminMembersOverview } from '@/modules/admin/server/admin-members-overview'
+import { readAdminOverview } from '@/modules/admin/server/admin-overview-result'
 import {
   AdminMembersDashboard,
   AdminMembersDashboardSkeleton,
 } from '@/modules/admin/ui/admin-members-dashboard'
 import { AdminSectionShell } from '@/modules/admin/ui/admin-section-shell'
+import { AdminOverviewUnavailable } from '@/modules/admin/ui/admin-unavailable-panel'
 
 type AdminMembersPageProps = {
   searchParams?: Promise<{
@@ -52,11 +55,19 @@ async function AdminMembersSection({
   updatedState: AdminMembersUpdatedState
   noticeId: string | null
 }) {
-  const overview = await getAdminMembersOverview({ query, status, selectedMemberId })
+  const overview = await readAdminOverview(async () =>
+    getAdminMembersOverview({
+      query,
+      status,
+      selectedMemberId,
+      includeSandboxFixtures: await readIncludeSandboxFixtures(query),
+    }),
+  )
+  if (!overview.ok) return <AdminOverviewUnavailable retryHref="/admin/members" />
 
   return (
     <AdminMembersDashboard
-      overview={overview}
+      overview={overview.data}
       updatedState={updatedState}
       noticeId={noticeId}
     />
