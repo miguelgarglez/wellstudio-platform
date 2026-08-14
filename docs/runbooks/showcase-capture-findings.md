@@ -21,52 +21,49 @@ Cuentas usadas: socio real (`miguel.garglez@gmail.com`); staff sandbox E2E admin
 - **Fix:** pagos `CANCELED` sin evento Stripe muestran **Cancelado sin cobro** en lugar de **Sin evento asociado** (`admin-payments-overview.ts` + test unitario).
 - **Nota:** sigue siendo estado esperado cuando el checkout se abandona antes del webhook; el label ya no sugiere fallo de integración.
 
+### Capture readiness — waits case-aware (#7 / MIG-162)
+
+- **Fix:** `scripts/capture-showcase-shots.mjs` espera body/aria (no solo h1 shell), matching case-insensitive, rechaza skeletons `.animate-pulse`, timeouts acotados. Detalle en §7.
+
 ### Admin layout — menos trabajo duplicado (#1 parcial, 2026-08-14 sesión 1)
 
 - **Fix:** `app/(admin)/layout.tsx` construye el shell con `buildAdminShellSummary(authContext)` tras un único `requireAdminOrStaffContext()`, sin segunda resolución que podía lanzar en edge cases.
 - **No resuelve:** 500 intermitentes por timeout/cold start en Preview (infra).
 
-### Admin estabilización — auth + agenda (#1 parcial, 2026-08-14 sesión 2 / MIG-158)
+### Admin estabilización — auth + agenda + overviews (#1 cerrado en código, 2026-08-14 / MIG-158)
 
 - **Causa probable:** `requireAdminOrStaffContext()` llamaba a `requireAuthenticatedContext()`, que **lanza** si Supabase no devuelve sesión en el RSC aunque el middleware ya hubiera dejado pasar la ruta → HTTP 500 intermitente en re-navegaciones Preview.
-- **Fix auth:** nuevo `resolveAdminAccess()` (sin throw). Layout redirige a `/login?redirectTo=/admin` si no hay sesión; `notFound()` solo si hay sesión pero sin rol `ADMIN`/`STAFF`. Reintento único de `getUser()` ante error transitorio de Supabase.
-- **Fix carga:** `getAdminSessionOverview` ya no trae el roster completo de **todas** las sesiones del window (45 días); solo carga reservas de la sesión seleccionada → menos presión en BD/timeout en `/admin/sessions`.
-- **Tests:** `tests/unit/auth/admin-access.test.ts`, `tests/unit/admin/admin-sessions-overview.test.ts`.
-- **Sigue abierto:** cold start / saturación Preview; timeouts extremos (`ERR_TIMED_OUT`); confirmar en logs Vercel tras despliegue.
+- **Fix auth:** `resolveAdminAccess()` sin throw. Layout redirige a `/login?redirectTo=/admin` si no hay sesión; `notFound()` solo si hay sesión pero sin rol `ADMIN`/`STAFF`; `{ kind: 'unavailable' }` + UI tipada si Prisma/identidad falla.
+- **Fix carga:** `getAdminSessionOverview` solo carga reservas de la sesión seleccionada; si esa sesión está fuera de la ventana o el detalle falla, la agenda sigue. El dossier de socios sobrevive si falla el workspace de reservas.
+- **Fix overviews:** `readAdminOverview()` captura errores de Prisma en las RSC admin y pinta `AdminUnavailablePanel` (HTTP 200) en lugar de Application error. `app/(admin)/error.tsx` queda como red de último recurso.
+- **Tests:** `tests/unit/auth/admin-access.test.ts`, `tests/unit/admin/admin-sessions-overview.test.ts`, `tests/unit/admin/admin-members-overview.test.ts`, `tests/unit/admin/admin-overview-result.test.ts`, `tests/unit/admin/admin-payments-overview.test.ts`.
+- **Residual infra:** cold start / saturación Preview que **no llega a ejecutar** Next (`ERR_TIMED_OUT`, plataforma 504/timeout). Eso no se cierra en código; vigilar logs Vercel si reaparece tras deploy.
+
+### Aislar E2E de la vitrina comercial (#2 / MIG-161)
+
+- **Fix:** las queries comerciales (planes, clases, cuenta, agenda admin, socios, cobros) excluyen nombres/slugs `E2E …` / `e2e-*` / `admin-playground-*` y emails `@wellstudio.test`.
+- Playwright envía `x-wellstudio-sandbox-fixtures: 1` para que los E2E sigan viendo sus fixtures. El script de captura no lo envía.
+- **Operador:** re-seed Preview con `pnpm sandbox:showcase-vitrina` (y `SHOWCASE_MEMBER_EMAIL` si hace falta el perfil socio). No hay segunda BD.
+
+### Perfil vitrina demo (#4 y #8 / MIG-160)
+
+- Seed `showcase-vitrina`: Plan Constancia / Flex, Bono 6 sesiones, coaches Laura Martínez / Carlos Vega.
+- Socios demo Laura Méndez, Carlos Ruiz, Ana Torres, Pablo Navarro con emails `@wellstudio.es`, plan o bono, y al menos una reserva próxima.
+- Staff comercial: `pnpm sandbox:showcase-demo-admin` → `demo@wellstudio.es` / Equipo WellStudio.
+- Path opcional `SHOWCASE_MEMBER_EMAIL` se mantiene.
 
 ## Severidad alta (producto / estabilidad) — pendiente
 
-### 1. 500 / Application error intermitente en admin (Preview)
-
-- **Qué:** Tras login admin válido, re-navegar a `/admin` (y a veces `/admin/sessions`, `/admin/members`) devolvió `Application error` + `Digest: …` o HTTP 500.
-- **Evidencia:** Capturas fallidas de ~44KB; script de captura falló varias veces con `broken=true` / `status=500` aunque un probe posterior a la misma URL respondía 200.
-- **También visto:** `page.goto` a `/admin/sessions` con `net::ERR_TIMED_OUT` (~16 min de job colgado) — Preview a ratos no responde a tiempo.
-- **Mitigación de captura:** Evitar re-`goto` del overview post-login; reintentos + wait de texto listo (`CONTROL DE HOY`, `AGENDA DE SESIONES`, …).
-- **Fix código (2026-08-14):** ver sección *Resuelto* → auth sin throw + roster lazy en sessions overview. Revalidar en Preview tras deploy.
-- **Investigar si persiste:** logs Vercel Preview del digest; cold start / saturación.
-
-### 2. Etiquetas y datos E2E visibles en cuentas “reales”
-
-- **Qué:** En la cuenta de Miguel aparecen créditos/bonos con nombre **`E2E Bono Checkout`**; en cobros admin hay filas Miguel + E2E con el mismo catálogo sandbox.
-- **Por qué importa:** En ventas/portfolio ensucia la historia (“producto de verdad” vs laboratorio).
-- **Estado:** Escenario `showcase-vitrina` disponible — ver `docs/runbooks/showcase-vitrina-seed.md`. Ejecutar antes de re-capturar.
-- **Acción recomendada:** `pnpm sandbox:showcase-vitrina` + perfil `SHOWCASE_MEMBER_EMAIL` para socio comercial.
+_Ningún hallazgo alto abierto en código. Revalidar en Preview tras deploy + seed._
 
 ## Severidad media (UX / seguridad percibida / demo) — pendiente
 
 ### 3. Soft-deny de `/admin` para no-admin = 404 branded
 
 - **Qué:** Usuario autenticado solo `MEMBER` que abre `/admin` recibe **RUTA PERDIDA / 404**, no un “sin permiso”.
-- **Código:** `app/(admin)/layout.tsx` llama `notFound()` si `requireAdminOrStaffContext()` es null.
+- **Código:** `app/(admin)/layout.tsx` llama `notFound()` si `resolveAdminAccess()` es `forbidden`.
 - **¿Bug?** Probablemente **intencional** (no filtrar existencia del backoffice). Confirmar con producto: ¿preferimos 403/`/app` redirect con mensaje?
 - **Impacto demo:** Confunde al capturar con cuenta personal sin roles staff.
-
-### 4. Estado comercial débil de la cuenta demo “realista”
-
-- Miguel: **sin plan activo**, **sin tarjeta**, **sin reservas próximas**, 6 créditos de bono E2E.
-- Socios admin: muchos emails/nombres tipo `E2E Member`, `Alex Sin Plan`, playground…
-- Agenda: sesiones `E2E Agenda Flow`, `Admin Playground Recovery`, varias canceladas / sin coach / aforo 0.
-- **Acción demo:** preparar un “perfil vitrina” (plan + reserva + coach + nombres limpios) antes de enseñar a gyms — operativo, no código.
 
 ## Severidad baja / ruido operativo — sin acción
 
@@ -75,15 +72,21 @@ Cuentas usadas: socio real (`miguel.garglez@gmail.com`); staff sandbox E2E admin
 - Consola: CSP `script-src` rechaza `https://vercel.live/_next-live/feedback/feedback.js`.
 - **¿Bug de producto?** No; hardening V1. Solo ruido al depurar Preview.
 
-### 7. Carrera de readiness en dashboards admin (streaming)
+### 7. Carrera de readiness en dashboards admin (streaming) — resuelto (MIG-162)
 
-- HTML 200 con shell, pero el cuerpo útil (`AGENDA DE SESIONES`, etc.) tarda; waits por texto case-sensitive fallaban si el wait usaba title-case y la UI pinta UPPERCASE.
-- **Acción:** waits positivos case-aware en script de captura; no tratar skeleton vacío como OK.
+- **Qué:** HTML 200 con shell (`AdminSectionShell` / h1) antes del cuerpo útil; waits case-sensitive fallaban con CSS `uppercase`; skeletons `.animate-pulse` se trataban como OK.
+- **Fix (script):** `scripts/capture-showcase-shots.mjs` espera copy/aria del **body** (no solo el h1 del shell), matching case-insensitive, rechaza `.animate-pulse`, timeouts acotados (nav 60s / networkidle 20s / ready 30s / ≤5 intentos).
+- **Marcadores estables por ruta admin:**
+  - `/admin` → body: `Clases de hoy` / `Qué revisar ahora` · aria: `Resumen operativo` (shell `Control de hoy` no basta)
+  - `/admin/sessions` → body: `Operativa diaria` / `Nueva sesión` / `La agenda está vacía` (shell `Agenda de sesiones` no basta)
+  - `/admin/members` → body: `Busca por identidad` / `Filtrar socios por estado` (shell `Gestión de socios` no basta)
+  - `/admin/payments` → body: `Pagos recientes` / `Bandeja operativa` · aria: `Monitor de cobros` (shell `Cobros` no basta)
+- **Socio (misma lógica):** `/app` → `Tu plan y créditos`; `/app/reservations` → `Tu actividad confirmada`; `/app/account` → `Tarjeta vinculada` / `Pagos recientes`.
 
-### 8. Operador staff en pantallas = identidad sandbox
+### 8. Operador staff en pantallas = identidad sandbox — resuelto en código (MIG-160)
 
-- Sidebar muestra `e2e.admin sandbox` / email `@wellstudio.test`.
-- Esperado mientras Miguel no tenga `ADMIN`/`STAFF`. Para vitrina: promover rol temporal o cuenta staff “Centro Demo”.
+- Sidebar E2E (`e2e.admin sandbox` / `@wellstudio.test`) queda para QA.
+- Para capturas: `pnpm sandbox:showcase-demo-admin` crea **Equipo WellStudio** (`demo@wellstudio.es`).
 
 ## Capturas útiles resultantes
 
@@ -106,8 +109,8 @@ Script: `scripts/capture-showcase-shots.mjs` (`SHOWCASE_ONLY=public|member|staff
 
 ## Orden sugerido de corrección (actualizado)
 
-1. ~~Estabilizar 500 intermitente en admin Preview~~ → fix auth + sessions query aplicado; **revalidar en Preview post-deploy** y revisar logs si persiste.
-2. Catálogo vitrina / aislar datos E2E de cuentas comerciales.
-3. Perfil vitrina (plan + reserva + nombres) y cuenta staff limpia.
+1. ~~Estabilizar 500 intermitente en admin Preview~~ → auth sin throw, overviews con UI tipada, sesión/socio seleccionado degradable. **Residual:** timeouts de plataforma (cold start) — vigilar logs Vercel post-deploy.
+2. ~~Catálogo vitrina / aislar datos E2E~~ → filtro comercial + seed `showcase-*` (MIG-161). **Operador:** `pnpm sandbox:showcase-vitrina` en Preview.
+3. ~~Perfil vitrina y cuenta staff limpia~~ → seed demo `@wellstudio.es` + `pnpm sandbox:showcase-demo-admin` (MIG-160).
 4. Decidir UX de deny admin (404 vs redirect 403).
 5. ~~Revisar cobros cancelados sin evento~~ → copy corregido; validar webhooks si aparecen `SUCCEEDED` sin evento.
