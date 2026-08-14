@@ -4,9 +4,12 @@ Producto para centros boutique: **reservas, mostrador y cobros en un solo sistem
 
 ## Ver el producto
 
-- **Showcase comercial (slides):** [`/showcase`](./app/(public)/showcase/page.tsx) — en local `http://localhost:3000/showcase`
+- **Showcase comercial (slides):** [`/showcase`](./app/(public)/showcase/page.tsx) — solo Preview y local (`http://localhost:3000/showcase`)
+- **Cómo trabajamos (sin tecnicismos):** [`/showcase/operacion`](./app/(public)/showcase/operacion/page.tsx) — acuerdo, arranque y cuota explicados para el dueño del centro
 - **Preview en vivo:** [preview-wellstudio.miguelgarglez.com](https://preview-wellstudio.miguelgarglez.com)
 - **Deck orientado a dueños de gym** (también sirve como portfolio): journeys público → socio → staff
+
+> Las rutas `/showcase/*` responden **404 en Production** (Vercel). Comparte el enlace de Preview para ventas.
 
 ### Tres journeys
 

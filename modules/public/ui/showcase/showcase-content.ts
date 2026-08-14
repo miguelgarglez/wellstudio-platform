@@ -1,3 +1,4 @@
+import type { DeckSlide } from '@/modules/public/ui/showcase/showcase-deck-types'
 import type { ShowcaseVisualSpec } from '@/modules/public/ui/showcase/showcase-visuals'
 
 export type ShowcaseSlideId =
@@ -11,15 +12,9 @@ export type ShowcaseSlideId =
   | 'outcome'
   | 'cta'
 
-export type ShowcaseSlide = {
+export type ShowcaseSlide = DeckSlide & {
   id: ShowcaseSlideId
-  eyebrow: string
-  title: string
-  body: string
-  kind: 'hero' | 'copy' | 'journey' | 'outcome' | 'cta'
-  bullets?: string[]
   visual?: ShowcaseVisualSpec
-  demoPlaceholder?: string
 }
 
 export const SHOWCASE_PREVIEW_URL = 'https://preview-wellstudio.miguelgarglez.com'

@@ -2,7 +2,7 @@
 
 Fecha: 2026-08-13  
 Ticket: `MIG-157`  
-Ruta: `/showcase`
+Rutas: `/showcase` · `/showcase/operacion` (solo Preview / local; 404 en Production)
 
 ## Objetivo
 
