@@ -1,11 +1,13 @@
 import { Suspense } from 'react'
 
 import { AdminSectionShell } from '@/modules/admin/ui/admin-section-shell'
+import { AdminOverviewUnavailable } from '@/modules/admin/ui/admin-unavailable-panel'
 import {
   AdminNotificationsDashboard,
   AdminNotificationsDashboardSkeleton,
 } from '@/modules/admin/ui/admin-notifications-dashboard'
 import { getAdminNotificationDeliveryOverview } from '@/modules/notifications/server/admin-notification-deliveries'
+import { readAdminOverview } from '@/modules/admin/server/admin-overview-result'
 
 type AdminNotificationsPageProps = {
   searchParams?: Promise<{
@@ -60,15 +62,18 @@ async function AdminNotificationsSection({
   updatedState: 'retry' | null
   noticeId: string | null
 }) {
-  const overview = await getAdminNotificationDeliveryOverview({
-    status,
-    event,
-    selectedJobId,
-  })
+  const overview = await readAdminOverview(() =>
+    getAdminNotificationDeliveryOverview({
+      status,
+      event,
+      selectedJobId,
+    }),
+  )
+  if (!overview.ok) return <AdminOverviewUnavailable retryHref="/admin/notifications" />
 
   return (
     <AdminNotificationsDashboard
-      overview={overview}
+      overview={overview.data}
       updatedState={updatedState}
       noticeId={noticeId}
     />

@@ -2,7 +2,9 @@ import { Suspense } from 'react'
 
 import { AdminLeadsDashboard, AdminLeadsDashboardSkeleton } from '@/modules/admin/ui/admin-leads-dashboard'
 import { AdminSectionShell } from '@/modules/admin/ui/admin-section-shell'
+import { AdminOverviewUnavailable } from '@/modules/admin/ui/admin-unavailable-panel'
 import { getAdminLeadOverview } from '@/modules/leads/server/admin-leads-overview'
+import { readAdminOverview } from '@/modules/admin/server/admin-overview-result'
 
 type AdminLeadsPageProps = {
   searchParams?: Promise<{
@@ -62,15 +64,18 @@ async function AdminLeadsSection({
   updatedState: 'note' | 'new' | 'contacted' | 'qualified' | 'lost' | 'converted' | null
   noticeId: string | null
 }) {
-  const overview = await getAdminLeadOverview({
-    query,
-    status,
-    selectedLeadId,
-  })
+  const overview = await readAdminOverview(() =>
+    getAdminLeadOverview({
+      query,
+      status,
+      selectedLeadId,
+    }),
+  )
+  if (!overview.ok) return <AdminOverviewUnavailable retryHref="/admin/leads" />
 
   return (
     <AdminLeadsDashboard
-      overview={overview}
+      overview={overview.data}
       updatedState={updatedState}
       noticeId={noticeId}
     />

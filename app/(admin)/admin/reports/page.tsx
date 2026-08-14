@@ -1,11 +1,13 @@
 import { Suspense } from 'react'
 
+import { readAdminOverview } from '@/modules/admin/server/admin-overview-result'
 import { getAdminReportsOverview } from '@/modules/admin/server/admin-reports-overview'
 import {
   AdminReportsDashboard,
   AdminReportsDashboardSkeleton,
 } from '@/modules/admin/ui/admin-reports-dashboard'
 import { AdminSectionShell } from '@/modules/admin/ui/admin-section-shell'
+import { AdminOverviewUnavailable } from '@/modules/admin/ui/admin-unavailable-panel'
 
 type AdminReportsPageProps = {
   searchParams?: Promise<{ window?: string }>
@@ -29,6 +31,7 @@ export default async function AdminReportsPage({ searchParams }: AdminReportsPag
 }
 
 async function AdminReportsSection({ reportWindow }: { reportWindow: string | null }) {
-  const overview = await getAdminReportsOverview({ window: reportWindow })
-  return <AdminReportsDashboard overview={overview} />
+  const overview = await readAdminOverview(() => getAdminReportsOverview({ window: reportWindow }))
+  if (!overview.ok) return <AdminOverviewUnavailable retryHref="/admin/reports" />
+  return <AdminReportsDashboard overview={overview.data} />
 }

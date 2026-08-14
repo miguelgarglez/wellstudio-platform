@@ -108,19 +108,25 @@ export type AdminAccessResult =
   | { kind: 'ok'; context: Extract<AuthContext, { isAuthenticated: true }> }
   | { kind: 'unauthenticated' }
   | { kind: 'forbidden' }
+  | { kind: 'unavailable' }
 
 export const resolveAdminAccess = cache(async (): Promise<AdminAccessResult> => {
-  const authContext = await resolveAuthContext()
+  try {
+    const authContext = await resolveAuthContext()
 
-  if (!authContext.isAuthenticated) {
-    return { kind: 'unauthenticated' }
+    if (!authContext.isAuthenticated) {
+      return { kind: 'unauthenticated' }
+    }
+
+    if (!hasAnyRole(authContext, ['ADMIN', 'STAFF'])) {
+      return { kind: 'forbidden' }
+    }
+
+    return { kind: 'ok', context: authContext }
+  } catch (error) {
+    console.error('Admin access resolution failed', error)
+    return { kind: 'unavailable' }
   }
-
-  if (!hasAnyRole(authContext, ['ADMIN', 'STAFF'])) {
-    return { kind: 'forbidden' }
-  }
-
-  return { kind: 'ok', context: authContext }
 })
 
 export const requireAdminOrStaffContext = cache(async () => {

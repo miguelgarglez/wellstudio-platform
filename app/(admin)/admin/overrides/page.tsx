@@ -1,11 +1,13 @@
 import { Suspense } from 'react'
 
 import { getAdminMemberOverrideOverview } from '@/modules/admin/server/admin-member-overrides-overview'
+import { readAdminOverview } from '@/modules/admin/server/admin-overview-result'
 import {
   AdminMemberOverridesDashboard,
   AdminMemberOverridesDashboardSkeleton,
 } from '@/modules/admin/ui/admin-member-overrides-dashboard'
 import { AdminSectionShell } from '@/modules/admin/ui/admin-section-shell'
+import { AdminOverviewUnavailable } from '@/modules/admin/ui/admin-unavailable-panel'
 
 type AdminOverridesPageProps = {
   searchParams?: Promise<{
@@ -54,14 +56,17 @@ async function AdminMemberOverridesSection({
   selectedMemberId: string | null
   updatedState: 'extra' | 'session' | 'revoked' | 'revoke-error' | null
 }) {
-  const overview = await getAdminMemberOverrideOverview({
-    query,
-    selectedMemberId,
-  })
+  const overview = await readAdminOverview(() =>
+    getAdminMemberOverrideOverview({
+      query,
+      selectedMemberId,
+    }),
+  )
+  if (!overview.ok) return <AdminOverviewUnavailable retryHref="/admin/overrides" />
 
   return (
     <AdminMemberOverridesDashboard
-      overview={overview}
+      overview={overview.data}
       updatedState={updatedState}
     />
   )

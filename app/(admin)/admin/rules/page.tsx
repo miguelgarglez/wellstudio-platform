@@ -1,11 +1,13 @@
 import { Suspense } from 'react'
 
 import { getAdminMembershipPolicyOverview } from '@/modules/admin/server/admin-membership-policy-overview'
+import { readAdminOverview } from '@/modules/admin/server/admin-overview-result'
 import {
   AdminMembershipPoliciesDashboard,
   AdminMembershipPoliciesDashboardSkeleton,
 } from '@/modules/admin/ui/admin-membership-policies-dashboard'
 import { AdminSectionShell } from '@/modules/admin/ui/admin-section-shell'
+import { AdminOverviewUnavailable } from '@/modules/admin/ui/admin-unavailable-panel'
 
 type AdminRulesPageProps = {
   searchParams?: Promise<{ plan?: string; updated?: string }>
@@ -32,6 +34,7 @@ export default async function AdminRulesPage({ searchParams }: AdminRulesPagePro
 }
 
 async function AdminRulesSection({ selectedPlanId, isSaveSuccessVisible }: { selectedPlanId: string | null; isSaveSuccessVisible: boolean }) {
-  const overview = await getAdminMembershipPolicyOverview(selectedPlanId)
-  return <AdminMembershipPoliciesDashboard overview={overview} isSaveSuccessVisible={isSaveSuccessVisible} />
+  const overview = await readAdminOverview(() => getAdminMembershipPolicyOverview(selectedPlanId))
+  if (!overview.ok) return <AdminOverviewUnavailable retryHref="/admin/rules" />
+  return <AdminMembershipPoliciesDashboard overview={overview.data} isSaveSuccessVisible={isSaveSuccessVisible} />
 }

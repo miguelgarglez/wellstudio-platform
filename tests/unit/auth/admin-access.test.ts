@@ -129,4 +129,27 @@ describe('resolveAdminAccess', () => {
       expect(access.context.roles.map((role) => role.role)).toContain('ADMIN')
     }
   })
+
+  it('retries getUser once on a transient Supabase error', async () => {
+    mockProvisionedStaffUser()
+    getUserMock.mockResolvedValueOnce({
+      data: { user: null },
+      error: { message: 'Auth session missing' },
+    })
+
+    const access = await resolveAdminAccess()
+
+    expect(getUserMock).toHaveBeenCalledTimes(2)
+    expect(access.kind).toBe('ok')
+  })
+
+  it('returns unavailable without throwing when identity provisioning fails', async () => {
+    const consoleError = vi.spyOn(console, 'error').mockImplementation(() => {})
+    mockProvisionedStaffUser()
+    prismaTransactionMock.mockRejectedValue(new Error('db timeout'))
+
+    await expect(resolveAdminAccess()).resolves.toEqual({ kind: 'unavailable' })
+    await expect(requireAdminOrStaffContext()).resolves.toBeNull()
+    consoleError.mockRestore()
+  })
 })
