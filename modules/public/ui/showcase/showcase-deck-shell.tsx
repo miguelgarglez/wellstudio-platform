@@ -2,7 +2,14 @@
 
 import Image, { type StaticImageData } from 'next/image'
 import Link from 'next/link'
-import { useEffect, useEffectEvent, useRef, useState, type ReactNode } from 'react'
+import {
+  useEffect,
+  useEffectEvent,
+  useRef,
+  useState,
+  type MouseEvent,
+  type ReactNode,
+} from 'react'
 import { ArrowLeft, ArrowRight } from 'lucide-react'
 
 import { cn } from '@/lib/utils'
@@ -15,6 +22,8 @@ export type ShowcaseDeckShellProps = {
   heroImage?: StaticImageData
   headerActions?: ReactNode
   blockKeyboardNav?: boolean
+  /** On small screens, put copy above the visual (better for dense diagrams). Desktop unchanged. */
+  mobileCopyFirst?: boolean
   renderVisual?: (slide: DeckSlide, index: number) => ReactNode
   renderBelowCopy?: (slide: DeckSlide, index: number) => ReactNode
   renderBelowVisual?: (slide: DeckSlide, index: number) => ReactNode
@@ -26,6 +35,7 @@ export function ShowcaseDeckShell({
   heroImage = heroBarbellImage,
   headerActions,
   blockKeyboardNav = false,
+  mobileCopyFirst = false,
   renderVisual,
   renderBelowCopy,
   renderBelowVisual,
@@ -106,15 +116,15 @@ export function ShowcaseDeckShell({
     <div className="relative h-[100svh] overflow-hidden bg-[var(--wellstudio-ink)] text-white">
       <div className="pointer-events-none absolute inset-0 bg-[radial-gradient(circle_at_18%_12%,rgba(79,137,197,0.22),transparent_42%),radial-gradient(circle_at_88%_78%,rgba(183,206,231,0.1),transparent_36%)]" />
 
-      <header className="pointer-events-none absolute inset-x-0 top-0 z-20 flex items-center justify-between px-4 py-4 sm:px-6 lg:px-8">
+      <header className="pointer-events-none absolute inset-x-0 top-0 z-20 flex items-start justify-between gap-3 px-3 pt-[max(0.75rem,env(safe-area-inset-top))] pb-2 sm:items-center sm:px-6 sm:py-4 lg:px-8">
         <Link
           href="/"
-          className="pointer-events-auto font-display text-sm uppercase tracking-[0.18em] text-white/90 transition-colors hover:text-white"
+          className="pointer-events-auto shrink-0 pt-1.5 font-display text-xs uppercase tracking-[0.18em] text-white/90 transition-colors hover:text-white sm:pt-0 sm:text-sm"
         >
           WellStudio
         </Link>
         {headerActions ? (
-          <div className="pointer-events-auto flex flex-wrap items-center justify-end gap-2">
+          <div className="pointer-events-auto flex max-w-[min(100%,18.5rem)] flex-wrap items-center justify-end gap-1.5 sm:max-w-none sm:gap-2">
             {headerActions}
           </div>
         ) : null}
@@ -122,7 +132,7 @@ export function ShowcaseDeckShell({
 
       <div
         ref={scrollerRef}
-        className="relative h-full snap-y snap-mandatory overflow-y-auto scroll-smooth"
+        className="relative h-full snap-y snap-proximity overflow-y-auto overscroll-y-contain scroll-smooth lg:snap-mandatory"
       >
         {slides.map((slide, index) => (
           <DeckSlideView
@@ -131,6 +141,7 @@ export function ShowcaseDeckShell({
             index={index}
             active={index === activeIndex}
             heroImage={heroImage}
+            mobileCopyFirst={mobileCopyFirst}
             renderVisual={renderVisual}
             renderBelowCopy={renderBelowCopy}
             renderBelowVisual={renderBelowVisual}
@@ -140,7 +151,7 @@ export function ShowcaseDeckShell({
 
       <nav
         aria-label={navLabel}
-        className="absolute bottom-5 left-1/2 z-20 flex -translate-x-1/2 items-center gap-2 rounded-full border border-white/12 bg-black/35 px-3 py-2 backdrop-blur-md"
+        className="absolute bottom-[max(0.75rem,env(safe-area-inset-bottom))] left-1/2 z-20 flex -translate-x-1/2 items-center gap-1.5 rounded-full border border-white/12 bg-black/45 px-2.5 py-1.5 backdrop-blur-md sm:bottom-5 sm:gap-2 sm:px-3 sm:py-2"
       >
         <button
           type="button"
@@ -185,6 +196,7 @@ function DeckSlideView({
   index,
   active,
   heroImage,
+  mobileCopyFirst,
   renderVisual,
   renderBelowCopy,
   renderBelowVisual,
@@ -193,18 +205,20 @@ function DeckSlideView({
   index: number
   active: boolean
   heroImage: StaticImageData
+  mobileCopyFirst: boolean
   renderVisual?: (slide: DeckSlide, index: number) => ReactNode
   renderBelowCopy?: (slide: DeckSlide, index: number) => ReactNode
   renderBelowVisual?: (slide: DeckSlide, index: number) => ReactNode
 }) {
   const visual = renderVisual?.(slide, index)
-  const visualFirst = slide.kind !== 'hero'
+  // Product deck: screenshots first on mobile. Operation deck: copy first (dense diagrams).
+  const visualFirstOnMobile = slide.kind !== 'hero' && !mobileCopyFirst
 
   return (
     <section
       data-showcase-slide={slide.id}
       aria-label={`${index + 1}. ${slide.title}`}
-      className="relative flex min-h-[100svh] snap-start snap-always items-center px-4 py-24 sm:px-6 lg:px-10"
+      className="relative flex min-h-[100svh] snap-start snap-always items-center px-4 pb-[calc(5.5rem+env(safe-area-inset-bottom))] pt-[calc(4.75rem+env(safe-area-inset-top))] sm:px-6 sm:py-24 lg:px-10"
     >
       {slide.kind === 'hero' ? (
         <div className="absolute inset-0">
@@ -222,7 +236,7 @@ function DeckSlideView({
 
       <div
         className={cn(
-          'relative mx-auto grid w-full max-w-[90rem] gap-8 transition-all duration-700 ease-out lg:items-center lg:gap-10',
+          'relative mx-auto grid w-full max-w-[90rem] gap-5 transition-all duration-700 ease-out sm:gap-8 lg:items-center lg:gap-10',
           visual
             ? 'lg:grid-cols-[minmax(0,0.32fr)_minmax(0,0.68fr)]'
             : 'max-w-6xl lg:grid-cols-1',
@@ -232,28 +246,28 @@ function DeckSlideView({
         <div
           className={cn(
             visual ? 'max-w-lg lg:max-w-none' : 'max-w-2xl',
-            visualFirst && visual ? 'order-2 lg:order-1' : 'order-1',
+            visualFirstOnMobile && visual ? 'order-2 lg:order-1' : 'order-1',
           )}
         >
-          <p className="text-[0.72rem] uppercase tracking-[0.22em] text-[var(--wellstudio-blue-soft)]">
+          <p className="text-[0.68rem] uppercase tracking-[0.2em] text-[var(--wellstudio-blue-soft)] sm:text-[0.72rem] sm:tracking-[0.22em]">
             {slide.eyebrow}
           </p>
           <h1
             className={cn(
-              'mt-3 text-balance font-display uppercase tracking-[0.03em] text-white',
+              'mt-2.5 text-balance font-display uppercase tracking-[0.03em] text-white sm:mt-3',
               slide.kind === 'hero'
-                ? 'text-[clamp(2.4rem,7vw,4.6rem)] leading-[0.92]'
-                : 'text-[clamp(2rem,5.2vw,3.4rem)] leading-[0.95]',
+                ? 'text-[clamp(1.85rem,8.2vw,4.6rem)] leading-[0.94]'
+                : 'text-[clamp(1.55rem,6.4vw,3.4rem)] leading-[0.98]',
             )}
           >
             {slide.title}
           </h1>
-          <p className="mt-4 max-w-xl text-base leading-7 text-white/72 sm:text-lg sm:leading-8">
+          <p className="mt-3 max-w-xl text-[0.95rem] leading-7 text-white/72 sm:mt-4 sm:text-lg sm:leading-8">
             {slide.body}
           </p>
 
           {slide.bullets ? (
-            <ul className="mt-6 space-y-2.5">
+            <ul className="mt-5 space-y-2 sm:mt-6 sm:space-y-2.5">
               {slide.bullets.map((bullet) => (
                 <li
                   key={bullet}
@@ -276,14 +290,14 @@ function DeckSlideView({
         {visual ? (
           <div
             className={cn(
-              'relative w-full',
-              visualFirst ? 'order-1 lg:order-2' : 'order-2',
-              slide.kind === 'hero' && 'mt-2 lg:mt-0',
+              'relative w-full min-w-0',
+              visualFirstOnMobile ? 'order-1 lg:order-2' : 'order-2',
+              slide.kind === 'hero' && 'mt-1 sm:mt-2 lg:mt-0',
             )}
           >
             {visual}
             {slide.demoPlaceholder ? (
-              <p className="mt-3 text-center text-[0.7rem] uppercase tracking-[0.18em] text-white/40">
+              <p className="mt-3 text-center text-[0.65rem] uppercase tracking-[0.16em] text-white/40 sm:text-[0.7rem] sm:tracking-[0.18em]">
                 {slide.demoPlaceholder}
               </p>
             ) : null}
@@ -295,32 +309,72 @@ function DeckSlideView({
   )
 }
 
+const headerLinkClassName =
+  'inline-flex items-center justify-center gap-1.5 rounded-full border border-white/18 bg-white/6 px-2.5 py-2 text-[0.65rem] uppercase tracking-[0.14em] text-white/85 backdrop-blur-md transition-colors hover:bg-white/10 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[var(--wellstudio-blue)] sm:gap-2 sm:px-3.5 sm:text-xs sm:tracking-[0.16em]'
+
 export function ShowcaseHeaderLink({
   href,
   children,
+  label,
   external,
 }: {
   href: string
   children: ReactNode
+  /** Visible label; hide on the narrowest phones when paired with an icon child. */
+  label?: string
   external?: boolean
 }) {
-  const className =
-    'inline-flex items-center gap-2 rounded-full border border-white/18 bg-white/6 px-3.5 py-2 text-xs uppercase tracking-[0.16em] text-white/85 backdrop-blur-md transition-colors hover:bg-white/10 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[var(--wellstudio-blue)]'
+  const content = (
+    <>
+      {label ? <span className="max-[380px]:sr-only">{label}</span> : null}
+      {children}
+    </>
+  )
 
   if (external) {
     return (
-      <a href={href} target="_blank" rel="noreferrer" className={className}>
-        {children}
+      <a href={href} target="_blank" rel="noreferrer" className={headerLinkClassName}>
+        {label ? content : children}
       </a>
     )
   }
 
   return (
-    <Link href={href} className={className}>
-      {children}
+    <Link href={href} className={headerLinkClassName}>
+      {label ? content : children}
     </Link>
   )
 }
+
+export function ShowcaseHeaderButton({
+  children,
+  label,
+  onClick,
+  'aria-label': ariaLabel,
+}: {
+  children: ReactNode
+  label?: string
+  onClick: (event: MouseEvent<HTMLButtonElement>) => void
+  'aria-label'?: string
+}) {
+  return (
+    <button
+      type="button"
+      onClick={onClick}
+      aria-label={ariaLabel}
+      className={headerLinkClassName}
+    >
+      {label ? <span className="max-[380px]:sr-only">{label}</span> : null}
+      {children}
+    </button>
+  )
+}
+
+const ctaPrimaryClassName =
+  'inline-flex w-full items-center justify-center gap-2 rounded-full bg-[var(--wellstudio-blue)] px-5 py-3.5 text-sm font-medium text-[var(--wellstudio-ink)] transition-transform hover:scale-[1.02] active:scale-[0.98] sm:w-auto sm:py-3'
+
+const ctaSecondaryClassName =
+  'inline-flex w-full items-center justify-center gap-2 rounded-full border border-white/20 px-5 py-3.5 text-sm font-medium text-white/90 transition-colors hover:bg-white/8 active:bg-white/10 sm:w-auto sm:py-3'
 
 export function ShowcasePrimaryButton({
   href,
@@ -331,19 +385,16 @@ export function ShowcasePrimaryButton({
   children: ReactNode
   external?: boolean
 }) {
-  const className =
-    'inline-flex items-center gap-2 rounded-full bg-[var(--wellstudio-blue)] px-5 py-3 text-sm font-medium text-[var(--wellstudio-ink)] transition-transform hover:scale-[1.02]'
-
   if (external) {
     return (
-      <a href={href} target="_blank" rel="noreferrer" className={className}>
+      <a href={href} target="_blank" rel="noreferrer" className={ctaPrimaryClassName}>
         {children}
       </a>
     )
   }
 
   return (
-    <Link href={href} className={className}>
+    <Link href={href} className={ctaPrimaryClassName}>
       {children}
     </Link>
   )
@@ -358,19 +409,16 @@ export function ShowcaseSecondaryButton({
   children: ReactNode
   external?: boolean
 }) {
-  const className =
-    'inline-flex items-center gap-2 rounded-full border border-white/20 px-5 py-3 text-sm font-medium text-white/90 transition-colors hover:bg-white/8'
-
   if (external) {
     return (
-      <a href={href} target="_blank" rel="noreferrer" className={className}>
+      <a href={href} target="_blank" rel="noreferrer" className={ctaSecondaryClassName}>
         {children}
       </a>
     )
   }
 
   return (
-    <Link href={href} className={className}>
+    <Link href={href} className={ctaSecondaryClassName}>
       {children}
     </Link>
   )

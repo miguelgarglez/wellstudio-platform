@@ -205,7 +205,7 @@ function ShotImage({
           className="object-contain object-left-top p-0.5 transition-transform duration-500 ease-out group-hover/shot:scale-[1.015] motion-reduce:transition-none motion-reduce:group-hover/shot:scale-100"
           sizes="(max-width: 640px) 85vw, (max-width: 1024px) 42vw, 28vw"
         />
-        <span className="pointer-events-none absolute inset-0 flex items-end justify-end p-2 opacity-0 transition-opacity duration-200 group-hover/shot:opacity-100 group-focus-visible/shot:opacity-100 motion-reduce:transition-none">
+        <span className="pointer-events-none absolute inset-0 flex items-end justify-end p-2 opacity-100 transition-opacity duration-200 [@media(hover:hover)]:opacity-0 [@media(hover:hover)]:group-hover/shot:opacity-100 [@media(hover:hover)]:group-focus-visible/shot:opacity-100 motion-reduce:transition-none">
           <span className="flex size-8 items-center justify-center rounded-full border border-white/10 bg-black/55 text-white/90 backdrop-blur-sm">
             <Maximize2 className="size-3.5" strokeWidth={2} aria-hidden="true" />
           </span>
