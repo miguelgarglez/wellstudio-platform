@@ -424,7 +424,6 @@ model Reservation {
   classSession      ClassSession                  @relation(fields: [classSessionId], references: [id], onDelete: Cascade)
   entitlementUsages ReservationEntitlementUsage[]
 
-  @@unique([memberId, classSessionId, status], map: "reservation_member_session_status_unique")
   @@index([memberId, status])
   @@index([classSessionId, status])
 }
@@ -462,7 +461,6 @@ model WaitlistEntry {
   member       Member       @relation(fields: [memberId], references: [id], onDelete: Cascade)
   classSession ClassSession @relation(fields: [classSessionId], references: [id], onDelete: Cascade)
 
-  @@unique([memberId, classSessionId, status], map: "waitlist_member_session_status_unique")
   @@index([classSessionId, status, joinedAt])
 }
 
