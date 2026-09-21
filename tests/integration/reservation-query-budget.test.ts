@@ -88,3 +88,46 @@ it('loads the reservation shell without one query per nested relation', async ()
   expect(overview.upcomingReservations).toHaveLength(1)
   expect(roundTrips, 'SQL round trips while revalidating the reservation shell').toBeLessThanOrEqual(8)
 })
+
+it('skips blocked waitlist members without consuming the last available seat', async () => {
+  const { member, createMember, session } = await createScenario(prisma)
+  const blocked = await createMember()
+  const first = await createMember()
+  const second = await createMember()
+  const booked = await reservePublishedSession(member)
+  expect(booked.code).toBe('BOOKED')
+  for (const [index, waiting] of [blocked, first, second].entries()) {
+    expect((await joinSessionWaitlist({
+      ...waiting,
+      now: new Date(member.now.getTime() + index * 1000),
+    })).code).toBe('WAITLIST_JOINED')
+  }
+  await prisma.member.update({
+    where: { id: blocked.memberId },
+    data: { status: 'BLOCKED' },
+  })
+
+  const canceled = await cancelMemberReservation({
+    ...member,
+    reservationId: booked.updatedEntityId!,
+  })
+
+  expect(canceled.code).toBe('CANCELED')
+  expect(canceled.notificationJobIds).toHaveLength(2)
+  expect(await prisma.reservation.findMany({
+    where: { classSessionId: session.id, status: 'BOOKED' },
+  })).toMatchObject([{ memberId: first.memberId, source: 'SYSTEM' }])
+  expect(await prisma.classSession.findUnique({ where: { id: session.id } }))
+    .toMatchObject({ reservedCount: 1, capacity: 1 })
+  expect(await prisma.waitlistEntry.findMany({
+    where: { classSessionId: session.id },
+    orderBy: { joinedAt: 'asc' },
+  })).toMatchObject([
+    { memberId: blocked.memberId, status: 'EXPIRED', position: null },
+    { memberId: first.memberId, status: 'PROMOTED', position: null },
+    { memberId: second.memberId, status: 'WAITING', position: 1 },
+  ])
+  expect(await prisma.creditLedgerEntry.count({
+    where: { memberCreditAccountId: { in: [blocked.creditAccountId, second.creditAccountId] } },
+  })).toBe(0)
+})

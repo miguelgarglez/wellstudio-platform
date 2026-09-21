@@ -109,3 +109,10 @@ usar `relationLoadStrategy: 'query'` de forma explícita. No desactivar los join
 globalmente sin repetir los presupuestos y la validación de latencia.
 
 Referencia: [Prisma relation load strategies](https://www.prisma.io/docs/orm/prisma-client/queries/relation-queries#relation-load-strategies-preview).
+
+La recarga del panel ejecuta sus lecturas independientes con `Promise.all`:
+el `$transaction` de lectura anterior usaba `ReadCommitted`, que ya permite
+snapshots distintos entre sentencias, y serializaba los viajes de red. No cambia
+el aislamiento serializable de las mutaciones. Dentro de una promoción se carga
+la sesión una vez y se descuentan las plazas ocupadas en esa misma transacción;
+un conflicto concurrente sigue reintentando la transacción completa.

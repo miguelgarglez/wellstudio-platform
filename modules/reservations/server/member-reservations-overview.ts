@@ -223,7 +223,7 @@ export async function getMemberReservationsOverviewForMember(input: {
     const includeSandboxFixtures = input.includeSandboxFixtures ?? false
 
     const [upcomingReservations, activeWaitlists, recentHistory, publishedSessions, creditAccounts] =
-      await prisma.$transaction([
+      await Promise.all([
       prisma.reservation.findMany({
         where: {
           memberId,
