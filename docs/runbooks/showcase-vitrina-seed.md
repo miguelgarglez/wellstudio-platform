@@ -13,6 +13,22 @@ Preparar datos **marketing-friendly** en Preview antes de capturar pantallas par
 - Perfil vitrina del socio comercial (opcional: tu cuenta real)
 - Las superficies comerciales **ocultan** catálogo/socios/sesiones E2E aunque sigan en la misma BD
 
+Los perfiles, agenda y actividad de esta vitrina son **sintéticos**. Los pagos
+mostrados son simulados o de prueba, no cobros reales. La landing identifica sus
+testimonios como contenido ilustrativo, no como testimonios verificados.
+
+## Advertencia: seed completo frente a mantenimiento
+
+`pnpm sandbox:showcase-vitrina` es un **reset destructivo de la vitrina**:
+borra reservas y sesiones de los tipos `showcase-*`, reconstruye derechos de los
+socios demo y, con `SHOWCASE_MEMBER_EMAIL`, cancela reservas/membresías y sustituye
+cuentas de crédito y ledger de esa cuenta. No ejecutarlo sobre actividad que se
+quiera conservar, ni programarlo como cron.
+
+Para mantener fechas futuras sin resetear socios, usar el
+[refresh aditivo de Preview](showcase-rolling-refresh.md). Requiere catálogo
+existente y no llama al seed completo. No crea usuarios ni manda correo.
+
 ## Qué crea el escenario `showcase-vitrina`
 
 | Área | Contenido |
