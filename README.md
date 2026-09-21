@@ -48,11 +48,15 @@ duplicados, sin cambiar las 17 tablas ni las 25 sesiones anteriores comprobadas.
 La agenda pública y el showcase pasaron una smoke de navegador con teclado y
 viewports desktop/móvil, sin login ni header E2E. El scheduler sigue sin activar.
 
-Los pagos validados usan `PAYMENTS_CHECKOUT_MODE=sandbox`,
-el simulador de la aplicación. No equivalen a Stripe Checkout en modo test ni a
-un cobro real. La revisión corrige redirects que cambiaban del origen visible
-al host interno del servidor. Quedan pendientes OTP exitoso con correo recibido,
-proveedores reales y operación del scheduler. La auditoría conserva un advisory high de
+Las seis pruebas de pagos usan el simulador de la aplicación. Una comprobación
+adicional completó Checkout local con Stripe TEST, webhook de Preview y sandbox
+compartido: una compra de 54 EUR de prueba añadió seis créditos una sola vez.
+Dos replays controlados del evento, con firmas generadas por el SDK, recibieron
+200 sin cambiar pagos, cuentas, ledger, eventos ni jobs. No fueron reenvíos
+originados por Stripe ni un recorrido enteramente alojado en Preview.
+La revisión corrige redirects que cambiaban del origen visible al host interno
+del servidor. Quedan pendientes OTP exitoso con correo recibido, reconciliación
+de migraciones remotas y operación del scheduler. La auditoría conserva un advisory high de
 `deepmerge-ts`, dependiente de Prisma. No se declara el cierre de estos límites.
 
 El [runbook de portfolio y mantenimiento](./docs/runbooks/portfolio-maintenance.md)

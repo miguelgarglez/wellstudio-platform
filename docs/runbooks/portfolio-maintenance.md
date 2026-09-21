@@ -87,11 +87,46 @@ durante setup; no hubo page errors en las páginas verificadas.
 
 La rama `main` y Production no se han promovido. El scheduler no se ha activado.
 
-La validación final aprobó seis casos con el **simulador de pagos de la app**.
-No completó Checkout y webhook reales de Stripe ni entrega de correo a un buzón
-controlado. Resend aceptó un envío a su destinatario de pruebas; aceptación no
-equivale a recepción. Las claves de test de Stripe no convierten
-`PAYMENTS_CHECKOUT_MODE=sandbox` en una prueba de Stripe.
+### Stripe TEST: recorrido híbrido y replay controlado
+
+Las seis pruebas anteriores usan el **simulador de pagos de la app**; tener
+claves de test no convierte `PAYMENTS_CHECKOUT_MODE=sandbox` en Stripe.
+Una prueba posterior, grabada en `f06e3df`, cambió solo el launcher local a
+`stripe`. Usó la cuenta «Entorno de prueba de miguelgarglez», su único webhook
+activo de Preview y la base sandbox compartida, sin cambiar el proveedor ni
+la configuración remota.
+
+Una compra de 54 EUR con tarjeta oficial TEST produjo Checkout `complete/paid`,
+`livemode: false`, un `Payment SUCCEEDED`, un evento auténtico
+`checkout.session.completed PROCESSED` y `pending_webhooks: 0`.
+Se creó una cuenta `ACTIVE` y un ledger `PURCHASE` de seis créditos. La UI pasó
+de 18 a 24 créditos y persistió tras reload; las filas previas de pagos y cuentas
+comparadas quedaron iguales. El retorno nativo a `localhost:3001/app/account`
+dio 200; se observaron 8849 ms desde el helper de pago, sin atribuirlos a fases
+internas del webhook. Un job incidental llegó a `SENT`, intento 1.
+
+El arranque inicial en 3002 falló la comprobación de origen: el build incorporaba
+3001. Se reutilizó el único checkout pendiente en el puerto correcto. Dos
+selectores auxiliares se ajustaron a la UI real, sin cambiar código ni timeouts.
+No se identificó el commit remoto en el momento del webhook: esta evidencia
+corresponde al alias Preview, no a un deployment fijado ni a un recorrido
+enteramente alojado.
+
+El 21 de septiembre a las 15:06 UTC se recuperó el evento original mediante el
+SDK de Stripe y se envió dos veces al mismo webhook. Cada firma se generó
+localmente con `webhooks.generateTestHeaderString` y el secreto autorizado.
+Ambas respuestas fueron 200 / `received: true`. Los snapshots completos y sus
+hashes quedaron iguales: 14 pagos, 4 cuentas, 4 ledger entries, 12 eventos y
+1 job de compra del miembro dedicado. Se comprobó una única cuenta y un único
+ledger PURCHASE vinculados a esa compra.
+
+Este replay controlado verifica la deduplicación del endpoint; **no es un
+reenvío originado por Stripe**, ni prueba su scheduler de reintentos. Reload,
+aceptación de Resend y estado `SENT` tampoco acreditan recepción en un buzón.
+El envío de Resend a su destinatario oficial de pruebas fue aceptado; la
+recepción y el recorrido de OTP exitoso siguen pendientes.
+
+### Estado de la base remota
 
 La inspección de solo lectura del sandbox encontró `_prisma_migrations`, índices
 parciales activos y los índices históricos por estado, pero no `pg_cron`.
