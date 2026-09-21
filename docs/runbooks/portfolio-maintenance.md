@@ -9,25 +9,39 @@ integrada y aprobación editorial. Referencias de trabajo existentes: MIG-157
 
 Punto de partida: [`dee184b1`](https://github.com/miguelgarglez/wellstudio-platform/tree/dee184b14908834c1b802daebd1b8240af9ecaa1),
 identificado en Preview por la validación previa del 21 de septiembre.
-Los siguientes resultados proceden de los handoffs de implementación de esa
-fecha; no son una ejecución conjunta ni verifican el despliegue actual.
+Las PRs #9–#12 y #14 están fusionadas en `preview`. Los resultados siguientes
+identifican cada revisión y entorno; no trasladar una comprobación local al alias
+desplegado sin verificar su commit.
 
 | Cambio implementado | Revisión y evidencia local comunicada | Límite pendiente |
 | --- | --- | --- |
-| [PR #8: dependencias](https://github.com/miguelgarglez/wellstudio-platform/pull/8) | `d0c5f21`: foundation aprobado; auditorías completa y de producción conservan un hallazgo high | `GHSA-ggr8-5vv4-36mx` en `deepmerge-ts` 7.1.5; auditorías salen con código 1. Vercel falló, causa no verificada. Dependabot necesita su configuración en la rama por defecto. |
-| [PR #9: demo móvil en el tiempo](https://github.com/miguelgarglez/wellstudio-platform/pull/9) | `16e6624`: lint, tipos, 373 unitarios, build y 6 pruebas PostgreSQL locales aprobados | Refresh no destructivo de 14 días implementado; scheduler y conservación de actividad en Preview no validados. Se probó con Node 24; falta validación integrada con Node 22. |
+| [PR #8: dependencias](https://github.com/miguelgarglez/wellstudio-platform/pull/8) | `face291`: Next 16.3.3, foundation aprobado (384 tests / 68 archivos, lint, tipos y build), 16 regresiones PostgreSQL y CI hospedado aprobado | Validación fresca de navegador pendiente. `GHSA-ggr8-5vv4-36mx` en `deepmerge-ts` 7.1.5; auditorías salen con código 1. Dependabot necesita su configuración en la rama por defecto. |
+| [PR #9: demo móvil en el tiempo](https://github.com/miguelgarglez/wellstudio-platform/pull/9) | `16e6624`: lint, tipos, 373 unitarios, build y 6 pruebas PostgreSQL locales aprobados; incorporada al foundation combinado con Node 22.23.2 | Refresh no destructivo de 14 días implementado; scheduler y conservación de actividad en Preview no validados. |
 | [PR #10: migraciones e historial](https://github.com/miguelgarglez/wellstudio-platform/pull/10) | `f442c4a`: 15 migraciones y 12 pruebas PostgreSQL 17.6 aprobadas; foundation y reservas aprobados | Revisar drift, roles, locks y recuperación antes de tocar una DB existente. No acredita migración del sandbox. |
-| [PR #11: PostgreSQL en CI](https://github.com/miguelgarglez/wellstudio-platform/pull/11) | `b1d8932`: actionlint, foundation y 12 pruebas de integración locales aprobados | Depende de PR #10; su base es la rama de datos. El handoff no observó el resultado final del CI hospedado ni del smoke. |
+| [PR #11: PostgreSQL en CI](https://github.com/miguelgarglez/wellstudio-platform/pull/11) | Integrada después de #10. El job `foundation` de #8 pasa con migraciones, PostgreSQL, foundation y smoke en GitHub Actions | CI usa PostgreSQL local y placeholders; no acredita permisos, latencia ni proveedores remotos. |
+| [PR #12: auth](https://github.com/miguelgarglez/wellstudio-platform/pull/12) y [PR #14: reservas](https://github.com/miguelgarglez/wellstudio-platform/pull/14) | `35f63c3`: auth 3 passed / 1 skipped; reservas 6 passed en navegador contra Supabase sandbox. PostgreSQL verifica atomicidad, outbox y presupuestos de consultas | Cancelación 4896 ms frente a un límite de 5000 ms. Leave waitlist registró `ERR_ABORTED` aunque UI y DB quedaron correctas. La evidencia precede a Next 16.3.3. |
 
-Estas PRs requieren revisión e integración. Consultar sus checks para el estado
-posterior; no trasladar sus resultados al alias Preview sin verificar el commit
-desplegado. El trabajo de auth/identity y su latencia lo valida el responsable
-de integración por separado; este registro no afirma su resolución.
+El empaquetado de Vercel que fallaba tras actualizar Next quedó corregido en
+`69bb368`: Vercel usa su output predeterminado y Docker/local conserva
+`standalone`. Se reprodujo el fallo del trace NFT y se verificó el deployment
+automático corregido en estado READY. La revisión combinada `face291` también
+tiene checks `foundation` y Vercel aprobados.
+
+En la inspección del 21 de septiembre, el alias Preview apuntaba al deployment
+READY de `52b43982fe3d2d2d4a968143c41728fb9607cbe0`, rama `preview`, con pagos
+simulados. Esto es una observación fechada, no una garantía sobre el alias futuro.
+La rama `main` y Production no se han promovido.
 
 La validación previa aprobó seis casos con el **simulador de pagos de la app**.
-No completó Checkout y webhook reales de Stripe, entrega de correo a un buzón
-controlado ni los recorridos completos de auth/reservas. Las claves de test de
-Stripe no convierten `PAYMENTS_CHECKOUT_MODE=sandbox` en una prueba de Stripe.
+No completó Checkout y webhook reales de Stripe ni entrega de correo a un buzón
+controlado. Resend aceptó un envío a su destinatario de pruebas; aceptación no
+equivale a recepción. Las claves de test de Stripe no convierten
+`PAYMENTS_CHECKOUT_MODE=sandbox` en una prueba de Stripe.
+
+La inspección de solo lectura del sandbox encontró `_prisma_migrations`, índices
+parciales activos y los índices históricos por estado, pero no `pg_cron`.
+No se aplicaron migraciones, no se reconciliaron checksums y no se habilitó un
+scheduler. La validación funcional no sustituye ese rollout de datos.
 
 ## Reproducir las comprobaciones
 
@@ -42,11 +56,11 @@ Para enfocar las invariantes existentes, sin proveedores:
 pnpm exec vitest run tests/unit/reservations tests/unit/payments
 ```
 
-### PostgreSQL desechable: requiere PR #10
+### PostgreSQL desechable
 
-Ejecutar este bloque solo en una revisión que incluya PR #10: añade el baseline
-que falta en `dee184b1` y `vitest.integration.config.ts`. No aplicar estas
-instrucciones a una DB existente o a un túnel hacia sandbox.
+La línea `preview` ya incluye el baseline y `vitest.integration.config.ts` de
+PR #10. No aplicar estas instrucciones a una DB existente o a un túnel hacia
+sandbox.
 
 ```bash
 docker run --detach --name wellstudio-portfolio-postgres \
@@ -71,6 +85,8 @@ la suite exige loopback, DB `wellstudio_integration`, sin query ni fragmento.
 Las pruebas crean y eliminan sus propias DB con sufijos UUID; no envían correo.
 Comprueban instalación vacía, repetición de migraciones, baselining/upgrade,
 historial repetido, unicidad activa y dos reservas solapadas para la última plaza.
+PR #14 añade presupuestos de consultas, promoción con un primer candidato
+bloqueado y repetición del outbox sin reemplazar un snapshot ya enviado.
 
 Para una base ya existente, seguir la
 [reconciliación del historial propuesta en PR #10](https://github.com/miguelgarglez/wellstudio-platform/blob/f442c4adca54d5ef5f2d5ab38a9f7f5aa6cec0cd/docs/runbooks/supabase-postgres-prisma-workflow.md).
@@ -88,8 +104,8 @@ El smoke y los pagos simulados no sustituyen los gates de auth/reservas ni la
 
 ## Condiciones para publicar el cierre
 
-- Revisar e integrar las PRs; PR #10 precede a PR #11. Registrar SHA integrado,
-  enlace al CI, resultado de cada gate, entorno, fecha y limitaciones.
+- Terminar la validación de #8 y actualizar el SHA integrado, enlace al CI,
+  resultado de cada gate, entorno, fecha y limitaciones.
 - Confirmar commit del alias Preview y reconciliar la DB bajo autorización.
   Un build local o un comentario automático de Vercel no prueba esta condición.
 - Validar agenda futura, separación de fixtures E2E, conservación de actividad
@@ -105,6 +121,19 @@ Hasta entonces, mantener el estado de demo en validación. No usar “Completed�
 “production-ready”, cifras de rendimiento ni testimonios como prueba de adopción.
 La integración en `main` o una etiqueta de release necesitan una decisión separada
 de publicación por su relación con Production.
+
+### Reconciliación de ramas
+
+`preview` sigue siendo la línea de entrega del sandbox. Antes de proponer su
+integración en `main`, comparar ambos historiales, revisar las migraciones contra
+la base de destino y comprobar variables y servicios de Production con aprobación
+del propietario. No resolver la divergencia con un reset o un push forzado.
+Hasta esa decisión, enlazar `preview` desde la ficha de portfolio.
+
+Dependabot lee su configuración desde la rama por defecto (`main`), aunque sus
+actualizaciones estén dirigidas a `preview`. Por tanto, el archivo integrado solo
+en `preview` no activa el mantenimiento. Llevarlo a `main` requiere un cambio
+revisado dentro de la decisión de publicación; no se ha activado implícitamente.
 
 ## Mantenimiento acotado
 

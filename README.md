@@ -33,20 +33,24 @@ sintéticos y sin adopción comercial acreditada.
 ## Estado y límites de la evidencia
 
 Revisión documental: **21 de septiembre de 2026**, sobre
-[`dee184b1`](https://github.com/miguelgarglez/wellstudio-platform/tree/dee184b14908834c1b802daebd1b8240af9ecaa1).
-La validación previa identificó esa revisión en Preview; no demuestra qué revisión
-está desplegada ahora. Las correcciones de dependencias, demo, datos y CI están
-propuestas en PRs separados. **Código implementado en una PR no equivale a código
-integrado ni a comportamiento desplegado verificado.**
+[`preview`](https://github.com/miguelgarglez/wellstudio-platform/tree/preview),
+con las PRs de demo, datos, CI, auth y reservas ya integradas (#9–#12 y #14).
+La revisión combinada con la actualización de dependencias,
+[`face291`](https://github.com/miguelgarglez/wellstudio-platform/tree/face291fd02f7c3c5a05495e87c2747fcd007fd8),
+supera foundation (384 tests y build) y 16 regresiones PostgreSQL. Su validación
+fresca en navegador sigue pendiente. **Una comprobación local o un deployment
+READY no acreditan por sí solos todos los recorridos del sistema desplegado.**
 
 Los pagos validados en el informe previo usan `PAYMENTS_CHECKOUT_MODE=sandbox`,
 el simulador de la aplicación. No equivalen a Stripe Checkout en modo test ni a
-un cobro real. Quedan pendientes la validación integrada, los recorridos privados,
-el trabajo de latencia de auth, los proveedores reales y la operación del scheduler.
-No se declara el cierre del proyecto ni el éxito de esos gates.
+un cobro real. Auth y reservas se validaron en navegador en `35f63c3`, antes de la
+actualización de Next; la cancelación pasó con poco margen frente al límite de
+cinco segundos. Quedan pendientes la validación de la combinación, los proveedores
+reales y la operación del scheduler. La auditoría conserva un advisory high de
+`deepmerge-ts`, dependiente de Prisma. No se declara el cierre de estos límites.
 
 El [runbook de portfolio y mantenimiento](./docs/runbooks/portfolio-maintenance.md)
-registra revisiones, resultados locales comunicados, riesgos abiertos y condiciones
+registra revisiones, resultados observados, riesgos abiertos y condiciones
 para actualizar estas afirmaciones.
 
 ## Stack
@@ -85,8 +89,8 @@ permiten esas comprobaciones; no configuran login, correo ni pagos de Stripe.
 PostgreSQL y los privados requieren una configuración de Auth autorizada.
 
 El [runbook](./docs/runbooks/portfolio-maintenance.md) incluye PostgreSQL aislado
-y la suite de integración, **disponibles tras incorporar PR #10**. En el baseline
-`dee184b1`, `migrate deploy` sobre una DB vacía falla por falta del schema inicial;
+y la suite de integración. La cadena versionada ya contiene el baseline para
+bases nuevas. Una base existente necesita reconciliación previa de su historial;
 `db push` no sustituye la validación de migraciones e índices parciales.
 
 ## Tres ADRs para entender el diseño
