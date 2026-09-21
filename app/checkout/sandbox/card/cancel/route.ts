@@ -1,5 +1,3 @@
-import { NextResponse } from 'next/server'
-
 import { requireAuthenticatedContext } from '@/modules/auth/server/identity'
 import { cancelSandboxCheckout } from '@/modules/payments/server/sandbox-checkout'
 
@@ -12,10 +10,10 @@ export async function POST(request: Request) {
     await cancelSandboxCheckout({ paymentId, memberId: context.member.id })
   }
 
-  return NextResponse.redirect(
-    new URL(`/app/account?card=canceled&payment=${encodeURIComponent(paymentId)}`, request.url),
-    303,
-  )
+  return new Response(null, {
+    status: 303,
+    headers: { Location: `/app/account?card=canceled&payment=${encodeURIComponent(paymentId)}` },
+  })
 }
 
 function read(formData: FormData, key: string) {
