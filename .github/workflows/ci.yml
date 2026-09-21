@@ -12,11 +12,32 @@ permissions:
 jobs:
   foundation:
     runs-on: ubuntu-latest
+    services:
+      postgres:
+        image: postgres:17.6
+        env:
+          POSTGRES_USER: wellstudio
+          POSTGRES_PASSWORD: wellstudio
+          POSTGRES_DB: wellstudio_integration
+        ports:
+          - 127.0.0.1:5432:5432
+        options: >-
+          --health-cmd "pg_isready -U wellstudio -d wellstudio_integration"
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
     env:
-      DATABASE_URL: postgresql://postgres:postgres@127.0.0.1:5432/postgres
-      NEXT_PUBLIC_SUPABASE_URL: https://placeholder.supabase.co
+      DATABASE_URL: postgresql://wellstudio:wellstudio@127.0.0.1:5432/wellstudio_integration
+      DIRECT_URL: postgresql://wellstudio:wellstudio@127.0.0.1:5432/wellstudio_integration
+      INTEGRATION_DATABASE_URL: postgresql://wellstudio:wellstudio@127.0.0.1:5432/wellstudio_integration
+      NEXT_PUBLIC_SUPABASE_URL: http://127.0.0.1:54321
       NEXT_PUBLIC_SUPABASE_ANON_KEY: placeholder-anon-key
       NEXT_PUBLIC_APP_URL: http://127.0.0.1:3001
+      NEXT_PUBLIC_AGENTATION_ENABLED: 'false'
+      NEXT_TELEMETRY_DISABLED: '1'
+      PAYMENTS_CHECKOUT_MODE: sandbox
+      E2E_AUTH_SANDBOX: 'false'
+      E2E_AUTH_SANDBOX_REGISTER: 'false'
     steps:
       - name: Checkout
         uses: actions/checkout@v4
@@ -40,6 +61,12 @@ jobs:
 
       - name: Generate Prisma Client
         run: pnpm db:generate
+
+      - name: Deploy migrations to fresh PostgreSQL
+        run: pnpm db:migrate:deploy
+
+      - name: Run PostgreSQL integration regressions
+        run: pnpm exec vitest run --config vitest.integration.config.ts
 
       - name: Run foundation gate
         run: pnpm check:foundation
