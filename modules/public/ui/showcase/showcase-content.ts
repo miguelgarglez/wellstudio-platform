@@ -25,7 +25,7 @@ export const showcaseSlides: ShowcaseSlide[] = [
     id: 'hero',
     eyebrow: 'WellStudio Platform',
     title: 'Reservas, mostrador y cobros en un solo producto',
-    body: 'Software para centros boutique: socios reservan, el staff opera el día a día y los bonos se cobran online — sin ensamblar widgets.',
+    body: 'Demo de portfolio para centros boutique: reservas, operativa y bonos online. Las capturas muestran perfiles, agenda y actividad sintéticos.',
     kind: 'hero',
     visual: {
       layout: 'trio',
@@ -109,7 +109,7 @@ export const showcaseSlides: ShowcaseSlide[] = [
     id: 'payments',
     eyebrow: 'Cobros',
     title: 'Bonos online que activan créditos al momento',
-    body: 'Checkout Stripe alojado: el centro no toca tarjetas. Al confirmarse el pago, el socio ya puede reservar.',
+    body: 'Integración con Checkout Stripe alojado. En esta demo los pagos son simulados o de prueba: las capturas no representan cobros reales.',
     kind: 'journey',
     visual: {
       layout: 'duo',
@@ -120,7 +120,7 @@ export const showcaseSlides: ShowcaseSlide[] = [
     id: 'outcome',
     eyebrow: 'Resultado',
     title: 'Lo que el centro puede hacer sin ti en la sala',
-    body: 'Operativa cerrada y vendible: agenda viva, altas con cobertura, reservas reales y un camino claro al cobro online.',
+    body: 'Recorrido funcional en Preview: agenda demo, altas con cobertura, reservas de prueba y flujo de cobro en sandbox.',
     kind: 'outcome',
     bullets: [
       'Publicar la semana y ver ocupación',
@@ -145,7 +145,7 @@ export const showcaseSlides: ShowcaseSlide[] = [
     id: 'cta',
     eyebrow: 'Siguiente paso',
     title: 'Míralo en vivo o hablemos',
-    body: 'El showcase es la historia. Preview es el producto real. Si encaja con tu centro, lo afinamos juntos.',
+    body: 'Explora la aplicación en Preview con datos de demostración. Si encaja con tu centro, lo afinamos juntos.',
     kind: 'cta',
     visual: {
       layout: 'quad',

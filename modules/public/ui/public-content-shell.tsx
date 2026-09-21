@@ -3,6 +3,7 @@ import type { ReactNode } from 'react'
 import { cn } from '@/lib/utils'
 import { navigationLinks, outlineButtonClass } from '@/modules/public/ui/landing/landing-config'
 import { LandingStickyHeader } from '@/modules/public/ui/landing/landing-sticky-header'
+import { PublicDemoNotice } from '@/modules/public/ui/public-demo-notice'
 import { PublicSiteFooter } from '@/modules/public/ui/public-site-footer'
 
 const publicNavigationLinks = navigationLinks.map((link) => ({
@@ -21,6 +22,7 @@ export function PublicContentShell({ children }: { children: ReactNode }) {
         )}
       />
       <main id="main-content" tabIndex={-1}>
+        <PublicDemoNotice />
         {children}
       </main>
       <div className="px-4 pb-6 pt-10 sm:px-6 lg:px-8">
