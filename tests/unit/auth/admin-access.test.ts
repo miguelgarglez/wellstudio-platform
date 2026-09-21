@@ -16,6 +16,7 @@ const { getUserMock, prismaTransactionMock, tx } = vi.hoisted(() => {
 
 vi.mock('@/lib/db/prisma', () => ({
   prisma: {
+    user: { findUnique: vi.fn(async () => null) },
     $transaction: prismaTransactionMock,
   },
 }))
