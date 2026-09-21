@@ -31,7 +31,7 @@ revisar el catálogo manualmente, no lanzar un reset para subsanarlo.
 
 ## Configuración exclusiva del padre/operador
 
-Este PR no habilita variables, scheduler ni despliegues. Antes de activarlo,
+Antes de activar o cambiar la configuración,
 verificar en Vercel **el proyecto exacto y el deployment de la rama `preview`**,
 y confirmar que el alias de Preview apunta a ese deployment y al sandbox
 Supabase autorizado. No deducir IDs de nombres parecidos.
@@ -78,6 +78,24 @@ después de verificar el alias y deployment. Propuesta: diario a las **03:15 UTC
 con `Authorization: Bearer <CRON_SECRET>` desde el almacén privado del scheduler.
 Reintentar una vez ante error transitorio; alertar si no hay un `200` en 24 horas.
 No usar este cron para llamar a dispatch de correo ni reconciliar entitlements.
+
+### Evidencia operativa del 21 de septiembre de 2026
+
+Se configuraron las variables y el secreto solo para Preview/rama `preview`.
+Vercel confirmó el alias en `dpl_G6e4yZMNsDr5fAxm1UAUWSu6oE17`, READY, commit
+`447bd2612601102397c98bb8730945f5329edfcb`. La llamada manual autorizada a las
+14:23 UTC creó 12 sesiones; el replay creó cero. Los hashes del sandbox
+confirmaron 17 tablas y 25 sesiones previas intactas. Sin bearer devolvió `401`.
+La smoke pública sin header E2E mostró 12 sesiones del 21 de septiembre al
+1 de octubre en desktop/móvil, con filtros de teclado. Detalles y límites en
+el [registro de mantenimiento](./portfolio-maintenance.md#validación-del-alias-preview).
+
+El scheduler sigue **sin activar**. GitHub Actions puede llamar a este endpoint,
+pero su workflow programado debe existir en la rama por defecto (`main`).
+Cualquier merge ahí también dispara el despliegue de Production; necesita una
+decisión separada, aunque la PR operativa no cambie el código de la aplicación.
+La alerta por ausencia de ejecución durante 24 horas también queda pendiente:
+un aviso de job fallido no detecta por sí solo un scheduler que deja de correr.
 
 Invocación manual **solo después de la autorización y verificación del padre**,
 con `CRON_SECRET` cargado privadamente en el shell; no imprimirlo ni persistirlo:
@@ -148,4 +166,5 @@ La integración comprueba catálogo ausente, preservación de actividad de un so
 independiente, cancelaciones/reprogramaciones, concurrencia, idempotencia y
 rollover real en PostgreSQL. Las unitarias cubren autorización, guard, DST y
 disclosure. La prueba de integración es explícita, no parte de `pnpm test:unit`.
-La validación remota y de navegador corresponde al padre; no se ejecuta aquí.
+La validación remota y de navegador registrada arriba es independiente de esta
+regresión local.
