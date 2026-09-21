@@ -183,6 +183,140 @@ export function buildShowcaseVitrinaSessionBlueprints(now = new Date()) {
   })
 }
 
+export const SHOWCASE_ROLLING_DAYS = 14
+
+export function buildRollingShowcaseSessionBlueprints(now = new Date()) {
+  const today = madridCalendarDate(now)
+  const monday = new Date(today)
+  monday.setUTCDate(today.getUTCDate() - ((today.getUTCDay() + 6) % 7))
+  const until = new Date(now.getTime() + SHOWCASE_ROLLING_DAYS * 86_400_000)
+  const sessions = []
+
+  for (let week = 0; week < 3; week += 1) {
+    for (const blueprint of buildShowcaseVitrinaSessionBlueprints(monday)) {
+      const date = new Date(monday)
+      date.setUTCDate(date.getUTCDate() + week * 7 + blueprint.dayOffset)
+      const startsAt = madridSlot(date, blueprint.hour, blueprint.minute)
+      if (startsAt <= now || startsAt > until) continue
+
+      sessions.push({
+        ...blueprint,
+        id: `showcase-rolling-${blueprint.key}-${date.toISOString().slice(0, 10)}`,
+        classTypeSlug: CLASS_TYPES[blueprint.classTypeKey].slug,
+        coachName: COACHES[blueprint.coachIndex].displayName,
+        startsAt,
+        endsAt: shiftMinutes(startsAt, blueprint.durationMinutes),
+        reservedCount: 0,
+      })
+    }
+  }
+
+  return sessions.sort((a, b) => a.startsAt - b.startsAt)
+}
+
+export async function refreshShowcaseVitrinaSessions({ prisma, now = new Date() }) {
+  const blueprints = buildRollingShowcaseSessionBlueprints(now)
+  const until = new Date(now.getTime() + SHOWCASE_ROLLING_DAYS * 86_400_000)
+
+  return runWithRetry(() =>
+    prisma.$transaction(
+      async (tx) => {
+        await tx.$executeRaw`SELECT pg_advisory_xact_lock(${LOCK_ID})`
+        const classTypes = await tx.classType.findMany({
+          where: { slug: { in: SHOWCASE_VITRINA_CLASS_TYPE_SLUGS }, status: 'ACTIVE', isPublic: true },
+        })
+        const coaches = await tx.coach.findMany({
+          where: { displayName: { in: SHOWCASE_VITRINA_COACH_NAMES }, status: 'ACTIVE' },
+          orderBy: { createdAt: 'asc' },
+        })
+        const data = blueprints.map((blueprint) => {
+          const classType = classTypes.find((item) => item.slug === blueprint.classTypeSlug)
+          const coach = coaches.find((item) => item.displayName === blueprint.coachName)
+          if (!classType || !coach) {
+            throw new Error('Showcase catalog is not ready. Review the demo catalog before refreshing.')
+          }
+          return {
+            id: blueprint.id,
+            classTypeId: classType.id,
+            coachId: coach.id,
+            startsAt: blueprint.startsAt,
+            endsAt: blueprint.endsAt,
+            capacity: blueprint.capacity,
+            reservedCount: 0,
+            waitlistEnabled: true,
+            locationLabel: blueprint.locationLabel,
+            status: 'PUBLISHED',
+            publishedAt: now,
+          }
+        })
+        const existing = await tx.classSession.findMany({
+          where: {
+            OR: [
+              { id: { in: data.map((session) => session.id) } },
+              ...data.map(({ classTypeId, startsAt }) => ({ classTypeId, startsAt })),
+            ],
+          },
+          select: { id: true, classTypeId: true, startsAt: true },
+        })
+        const missing = data.filter((session) => !existing.some((record) =>
+          record.id === session.id ||
+          (record.classTypeId === session.classTypeId &&
+            record.startsAt.getTime() === session.startsAt.getTime()),
+        ))
+        const created = await tx.classSession.createMany({ data: missing, skipDuplicates: true })
+        const future = await tx.classSession.aggregate({
+          where: {
+            classTypeId: { in: classTypes.map((classType) => classType.id) },
+            startsAt: { gt: now, lte: until },
+            status: 'PUBLISHED',
+          },
+          _count: true,
+          _min: { startsAt: true },
+          _max: { startsAt: true },
+        })
+
+        return {
+          refreshedAt: now.toISOString(),
+          horizonEndsAt: until.toISOString(),
+          createdCount: created.count,
+          existingCount: data.length - created.count,
+          futureSessionCount: future._count,
+          firstSessionStartsAt: future._min.startsAt?.toISOString() ?? null,
+          lastSessionStartsAt: future._max.startsAt?.toISOString() ?? null,
+        }
+      },
+      {
+        isolationLevel: Prisma.TransactionIsolationLevel.Serializable,
+        timeout: 20_000,
+        maxWait: 5_000,
+      },
+    ),
+  )
+}
+
+function madridCalendarDate(date) {
+  const parts = new Intl.DateTimeFormat('en-CA', {
+    timeZone: 'Europe/Madrid', year: 'numeric', month: '2-digit', day: '2-digit',
+  }).formatToParts(date)
+  const value = (type) => Number(parts.find((part) => part.type === type).value)
+  return new Date(Date.UTC(value('year'), value('month') - 1, value('day')))
+}
+
+function madridSlot(date, hour, minute) {
+  const wallTime = date.getTime() + (hour * 60 + minute) * 60_000
+  let instant = wallTime
+  for (let pass = 0; pass < 2; pass += 1) {
+    const parts = new Intl.DateTimeFormat('en-GB', {
+      timeZone: 'Europe/Madrid', hour: '2-digit', minute: '2-digit', hourCycle: 'h23',
+    }).formatToParts(new Date(instant))
+    const value = (type) => Number(parts.find((part) => part.type === type).value)
+    const localTime = madridCalendarDate(new Date(instant)).getTime() +
+      (value('hour') * 60 + value('minute')) * 60_000
+    instant += wallTime - localTime
+  }
+  return new Date(instant)
+}
+
 export async function ensureShowcaseVitrinaScenario({
   prisma,
   now = new Date(),

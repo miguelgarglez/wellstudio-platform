@@ -127,6 +127,34 @@ declare module '@/modules/testing/server/sandbox-scenarios/admin-playground.mjs'
 }
 
 declare module '@/modules/testing/server/sandbox-scenarios/showcase-vitrina.mjs' {
+  import type { PrismaClient } from '@prisma/client'
+
+  export const SHOWCASE_ROLLING_DAYS: number
+  export type ShowcaseRefreshSummary = {
+    refreshedAt: string
+    horizonEndsAt: string
+    createdCount: number
+    existingCount: number
+    futureSessionCount: number
+    firstSessionStartsAt: string | null
+    lastSessionStartsAt: string | null
+  }
+  export function buildRollingShowcaseSessionBlueprints(now?: Date): Array<{
+    id: string
+    key: string
+    classTypeSlug: string
+    coachName: string
+    startsAt: Date
+    endsAt: Date
+    capacity: number
+    reservedCount: number
+    locationLabel: string
+  }>
+  export function refreshShowcaseVitrinaSessions(input: {
+    prisma: PrismaClient
+    now?: Date
+  }): Promise<ShowcaseRefreshSummary>
+
   export const SHOWCASE_VITRINA_SCENARIO: string
   export const SHOWCASE_VITRINA_CONFIRM_MEMBER_FLAG: string
   export const SHOWCASE_VITRINA_PLAN_SLUGS: string[]

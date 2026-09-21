@@ -163,9 +163,9 @@ export const landingContent: LandingContent = {
     },
   ],
   testimonials: {
-    eyebrow: 'Testimonios',
-    title: 'Opiniones de personas que entrenan en WellStudio',
-    description: 'Experiencias reales sobre la planificación, el seguimiento y el ambiente de entrenamiento.',
+    eyebrow: 'Testimonios de ejemplo',
+    title: 'Así se presentan las experiencias en la demo',
+    description: 'Contenido ilustrativo del portfolio. No son testimonios verificados de clientes de esta plataforma.',
     items: [
       {
         quote:
