@@ -9,6 +9,7 @@ const { prismaMock, tx } = vi.hoisted(() => {
   return {
     tx: transaction,
     prismaMock: {
+      user: { findUnique: vi.fn(async () => null) },
       $transaction: vi.fn(async (callback: (client: typeof transaction) => unknown) => callback(transaction)),
     },
   }

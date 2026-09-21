@@ -142,6 +142,47 @@ export async function ensureLocalUser(authUser: SupabaseUser): Promise<LocalIden
   const email = authUser.email
   const normalizedEmail = normalizeEmail(email)
   const status = mapSupabaseUserStatus(authUser)
+  const emailVerifiedAt = authUser.email_confirmed_at ? new Date(authUser.email_confirmed_at) : null
+  const linkedUser = await prisma.user.findUnique({
+    where: {
+      externalAuthProvider_externalAuthId: {
+        externalAuthProvider: 'supabase',
+        externalAuthId: authUser.id,
+      },
+    },
+    include: {
+      member: true,
+      roles: { orderBy: { createdAt: 'asc' } },
+    },
+  })
+
+  if (
+    linkedUser?.member &&
+    linkedUser.roles.some(({ role }) => role === 'MEMBER') &&
+    linkedUser.email === email &&
+    linkedUser.normalizedEmail === normalizedEmail &&
+    linkedUser.status === status &&
+    linkedUser.emailVerifiedAt?.getTime() === emailVerifiedAt?.getTime()
+  ) {
+    const { member, roles, ...localUser } = linkedUser
+    const lastLoginAt = authUser.last_sign_in_at ? new Date(authUser.last_sign_in_at) : null
+
+    if (lastLoginAt && (!localUser.lastLoginAt || lastLoginAt > localUser.lastLoginAt)) {
+      const updatedUser = await prisma.user.update({
+        where: {
+          id: localUser.id,
+          externalAuthProvider: 'supabase',
+          externalAuthId: authUser.id,
+        },
+        data: { lastLoginAt },
+      })
+
+      return { localUser: updatedUser, member, roles }
+    }
+
+    return { localUser, member, roles }
+  }
+
   const { firstName, lastName } = getProfileNames(authUser)
   const provisionInput: IdentityProvisionInput = {
     email,
@@ -150,7 +191,7 @@ export async function ensureLocalUser(authUser: SupabaseUser): Promise<LocalIden
     firstName,
     lastName,
     phone: authUser.phone || null,
-    emailVerifiedAt: authUser.email_confirmed_at ? new Date(authUser.email_confirmed_at) : null,
+    emailVerifiedAt,
   }
 
   try {

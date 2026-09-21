@@ -37,7 +37,7 @@ export function PublicSchedulePage({
           </div>
           <div className="rounded-[1.5rem] border border-white/75 bg-white/62 p-5 shadow-[0_18px_48px_rgba(17,19,22,0.055)] backdrop-blur">
             <p className="text-sm leading-7 text-muted-foreground">
-              Horarios reales publicados por el equipo para los próximos 30 días. La reserva se completa de forma segura desde el portal de socios.
+              Sesiones publicadas para los próximos 30 días. La reserva se completa desde el portal de socios.
             </p>
             <p className="mt-4 flex items-center gap-2 text-sm font-medium text-[var(--wellstudio-blue-deep)]">
               <CalendarDays className="size-4" aria-hidden="true" />
