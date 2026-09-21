@@ -6,14 +6,17 @@ import { resolveSafeInternalPath } from '@/modules/auth/lib/safe-internal-path'
 import { getSupabaseAuthEnv } from '@/modules/auth/lib/supabase-auth-env'
 
 export async function GET(request: NextRequest) {
-  const { searchParams, origin } = new URL(request.url)
+  const { searchParams } = new URL(request.url)
   const tokenHash = searchParams.get('token_hash')
   const type = searchParams.get('type') as EmailOtpType | null
   const email = searchParams.get('email')
   const next = resolveSafeInternalPath(searchParams.get('next'), '/app')
 
   if (tokenHash && type) {
-    const successRedirect = NextResponse.redirect(new URL(next, origin))
+    const successRedirect = new NextResponse(null, {
+      status: 307,
+      headers: { Location: next },
+    })
     const { url, anonKey } = getSupabaseAuthEnv()
     const supabase = createServerClient(url, anonKey, {
       cookies: {
@@ -37,13 +40,17 @@ export async function GET(request: NextRequest) {
     }
   }
 
-  const loginUrl = new URL('/login', origin)
-  loginUrl.searchParams.set('authError', 'verification_failed')
-  loginUrl.searchParams.set('redirectTo', next)
+  const loginParams = new URLSearchParams({
+    authError: 'verification_failed',
+    redirectTo: next,
+  })
 
   if (email) {
-    loginUrl.searchParams.set('email', email)
+    loginParams.set('email', email)
   }
 
-  return NextResponse.redirect(loginUrl)
+  return new NextResponse(null, {
+    status: 307,
+    headers: { Location: `/login?${loginParams}` },
+  })
 }
