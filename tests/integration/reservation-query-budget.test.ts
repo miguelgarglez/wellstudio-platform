@@ -1,0 +1,174 @@
+import { PrismaPg } from '@prisma/adapter-pg'
+import { PrismaClient } from '@prisma/client'
+import { afterAll, beforeAll, expect, it, vi } from 'vitest'
+
+import { createDatabase, deploy } from './database'
+import { createScenario } from './fixtures'
+
+const queries: string[] = []
+const prisma = new PrismaClient({
+  adapter: new PrismaPg({ connectionString: process.env.DATABASE_URL }),
+  log: [{ emit: 'event', level: 'query' }],
+})
+prisma.$on('query', (event) => queries.push(event.query))
+vi.doMock('@/lib/db/prisma', () => ({ prisma }))
+
+const { cancelMemberReservation, joinSessionWaitlist, reservePublishedSession } =
+  await import('@/modules/reservations/server/member-reservation-mutations')
+const { getMemberReservationsOverviewForMember } =
+  await import('@/modules/reservations/server/member-reservations-overview')
+const { enqueueReservationNotification } =
+  await import('@/modules/notifications/server/notification-outbox')
+
+let database: Awaited<ReturnType<typeof createDatabase>>
+
+beforeAll(async () => {
+  database = await createDatabase(process.env.DATABASE_URL)
+  deploy(database.url)
+})
+
+afterAll(async () => {
+  await prisma.$disconnect()
+  if (database) await database.dispose()
+})
+
+it('cancels, refunds and promotes atomically within the remote query budget', async () => {
+  const { member, createMember, session } = await createScenario(prisma)
+  const next = await createMember()
+  const booked = await reservePublishedSession(member)
+  expect(booked.code).toBe('BOOKED')
+  expect((await joinSessionWaitlist(next)).code).toBe('WAITLIST_JOINED')
+
+  queries.length = 0
+  const canceled = await cancelMemberReservation({
+    ...member,
+    reservationId: booked.updatedEntityId!,
+  })
+  const roundTrips = queries.length
+
+  expect(canceled.code).toBe('CANCELED')
+  expect(canceled.notificationJobIds).toHaveLength(2)
+  expect(await prisma.reservation.findUnique({
+    where: { id: booked.updatedEntityId },
+  })).toMatchObject({ status: 'CANCELED' })
+  expect(await prisma.reservation.findMany({
+    where: { classSessionId: session.id, status: 'BOOKED' },
+    include: { entitlementUsages: true },
+  })).toMatchObject([{
+    memberId: next.memberId,
+    entitlementUsages: [{ usageType: 'CREDIT', creditsUsed: 1 }],
+  }])
+  expect(await prisma.classSession.findUnique({ where: { id: session.id } }))
+    .toMatchObject({ reservedCount: 1 })
+  expect(await prisma.waitlistEntry.findFirst({ where: { memberId: next.memberId } }))
+    .toMatchObject({ status: 'PROMOTED', position: null })
+  expect(await prisma.creditLedgerEntry.findMany({
+    where: { memberCreditAccountId: member.creditAccountId },
+    orderBy: { createdAt: 'asc' },
+  })).toMatchObject([
+    { creditsDelta: -1, balanceAfter: 4 },
+    { creditsDelta: 1, balanceAfter: 5 },
+  ])
+  expect(await prisma.notificationJob.count({
+    where: { id: { in: canceled.notificationJobIds } },
+  })).toBe(2)
+  expect(roundTrips, 'SQL round trips inside the 5-second transaction').toBeLessThanOrEqual(35)
+})
+
+it('loads the reservation shell without one query per nested relation', async () => {
+  const { member } = await createScenario(prisma)
+  expect((await reservePublishedSession(member)).code).toBe('BOOKED')
+
+  queries.length = 0
+  const overview = await getMemberReservationsOverviewForMember({
+    memberId: member.memberId,
+    memberStatus: 'ACTIVE',
+    now: member.now,
+  })
+  const roundTrips = queries.length
+
+  expect(overview.upcomingReservations).toHaveLength(1)
+  expect(roundTrips, 'SQL round trips while revalidating the reservation shell').toBeLessThanOrEqual(8)
+})
+
+it('skips blocked waitlist members without consuming the last available seat', async () => {
+  const { member, createMember, session } = await createScenario(prisma)
+  const blocked = await createMember()
+  const first = await createMember()
+  const second = await createMember()
+  const booked = await reservePublishedSession(member)
+  expect(booked.code).toBe('BOOKED')
+  for (const [index, waiting] of [blocked, first, second].entries()) {
+    expect((await joinSessionWaitlist({
+      ...waiting,
+      now: new Date(member.now.getTime() + index * 1000),
+    })).code).toBe('WAITLIST_JOINED')
+  }
+  await prisma.member.update({
+    where: { id: blocked.memberId },
+    data: { status: 'BLOCKED' },
+  })
+
+  const canceled = await cancelMemberReservation({
+    ...member,
+    reservationId: booked.updatedEntityId!,
+  })
+
+  expect(canceled.code).toBe('CANCELED')
+  expect(canceled.notificationJobIds).toHaveLength(2)
+  expect(await prisma.reservation.findMany({
+    where: { classSessionId: session.id, status: 'BOOKED' },
+  })).toMatchObject([{ memberId: first.memberId, source: 'SYSTEM' }])
+  expect(await prisma.classSession.findUnique({ where: { id: session.id } }))
+    .toMatchObject({ reservedCount: 1, capacity: 1 })
+  expect(await prisma.waitlistEntry.findMany({
+    where: { classSessionId: session.id },
+    orderBy: { joinedAt: 'asc' },
+  })).toMatchObject([
+    { memberId: blocked.memberId, status: 'EXPIRED', position: null },
+    { memberId: first.memberId, status: 'PROMOTED', position: null },
+    { memberId: second.memberId, status: 'WAITING', position: 1 },
+  ])
+  expect(await prisma.creditLedgerEntry.count({
+    where: { memberCreditAccountId: { in: [blocked.creditAccountId, second.creditAccountId] } },
+  })).toBe(0)
+})
+
+it('uses one native upsert without replacing a dispatched notification snapshot', async () => {
+  const { member } = await createScenario(prisma)
+  const booked = await reservePublishedSession(member)
+  expect(booked.code).toBe('BOOKED')
+  const idempotencyKey = `reservation_booked/${booked.updatedEntityId}`
+  const original = await prisma.notificationJob.update({
+    where: { idempotencyKey },
+    data: { status: 'SENT', attemptCount: 1 },
+  })
+  await prisma.member.update({
+    where: { id: member.memberId },
+    data: { firstName: 'Changed after booking' },
+  })
+
+  queries.length = 0
+  const repeated = await prisma.$transaction((tx) => enqueueReservationNotification(tx, {
+    ...member,
+    reservationId: booked.updatedEntityId!,
+    eventType: 'RESERVATION_BOOKED',
+    occurredAt: new Date(member.now.getTime() + 1000),
+  }))
+  const jobQueries = queries.filter((query) => query.includes('"NotificationJob"'))
+
+  expect(repeated.id).toBe(original.id)
+  expect(jobQueries).toHaveLength(1)
+  expect(jobQueries[0]).toContain('ON CONFLICT')
+  expect(await prisma.notificationJob.findMany({
+    where: { idempotencyKey },
+  })).toMatchObject([{
+    id: original.id,
+    payload: original.payload,
+    recipient: original.recipient,
+    status: 'SENT',
+    attemptCount: 1,
+    availableAt: original.availableAt,
+    createdAt: original.createdAt,
+  }])
+})
