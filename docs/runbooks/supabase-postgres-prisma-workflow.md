@@ -435,6 +435,63 @@ ledger y outbox conservados, duplicados activos, estados terminales y dos reserv
 realmente solapadas para la última plaza (locks observados antes de liberarlas).
 Los jobs permanecen pendientes: no se entregan emails.
 
+### Gate de GitHub Actions
+
+Prerequisito: [PR #10, baseline e historial de reservas](https://github.com/miguelgarglez/wellstudio-platform/pull/10),
+rama `devin/1789992531-database-history-fix`. El PR de CI parte de esa rama y
+la usa como base para revisar únicamente el workflow y esta sección. Integrar
+primero el prerequisito; no aplicar el gate a una revisión sin sus migraciones,
+helpers y `vitest.integration.config.ts`.
+
+El job `foundation` de `.github/workflows/ci.yml` conserva los gates
+`pnpm check:foundation` y `pnpm test:e2e:smoke`. Añade un servicio desechable
+`postgres:17.6`, publicado en `127.0.0.1:5432`, con health check antes de los pasos.
+Las credenciales `wellstudio:wellstudio` pertenecen únicamente a ese contenedor.
+`DATABASE_URL`, `DIRECT_URL` e `INTEGRATION_DATABASE_URL` apuntan explícitamente
+a su DB `wellstudio_integration`.
+
+Tras instalar con lockfile congelado y generar Prisma, ejecuta
+`pnpm db:migrate:deploy` sobre esa DB vacía y después
+`pnpm exec vitest run --config vitest.integration.config.ts`. La suite crea y
+elimina sus propias DB con sufijo UUID; también verifica el segundo deploy sin
+cambios y el upgrade de historial existente. No se usa `db push` ni un seed remoto.
+Si falla una migración o una regresión, el job falla sin tolerar el error.
+
+Build y smoke reciben una URL de auth local (`http://127.0.0.1:54321`) y una
+anon key ficticia; no se inicia Supabase ni se accede al servicio hosted.
+`PAYMENTS_CHECKOUT_MODE=sandbox`, `E2E_AUTH_SANDBOX=false` y
+`E2E_AUTH_SANDBOX_REGISTER=false` mantienen desactivadas las suites remotas.
+Agentation y telemetría de Next.js están desactivados. El workflow no consume
+secretos remotos. Esto no valida login real, Stripe ni entrega de correo.
+
+Para reproducir el gate de datos y foundation localmente, usar una copia sin
+archivos privados de entorno y arrancar el contenedor del ejemplo anterior
+(puerto local `55432`):
+
+```bash
+export DATABASE_URL=postgresql://wellstudio:wellstudio@127.0.0.1:55432/wellstudio_integration
+export DIRECT_URL="$DATABASE_URL"
+export INTEGRATION_DATABASE_URL="$DATABASE_URL"
+export NEXT_PUBLIC_SUPABASE_URL=http://127.0.0.1:54321
+export NEXT_PUBLIC_SUPABASE_ANON_KEY=placeholder-anon-key
+export NEXT_PUBLIC_APP_URL=http://127.0.0.1:3001
+export NEXT_PUBLIC_AGENTATION_ENABLED=false
+export NEXT_TELEMETRY_DISABLED=1
+export PAYMENTS_CHECKOUT_MODE=sandbox
+export E2E_AUTH_SANDBOX=false
+export E2E_AUTH_SANDBOX_REGISTER=false
+export CI=true
+pnpm install --frozen-lockfile
+pnpm db:generate
+pnpm db:migrate:deploy
+pnpm exec vitest run --config vitest.integration.config.ts
+pnpm check:foundation
+```
+
+El smoke se conserva como paso posterior en CI, con Chromium instalado por
+`pnpm exec playwright install --with-deps chromium`. Su comando sigue siendo
+`pnpm test:e2e:smoke`; no sustituirlo por suites `:sandbox` en este job.
+
 ## Docker a partir de ahora
 
 Docker deja de ser obligatorio para la base de datos en desarrollo.
