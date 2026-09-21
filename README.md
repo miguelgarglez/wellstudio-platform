@@ -43,6 +43,11 @@ y pagos simulados 6. La validación grabada de auth y pagos empezó sin cookies
 ni storage. **Una comprobación local o un deployment
 READY no acreditan por sí solos todos los recorridos del sistema desplegado.**
 
+En Preview `447bd261`, el refresh creó 12 sesiones futuras y su replay no creó
+duplicados, sin cambiar las 17 tablas ni las 25 sesiones anteriores comprobadas.
+La agenda pública y el showcase pasaron una smoke de navegador con teclado y
+viewports desktop/móvil, sin login ni header E2E. El scheduler sigue sin activar.
+
 Los pagos validados usan `PAYMENTS_CHECKOUT_MODE=sandbox`,
 el simulador de la aplicación. No equivalen a Stripe Checkout en modo test ni a
 un cobro real. La revisión corrige redirects que cambiaban del origen visible

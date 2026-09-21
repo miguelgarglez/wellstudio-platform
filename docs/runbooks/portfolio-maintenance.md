@@ -18,7 +18,7 @@ desplegado sin verificar su commit.
 | Cambio implementado | Revisión y evidencia local comunicada | Límite pendiente |
 | --- | --- | --- |
 | [PR #8: dependencias y redirects](https://github.com/miguelgarglez/wellstudio-platform/pull/8) | `f06e3df`: Next 16.3.3, 402 unitarios / 70 archivos, `check:auth` (77 casos, lint, tipos, build) y CI hospedado con PostgreSQL aprobados. Suites sandbox: auth 3 passed / 1 skipped, reservas 6 passed, pagos 6 passed | Registro omitido y OTP exitoso no verificado end-to-end. `GHSA-ggr8-5vv4-36mx` en `deepmerge-ts` 7.1.5; auditorías salen con código 1. Dependabot necesita su configuración en la rama por defecto. |
-| [PR #9: demo móvil en el tiempo](https://github.com/miguelgarglez/wellstudio-platform/pull/9) | `16e6624`: lint, tipos, 373 unitarios, build y 6 pruebas PostgreSQL locales aprobados; incorporada al foundation combinado con Node 22.23.2 | Refresh no destructivo de 14 días implementado; scheduler y conservación de actividad en Preview no validados. |
+| [PR #9: demo móvil en el tiempo](https://github.com/miguelgarglez/wellstudio-platform/pull/9) | `16e6624`: lint, tipos, 373 unitarios, build y 6 pruebas PostgreSQL locales aprobados. En Preview `447bd261`: refresh crea 12 sesiones, replay crea 0; hashes verifican conservación de 17 tablas y 25 sesiones anteriores | Scheduler sin activar ni observar; la llamada manual no prueba una ejecución programada. |
 | [PR #10: migraciones e historial](https://github.com/miguelgarglez/wellstudio-platform/pull/10) | `f442c4a`: 15 migraciones y 12 pruebas PostgreSQL 17.6 aprobadas; foundation y reservas aprobados | Revisar drift, roles, locks y recuperación antes de tocar una DB existente. No acredita migración del sandbox. |
 | [PR #11: PostgreSQL en CI](https://github.com/miguelgarglez/wellstudio-platform/pull/11) | Integrada después de #10. El job `foundation` de #8 pasa con migraciones, PostgreSQL, foundation y smoke en GitHub Actions | CI usa PostgreSQL local y placeholders; no acredita permisos, latencia ni proveedores remotos. |
 | [PR #12: auth](https://github.com/miguelgarglez/wellstudio-platform/pull/12) y [PR #14: reservas](https://github.com/miguelgarglez/wellstudio-platform/pull/14) | Incorporadas en la revisión `f06e3df`: auth y reservas pasan contra Supabase sandbox con Next 16.3.3. PostgreSQL verifica atomicidad, outbox y presupuestos de consultas | Son pruebas funcionales con una cuenta dedicada; no son una prueba de carga ni un SLA. La evidencia histórica `35f63c3` registró cancelación a 4896 ms frente a 5000 ms y un `ERR_ABORTED` con efectos correctos. |
@@ -57,10 +57,35 @@ reservas anterior sí corresponde a `f06e3df`. La regresión de rutas de auth
 reproduce el cambio de origen antes del arreglo y verifica cookies y destinos
 relativos después.
 
-En la inspección del 21 de septiembre, el alias Preview apuntaba al deployment
-READY de `52b43982fe3d2d2d4a968143c41728fb9607cbe0`, rama `preview`, con pagos
-simulados. Esto es una observación fechada, no una garantía sobre el alias futuro.
-La rama `main` y Production no se han promovido.
+### Validación del alias Preview
+
+El 21 de septiembre a las 14:23 UTC, Vercel confirmó el alias
+`preview-wellstudio.miguelgarglez.com` en el deployment READY
+`dpl_G6e4yZMNsDr5fAxm1UAUWSu6oE17`, commit
+`447bd2612601102397c98bb8730945f5329edfcb`, rama `preview`, proyecto
+`prj_vF8ycSf5Errv9BDUCBdULwcv5lyf`. Sustituye la observación anterior de
+`52b43982`; es evidencia fechada, no garantía sobre el alias futuro.
+
+Con las variables restringidas a Preview/rama `preview`, la primera llamada
+autorizada al refresh devolvió `200`, `healthy: true`, `createdCount: 12` y
+`futureSessionCount: 12`. Su replay devolvió `200` y `createdCount: 0`.
+Los hashes anteriores/posteriores confirmaron las 17 tablas de actividad y
+catálogo sin cambios, las 25 sesiones existentes sin cambios y 12 altas.
+Sin bearer el endpoint devolvió `401`. El horizonte terminó el 5 de octubre;
+las sesiones públicas quedaron entre el 21 de septiembre y el 1 de octubre.
+
+La smoke grabada usó un contexto nuevo (cero cookies/storage), sin login ni
+header E2E en las 216 requests observadas. `/classes` mostró las 12 sesiones,
+sin fixtures visibles; filtros y limpieza funcionaron con teclado. En
+`/showcase` se comprobaron slides, galería, Escape y restitución de foco.
+Los viewports Chromium 1280×900 y 390×844 no mostraron overflow horizontal.
+No equivale a validar dispositivos físicos, Safari, todos los slides o un
+focus trap exhaustivo. Dos comprobaciones auxiliares de foco necesitaron
+reiniciar la navegación desde una carga limpia por posición/conteo de Tab;
+no se cambió código. El challenge externo de la homepage registró errores
+durante setup; no hubo page errors en las páginas verificadas.
+
+La rama `main` y Production no se han promovido. El scheduler no se ha activado.
 
 La validación final aprobó seis casos con el **simulador de pagos de la app**.
 No completó Checkout y webhook reales de Stripe ni entrega de correo a un buzón
@@ -72,9 +97,8 @@ La inspección de solo lectura del sandbox encontró `_prisma_migrations`, índi
 parciales activos y los índices históricos por estado, pero no `pg_cron`.
 No se aplicaron migraciones, no se reconciliaron checksums y no se habilitó un
 scheduler. Se configuraron las variables de refresh y un secreto dedicado solo
-en Preview/rama `preview`; la primera invocación y replay siguen pendientes de
-deployment con esa configuración. La validación funcional no sustituye el rollout
-de datos.
+en Preview/rama `preview`; su invocación y replay están comprobados arriba.
+La validación funcional no sustituye el rollout de migraciones.
 
 ## Reproducir las comprobaciones
 
@@ -132,7 +156,8 @@ El responsable de integración coordina `pnpm test:e2e:smoke`, las suites
 `pnpm test:e2e:auth:sandbox`, `pnpm test:e2e:reservations:sandbox` y
 `pnpm test:e2e:payments:sandbox`, con revisión de móvil/teclado y evidencia del
 commit probado. Los resultados finales de auth, reservas y pagos figuran arriba;
-móvil/teclado no se repitieron en esa ejecución.
+móvil/teclado se comprobaron después en las páginas públicas de Preview, no en
+los recorridos privados de esa ejecución.
 No forman parte de las comprobaciones sin credenciales anteriores.
 El smoke y los pagos simulados no sustituyen los gates de auth/reservas ni la
 [validación del proveedor Stripe](./stripe-preview-rollout.md).
@@ -141,11 +166,11 @@ El smoke y los pagos simulados no sustituyen los gates de auth/reservas ni la
 
 - Conservar la evidencia de #8 (`f06e3df`, integrada mediante `447bd26`), sus
   gates y límites; repetir los afectados si cambia el código.
-- Confirmar commit del alias Preview y reconciliar la DB bajo autorización.
-  Un build local o un comentario automático de Vercel no prueba esta condición.
-- Validar agenda futura, separación de fixtures E2E, conservación de actividad
-  y replay del refresh. El [runbook de PR #9](https://github.com/miguelgarglez/wellstudio-platform/blob/16e6624/docs/runbooks/showcase-rolling-refresh.md)
-  describe un scheduler externo propuesto; no supone que esté configurado.
+- Conservar la comprobación del alias, agenda pública y replay de `447bd261`;
+  repetirla tras cambios relevantes. Reconciliar las migraciones de la DB bajo
+  autorización independiente.
+- Activar y observar el scheduler del [runbook de refresh](./showcase-rolling-refresh.md).
+  La primera llamada manual y el replay no acreditan esta condición.
 - Resolver o aceptar explícitamente los riesgos de dependencias y completar
   la validación integrada, incluida auth y los proveedores.
 - Aprobar la ficha y la build note inglesa. La nota permanece con `draft: true`;
