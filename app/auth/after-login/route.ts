@@ -22,7 +22,10 @@ async function finishAfterLogin(
   request: NextRequest,
   navigation: ReturnType<typeof resolveAfterLoginNavigation>,
 ) {
-  const redirectResponse = NextResponse.redirect(new URL(navigation.path, request.url))
+  const redirectResponse = new NextResponse(null, {
+    status: 307,
+    headers: { Location: navigation.path },
+  })
 
   if (!navigation.signOut) {
     return redirectResponse

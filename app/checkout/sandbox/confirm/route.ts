@@ -1,4 +1,4 @@
-import { after, NextResponse } from 'next/server'
+import { after } from 'next/server'
 
 import { requireAuthenticatedContext } from '@/modules/auth/server/identity'
 import { dispatchNotificationJobSafely } from '@/modules/notifications/server/notification-outbox'
@@ -10,7 +10,10 @@ export async function POST(request: Request) {
   const paymentId = read(formData, 'paymentId')
 
   if (!context.member || !paymentId) {
-    return NextResponse.redirect(new URL('/app/account?checkout=failed', request.url), 303)
+    return new Response(null, {
+      status: 303,
+      headers: { Location: '/app/account?checkout=failed' },
+    })
   }
 
   const result = await completeSandboxCheckout({ paymentId, memberId: context.member.id })
@@ -20,10 +23,10 @@ export async function POST(request: Request) {
     }
   }
   const checkout = result.success ? 'success' : 'failed'
-  return NextResponse.redirect(
-    new URL(`/app/account?checkout=${checkout}&payment=${encodeURIComponent(paymentId)}`, request.url),
-    303,
-  )
+  return new Response(null, {
+    status: 303,
+    headers: { Location: `/app/account?checkout=${checkout}&payment=${encodeURIComponent(paymentId)}` },
+  })
 }
 
 function read(formData: FormData, key: string) {

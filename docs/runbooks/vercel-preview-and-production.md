@@ -52,6 +52,37 @@ Flujo recomendado:
 - promover cambios a `main` mediante merge o PR
 - dejar que `main` publique en `Production`
 
+## Output de build: Vercel y Docker
+
+`next.config.ts` deja el output por defecto cuando `VERCEL=1`; fuera de Vercel
+mantiene `standalone`, que consume el `Dockerfile` existente.
+
+En Next 16.3 con Turbopack, un adapter omite el trace global
+`next-server.js.nft.json`. Combinarlo con `output: 'standalone'` hace que el
+finalizador standalone intente leer ese archivo despues de `onBuildComplete`
+y falle con `ENOENT`, aunque compilacion, TypeScript y prerendering pasen.
+Referencia: [Next.js #96646](https://github.com/vercel/next.js/issues/96646).
+No crear el trace manualmente ni desactivar el adapter para corregirlo.
+
+Al cambiar Next o este selector, validar ambos caminos con variables locales:
+
+- Sin `VERCEL` ni `NEXT_ADAPTER_PATH`, ejecutar `pnpm check:foundation` y
+  comprobar que existen `.next/standalone/server.js` y
+  `.next/next-server.js.nft.json`. Este es el empaquetado usado por Docker.
+- Para reproducir localmente el camino de adapter, guardar fuera del repo un
+  modulo CommonJS que exporte
+  `module.exports = { name: 'trace-probe', onBuildComplete() {} }`, y ejecutar
+  `VERCEL=1 NEXT_ADAPTER_PATH=/ruta/absoluta/trace-probe.cjs pnpm build`.
+  Debe finalizar sin requerir el trace global ni generar standalone. El modulo
+  no debe modificar el config ni escribir artefactos.
+- Confirmar tambien que el deployment Preview automatico del commit llega a
+  `READY`: el adapter local ejercita el fallo de Next, pero no empaqueta las
+  funciones reales de Vercel.
+
+Documentacion oficial: [output de Next](https://nextjs.org/docs/app/api-reference/config/next-config-js/output),
+[adapters de Next](https://nextjs.org/docs/app/api-reference/config/next-config-js/adapterPath)
+y [variables de sistema de Vercel](https://vercel.com/docs/environment-variables/system-environment-variables).
+
 ## Setup inicial en Vercel
 
 1. Importar el repo `wellstudio-platform` en `Vercel`.
