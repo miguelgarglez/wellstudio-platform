@@ -1,38 +1,68 @@
 # Portfolio y mantenimiento
 
 Fecha del registro: 2026-09-21. Alcance: demo modular con datos sintéticos,
-sin adopción comercial acreditada. Cierre y publicación pendientes de validación
-integrada y aprobación editorial. Referencias de trabajo existentes: MIG-157
+sin adopción comercial acreditada. Cierre operativo y publicación pendientes;
+la validación integrada local contra sandbox está registrada abajo.
+Referencias de trabajo existentes: MIG-157
 (showcase), MIG-78 (reservas), MIG-125 (checkout), MIG-62/MIG-72 (gates).
 
 ## Evidencia por revisión
 
 Punto de partida: [`dee184b1`](https://github.com/miguelgarglez/wellstudio-platform/tree/dee184b14908834c1b802daebd1b8240af9ecaa1),
 identificado en Preview por la validación previa del 21 de septiembre.
-Las PRs #9–#12 y #14 están fusionadas en `preview`. Los resultados siguientes
+Las PRs #8–#12 y #14 están fusionadas en `preview` (#8 mediante `447bd26`).
+Los resultados siguientes
 identifican cada revisión y entorno; no trasladar una comprobación local al alias
 desplegado sin verificar su commit.
 
 | Cambio implementado | Revisión y evidencia local comunicada | Límite pendiente |
 | --- | --- | --- |
-| [PR #8: dependencias](https://github.com/miguelgarglez/wellstudio-platform/pull/8) | `face291`: Next 16.3.3, foundation aprobado (384 tests / 68 archivos, lint, tipos y build), 16 regresiones PostgreSQL y CI hospedado aprobado | Validación fresca de navegador pendiente. `GHSA-ggr8-5vv4-36mx` en `deepmerge-ts` 7.1.5; auditorías salen con código 1. Dependabot necesita su configuración en la rama por defecto. |
+| [PR #8: dependencias y redirects](https://github.com/miguelgarglez/wellstudio-platform/pull/8) | `f06e3df`: Next 16.3.3, 402 unitarios / 70 archivos, `check:auth` (77 casos, lint, tipos, build) y CI hospedado con PostgreSQL aprobados. Suites sandbox: auth 3 passed / 1 skipped, reservas 6 passed, pagos 6 passed | Registro omitido y OTP exitoso no verificado end-to-end. `GHSA-ggr8-5vv4-36mx` en `deepmerge-ts` 7.1.5; auditorías salen con código 1. Dependabot necesita su configuración en la rama por defecto. |
 | [PR #9: demo móvil en el tiempo](https://github.com/miguelgarglez/wellstudio-platform/pull/9) | `16e6624`: lint, tipos, 373 unitarios, build y 6 pruebas PostgreSQL locales aprobados; incorporada al foundation combinado con Node 22.23.2 | Refresh no destructivo de 14 días implementado; scheduler y conservación de actividad en Preview no validados. |
 | [PR #10: migraciones e historial](https://github.com/miguelgarglez/wellstudio-platform/pull/10) | `f442c4a`: 15 migraciones y 12 pruebas PostgreSQL 17.6 aprobadas; foundation y reservas aprobados | Revisar drift, roles, locks y recuperación antes de tocar una DB existente. No acredita migración del sandbox. |
 | [PR #11: PostgreSQL en CI](https://github.com/miguelgarglez/wellstudio-platform/pull/11) | Integrada después de #10. El job `foundation` de #8 pasa con migraciones, PostgreSQL, foundation y smoke en GitHub Actions | CI usa PostgreSQL local y placeholders; no acredita permisos, latencia ni proveedores remotos. |
-| [PR #12: auth](https://github.com/miguelgarglez/wellstudio-platform/pull/12) y [PR #14: reservas](https://github.com/miguelgarglez/wellstudio-platform/pull/14) | `35f63c3`: auth 3 passed / 1 skipped; reservas 6 passed en navegador contra Supabase sandbox. PostgreSQL verifica atomicidad, outbox y presupuestos de consultas | Cancelación 4896 ms frente a un límite de 5000 ms. Leave waitlist registró `ERR_ABORTED` aunque UI y DB quedaron correctas. La evidencia precede a Next 16.3.3. |
+| [PR #12: auth](https://github.com/miguelgarglez/wellstudio-platform/pull/12) y [PR #14: reservas](https://github.com/miguelgarglez/wellstudio-platform/pull/14) | Incorporadas en la revisión `f06e3df`: auth y reservas pasan contra Supabase sandbox con Next 16.3.3. PostgreSQL verifica atomicidad, outbox y presupuestos de consultas | Son pruebas funcionales con una cuenta dedicada; no son una prueba de carga ni un SLA. La evidencia histórica `35f63c3` registró cancelación a 4896 ms frente a 5000 ms y un `ERR_ABORTED` con efectos correctos. |
 
 El empaquetado de Vercel que fallaba tras actualizar Next quedó corregido en
 `69bb368`: Vercel usa su output predeterminado y Docker/local conserva
 `standalone`. Se reprodujo el fallo del trace NFT y se verificó el deployment
-automático corregido en estado READY. La revisión combinada `face291` también
-tiene checks `foundation` y Vercel aprobados.
+automático corregido en estado READY. La revisión final `f06e3df` tiene checks
+`foundation` y Vercel aprobados.
+
+### Validación integrada del 21 de septiembre
+
+En `f06e3df`, servidor standalone enlazado a `0.0.0.0:3001` y navegador en
+`localhost:3001`, las suites CLI se ejecutaron en serie, con un worker,
+cero retries y sin modificar assertions ni timeouts:
+
+| Suite | Resultado | Duración observada |
+| --- | --- | --- |
+| `test:e2e:auth:sandbox` | 3 passed / 1 skipped (registro opt-in) | 8,2 s |
+| `test:e2e:reservations:sandbox` | 6 passed | 64,3 s |
+| `test:e2e:payments:sandbox` | 6 passed | 102,0 s |
+
+La validación UI grabada comenzó con cero cookies y cero orígenes de storage.
+Login, reload, logout y bloqueo posterior se comprobaron con miembro y admin.
+Los documentos y cookies permanecieron en `localhost`: post-login devolvió
+`307 Location: /app` o `/admin`. Los cuatro POST de checkout/tarjeta devolvieron
+`303` relativo; los snapshots de DB y reload confirmaron cancelación sin alta,
+bono con seis créditos/ledger/job y tarjeta Visa de prueba activa/default.
+Se comprobó OTP inválido con destino externo rechazado. El éxito de OTP se cubre
+unitariamente, sin acreditar recepción del correo ni el recorrido real completo.
+
+Los streams de logout registraron `ERR_ABORTED` después de headers 200, aunque
+la navegación y el bloqueo privado funcionaron. No se atribuye a pérdida de datos.
+Showcase y waitlist tienen evidencia UI previa en `dd71b6a`; la suite final de
+reservas anterior sí corresponde a `f06e3df`. La regresión de rutas de auth
+reproduce el cambio de origen antes del arreglo y verifica cookies y destinos
+relativos después.
 
 En la inspección del 21 de septiembre, el alias Preview apuntaba al deployment
 READY de `52b43982fe3d2d2d4a968143c41728fb9607cbe0`, rama `preview`, con pagos
 simulados. Esto es una observación fechada, no una garantía sobre el alias futuro.
 La rama `main` y Production no se han promovido.
 
-La validación previa aprobó seis casos con el **simulador de pagos de la app**.
+La validación final aprobó seis casos con el **simulador de pagos de la app**.
 No completó Checkout y webhook reales de Stripe ni entrega de correo a un buzón
 controlado. Resend aceptó un envío a su destinatario de pruebas; aceptación no
 equivale a recepción. Las claves de test de Stripe no convierten
@@ -41,7 +71,10 @@ equivale a recepción. Las claves de test de Stripe no convierten
 La inspección de solo lectura del sandbox encontró `_prisma_migrations`, índices
 parciales activos y los índices históricos por estado, pero no `pg_cron`.
 No se aplicaron migraciones, no se reconciliaron checksums y no se habilitó un
-scheduler. La validación funcional no sustituye ese rollout de datos.
+scheduler. Se configuraron las variables de refresh y un secreto dedicado solo
+en Preview/rama `preview`; la primera invocación y replay siguen pendientes de
+deployment con esa configuración. La validación funcional no sustituye el rollout
+de datos.
 
 ## Reproducir las comprobaciones
 
@@ -93,19 +126,21 @@ Para una base ya existente, seguir la
 No ejecutar baseline DDL contra tablas existentes, usar `db push` como reparación,
 ni eliminar históricos para recrear los índices globales.
 
-### Gates que necesitan validación adicional
+### Gates remotos y límites de cobertura
 
 El responsable de integración coordina `pnpm test:e2e:smoke`, las suites
 `pnpm test:e2e:auth:sandbox`, `pnpm test:e2e:reservations:sandbox` y
 `pnpm test:e2e:payments:sandbox`, con revisión de móvil/teclado y evidencia del
-commit probado. No forman parte de las comprobaciones sin credenciales anteriores.
+commit probado. Los resultados finales de auth, reservas y pagos figuran arriba;
+móvil/teclado no se repitieron en esa ejecución.
+No forman parte de las comprobaciones sin credenciales anteriores.
 El smoke y los pagos simulados no sustituyen los gates de auth/reservas ni la
 [validación del proveedor Stripe](./stripe-preview-rollout.md).
 
 ## Condiciones para publicar el cierre
 
-- Terminar la validación de #8 y actualizar el SHA integrado, enlace al CI,
-  resultado de cada gate, entorno, fecha y limitaciones.
+- Conservar la evidencia de #8 (`f06e3df`, integrada mediante `447bd26`), sus
+  gates y límites; repetir los afectados si cambia el código.
 - Confirmar commit del alias Preview y reconciliar la DB bajo autorización.
   Un build local o un comentario automático de Vercel no prueba esta condición.
 - Validar agenda futura, separación de fixtures E2E, conservación de actividad

@@ -34,19 +34,20 @@ sintéticos y sin adopción comercial acreditada.
 
 Revisión documental: **21 de septiembre de 2026**, sobre
 [`preview`](https://github.com/miguelgarglez/wellstudio-platform/tree/preview),
-con las PRs de demo, datos, CI, auth y reservas ya integradas (#9–#12 y #14).
+con las PRs de dependencias, demo, datos, CI, auth y reservas integradas (#8–#12 y #14).
 La revisión combinada con la actualización de dependencias,
-[`face291`](https://github.com/miguelgarglez/wellstudio-platform/tree/face291fd02f7c3c5a05495e87c2747fcd007fd8),
-supera foundation (384 tests y build) y 16 regresiones PostgreSQL. Su validación
-fresca en navegador sigue pendiente. **Una comprobación local o un deployment
+[`f06e3df`](https://github.com/miguelgarglez/wellstudio-platform/tree/f06e3dfecb541c8545f31f61aab78d94cc90410b),
+supera 402 unitarios, el gate de auth y CI con PostgreSQL. Las suites contra
+Supabase sandbox pasan en serie: auth 3 casos y 1 registro omitido, reservas 6
+y pagos simulados 6. La validación grabada de auth y pagos empezó sin cookies
+ni storage. **Una comprobación local o un deployment
 READY no acreditan por sí solos todos los recorridos del sistema desplegado.**
 
-Los pagos validados en el informe previo usan `PAYMENTS_CHECKOUT_MODE=sandbox`,
+Los pagos validados usan `PAYMENTS_CHECKOUT_MODE=sandbox`,
 el simulador de la aplicación. No equivalen a Stripe Checkout en modo test ni a
-un cobro real. Auth y reservas se validaron en navegador en `35f63c3`, antes de la
-actualización de Next; la cancelación pasó con poco margen frente al límite de
-cinco segundos. Quedan pendientes la validación de la combinación, los proveedores
-reales y la operación del scheduler. La auditoría conserva un advisory high de
+un cobro real. La revisión corrige redirects que cambiaban del origen visible
+al host interno del servidor. Quedan pendientes OTP exitoso con correo recibido,
+proveedores reales y operación del scheduler. La auditoría conserva un advisory high de
 `deepmerge-ts`, dependiente de Prisma. No se declara el cierre de estos límites.
 
 El [runbook de portfolio y mantenimiento](./docs/runbooks/portfolio-maintenance.md)
