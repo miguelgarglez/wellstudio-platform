@@ -80,3 +80,32 @@ Usar SQL puntual cuando:
 - [technical-architecture-wellstudio-v1.md](/Users/miguelgarglez/Developer/wellstudio-analysis/technical-architecture-wellstudio-v1.md)
 - [wellstudio-data-model-v1.md](/Users/miguelgarglez/Developer/wellstudio-analysis/wellstudio-data-model-v1.md)
 - `MIG-20`
+
+## Carga de relaciones — 2026-09-21
+
+Se habilita `relationJoins` en el generador Prisma. En PostgreSQL, la estrategia
+por defecto pasa a cargar relaciones con `LATERAL JOIN` y agregación JSON en una
+consulta, en lugar de enviar una consulta por tabla y ensamblar el resultado en
+la aplicación. Sigue siendo una función Preview de Prisma; no añade dependencias
+ni modifica el esquema físico de la base.
+
+Motivo: en el sandbox, cancelar con promoción agotó la transacción de 5 segundos
+antes de encolar la notificación. La regresión PostgreSQL reproducía 58 consultas
+para cancelar con devolución de crédito y promoción, y 27 para recargar Reservas.
+La latencia de red se acumulaba dentro de la transacción y durante la
+revalidación de la Server Action.
+
+Los tests de integración conservan las invariantes de reserva, crédito, outbox y
+promoción y limitan esas operaciones a 35 y 8 consultas respectivamente. Estos
+presupuestos detectan regresiones de round trips; no sustituyen las mediciones
+en navegador contra el sandbox. No se amplían el timeout transaccional ni las
+aserciones E2E. La atomicidad, el aislamiento serializable y los reintentos
+existentes se mantienen.
+
+El cambio afecta a las lecturas relacionales de todo el cliente: requiere el
+gate foundation, integración PostgreSQL y los recorridos de auth/reservas.
+Si una consulta concreta necesita la estrategia anterior tras medirla, puede
+usar `relationLoadStrategy: 'query'` de forma explícita. No desactivar los joins
+globalmente sin repetir los presupuestos y la validación de latencia.
+
+Referencia: [Prisma relation load strategies](https://www.prisma.io/docs/orm/prisma-client/queries/relation-queries#relation-load-strategies-preview).
