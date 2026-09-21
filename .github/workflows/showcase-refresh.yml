@@ -1,0 +1,51 @@
+name: Refresh Preview showcase
+
+on:
+  schedule:
+    - cron: '15 3 * * *'
+  workflow_dispatch:
+
+permissions: {}
+
+concurrency:
+  group: preview-showcase-refresh
+  cancel-in-progress: false
+
+jobs:
+  refresh:
+    if: github.repository == 'miguelgarglez/wellstudio-platform' && github.ref == 'refs/heads/main'
+    runs-on: ubuntu-24.04
+    timeout-minutes: 5
+    steps:
+      - name: Refresh and verify public schedule
+        shell: bash
+        env:
+          CRON_SECRET: ${{ secrets.WELLSTUDIO_PREVIEW_CRON_SECRET }}
+        run: |
+          set -euo pipefail
+          : "${CRON_SECRET:?Configure WELLSTUDIO_PREVIEW_CRON_SECRET}"
+          response=$(mktemp)
+          trap 'rm -f "$response"' EXIT
+          status=$(curl --proto '=https' --silent --show-error \
+            --connect-timeout 10 --max-time 60 \
+            --retry 1 --retry-delay 5 --retry-max-time 120 --retry-connrefused \
+            --header "Authorization: Bearer ${CRON_SECRET}" \
+            --output "$response" --write-out '%{http_code}' \
+            'https://preview-wellstudio.miguelgarglez.com/api/internal/showcase/refresh')
+          if [[ "$status" != 200 ]]; then
+            echo "::error::Preview refresh returned HTTP ${status}; redirects are not followed."
+            exit 1
+          fi
+          jq --exit-status --argjson now "$(date +%s)" '
+            def timestamp: sub("\\.[0-9]+Z$"; "Z") | fromdateiso8601;
+            .healthy == true
+            and (.futureSessionCount | type == "number" and . > 0)
+            and (.firstSessionStartsAt | timestamp) > $now
+            and (.lastSessionStartsAt | timestamp) > ($now + 7 * 86400)
+            and (.lastSessionStartsAt | timestamp) <= (.horizonEndsAt | timestamp)
+            and (.refreshedAt | timestamp) > ($now - 600)
+            and (.refreshedAt | timestamp) <= ($now + 60)
+            and (.horizonEndsAt | timestamp) <= ($now + 14 * 86400 + 60)
+          ' "$response" >/dev/null
+          jq '{healthy, createdCount, futureSessionCount, firstSessionStartsAt,
+               lastSessionStartsAt, refreshedAt, horizonEndsAt}' "$response"
