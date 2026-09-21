@@ -95,7 +95,7 @@ describe('notification outbox', () => {
         referenceType: 'reservation',
         referenceId: 'reservation-1',
       }),
-      update: {},
+      update: { idempotencyKey: 'reservation_booked/reservation-1' },
       select: { id: true },
     })
   })

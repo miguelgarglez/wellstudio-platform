@@ -749,13 +749,10 @@ export async function promoteWaitlistIfPossibleInTransaction(
     notificationJobId: string
   }> = []
 
-  while (true) {
-    const session = await getMutationSession(tx, input.classSessionId)
+  const session = await getMutationSession(tx, input.classSessionId)
+  let availableSeats = session.capacity - session.reservedCount
 
-    if (session.reservedCount >= session.capacity) {
-      break
-    }
-
+  while (availableSeats > 0) {
     const nextWaitlistEntry = await tx.waitlistEntry.findFirst({
       where: {
         classSessionId: input.classSessionId,
@@ -830,6 +827,7 @@ export async function promoteWaitlistIfPossibleInTransaction(
         },
       },
     })
+    availableSeats -= 1
 
     await tx.waitlistEntry.update({
       where: {

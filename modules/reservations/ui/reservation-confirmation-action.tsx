@@ -1,7 +1,6 @@
 'use client'
 
 import { useRef, useState, useTransition } from 'react'
-import { useRouter } from 'next/navigation'
 
 import {
   AlertDialog,
@@ -53,7 +52,6 @@ export function ReservationConfirmationAction({
   size = 'sm',
   triggerClassName,
 }: ReservationConfirmationActionProps) {
-  const router = useRouter()
   const [isOpen, setIsOpen] = useState(false)
   const formRef = useRef<HTMLFormElement>(null)
   const [state, setState] = useState<ReservationMutationResult | null>(null)
@@ -85,7 +83,6 @@ export function ReservationConfirmationAction({
           title: successTitle,
           description: nextState.message,
         })
-        router.refresh()
       }
     })
   }

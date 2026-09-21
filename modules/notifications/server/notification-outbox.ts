@@ -97,7 +97,7 @@ export async function enqueueReservationNotification(
       referenceId: input.reservationId,
       availableAt: input.occurredAt,
     },
-    update: {},
+    update: { idempotencyKey },
     select: { id: true },
   })
 }

@@ -13,6 +13,7 @@ import { LandingStickyHeader } from '@/modules/public/ui/landing/landing-sticky-
 import { LandingStructuredData } from '@/modules/public/ui/landing/landing-structured-data'
 import { LandingSummarySection } from '@/modules/public/ui/landing/landing-summary-section'
 import { LandingTestimonialsSection } from '@/modules/public/ui/landing/landing-testimonials-section'
+import { PublicDemoNotice } from '@/modules/public/ui/public-demo-notice'
 import { PublicSiteFooter } from '@/modules/public/ui/public-site-footer'
 
 export type LandingLeadAttribution = {
@@ -36,6 +37,7 @@ export function PublicLandingPage({ leadAttribution }: PublicLandingPageProps) {
         faq={faq}
       />
 
+      <PublicDemoNotice />
       <LandingStickyHeader
         links={navigationLinks}
         loginButtonClassName={cn(

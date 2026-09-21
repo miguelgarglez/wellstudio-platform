@@ -1,0 +1,2 @@
+-- RenameIndex
+ALTER INDEX "MemberMembershipBookingOverride_memberMembershipId_overrideTyp_" RENAME TO "MemberMembershipBookingOverride_memberMembershipId_override_idx";
