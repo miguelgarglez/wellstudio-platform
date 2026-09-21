@@ -17,6 +17,8 @@ const { cancelMemberReservation, joinSessionWaitlist, reservePublishedSession } 
   await import('@/modules/reservations/server/member-reservation-mutations')
 const { getMemberReservationsOverviewForMember } =
   await import('@/modules/reservations/server/member-reservations-overview')
+const { enqueueReservationNotification } =
+  await import('@/modules/notifications/server/notification-outbox')
 
 let database: Awaited<ReturnType<typeof createDatabase>>
 
@@ -130,4 +132,43 @@ it('skips blocked waitlist members without consuming the last available seat', a
   expect(await prisma.creditLedgerEntry.count({
     where: { memberCreditAccountId: { in: [blocked.creditAccountId, second.creditAccountId] } },
   })).toBe(0)
+})
+
+it('uses one native upsert without replacing a dispatched notification snapshot', async () => {
+  const { member } = await createScenario(prisma)
+  const booked = await reservePublishedSession(member)
+  expect(booked.code).toBe('BOOKED')
+  const idempotencyKey = `reservation_booked/${booked.updatedEntityId}`
+  const original = await prisma.notificationJob.update({
+    where: { idempotencyKey },
+    data: { status: 'SENT', attemptCount: 1 },
+  })
+  await prisma.member.update({
+    where: { id: member.memberId },
+    data: { firstName: 'Changed after booking' },
+  })
+
+  queries.length = 0
+  const repeated = await prisma.$transaction((tx) => enqueueReservationNotification(tx, {
+    ...member,
+    reservationId: booked.updatedEntityId!,
+    eventType: 'RESERVATION_BOOKED',
+    occurredAt: new Date(member.now.getTime() + 1000),
+  }))
+  const jobQueries = queries.filter((query) => query.includes('"NotificationJob"'))
+
+  expect(repeated.id).toBe(original.id)
+  expect(jobQueries).toHaveLength(1)
+  expect(jobQueries[0]).toContain('ON CONFLICT')
+  expect(await prisma.notificationJob.findMany({
+    where: { idempotencyKey },
+  })).toMatchObject([{
+    id: original.id,
+    payload: original.payload,
+    recipient: original.recipient,
+    status: 'SENT',
+    attemptCount: 1,
+    availableAt: original.availableAt,
+    createdAt: original.createdAt,
+  }])
 })

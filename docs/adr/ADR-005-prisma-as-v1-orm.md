@@ -116,3 +116,11 @@ snapshots distintos entre sentencias, y serializaba los viajes de red. No cambia
 el aislamiento serializable de las mutaciones. Dentro de una promoción se carga
 la sesión una vez y se descuentan las plazas ocupadas en esa misma transacción;
 un conflicto concurrente sigue reintentando la transacción completa.
+
+El outbox de reservas usa un `upsert` con actualización de su misma clave
+idempotente para generar un solo `INSERT ... ON CONFLICT`, en vez de la
+secuencia de lectura/inserción/lectura de `update: {}`. Una repetición conserva
+payload, destinatario, estado de envío y reintentos; Prisma puede actualizar
+`updatedAt`. Una regresión PostgreSQL verifica esa conservación y la sentencia
+nativa. La UI usa la revalidación de la Server Action, sin lanzar además un
+`router.refresh()` que duplique la recarga.
